@@ -1,15 +1,44 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { GraduationCap, ArrowLeft, User, BookOpen, Mail, Lock } from 'lucide-react'
+import { auth, db } from './firebase'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true)
   const [userType, setUserType] = useState('parent') // 'parent' or 'student'
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle form submission logic here
-    console.log('Form submitted', { isLogin, userType })
+    setError('')
+    const email = e.target.email.value
+    const password = e.target.password.value
+    const name = e.target.name ? e.target.name.value : ''
+
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password)
+        console.log('User logged in')
+        // Redirect or update UI
+      } else {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        const user = userCredential.user
+
+        await setDoc(doc(db, 'users', user.uid), {
+          name: name,
+          email: email,
+          userType: userType,
+          createdAt: serverTimestamp()
+        })
+        console.log('User registered and document created')
+        // Redirect or update UI
+      }
+    } catch (err) {
+      console.error(err)
+      setError(err.message)
+    }
   }
 
   return (
@@ -38,6 +67,11 @@ function Login() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded relative" role="alert">
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
 
             {!isLogin && (
               <div>
