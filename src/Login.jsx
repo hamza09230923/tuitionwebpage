@@ -13,9 +13,10 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const email = e.target.email.value
-    const password = e.target.password.value
-    const name = e.target.name ? e.target.name.value : ''
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const name = formData.get('name') || '';
 
     try {
       if (isLogin) {
