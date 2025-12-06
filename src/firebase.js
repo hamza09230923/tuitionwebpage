@@ -3,15 +3,20 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
+
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "mock-api-key",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "mock-auth-domain",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "mock-project-id",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "mock-storage-bucket",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "mock-sender-id",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "mock-app-id",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "mock-measurement-id"
+  apiKey: "AIzaSyAZniUvAr4JQO-AApWDwVJ4lqTz4Fozd4k",
+  authDomain: "learnova-a793c.firebaseapp.com",
+  projectId: "learnova-a793c",
+  storageBucket: "learnova-a793c.firebasestorage.app",
+  messagingSenderId: "746486056360",
+  appId: "1:746486056360:web:6a04aad62fe8d4076e499d",
+  measurementId: "G-D1E21BVFGT"
 };
+
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

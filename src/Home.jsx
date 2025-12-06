@@ -199,19 +199,15 @@ function Home() {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Comprehensive GCSE support for Years 7-11 across all major subjects
+            Comprehensive GCSE support for Years 7-11
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { name: 'Mathematics', description: 'GCSE Maths (Foundation & Higher)' },
-              { name: 'English Language', description: 'Reading, writing, and language skills' },
-              { name: 'English Literature', description: 'Poetry, prose, and drama analysis' },
-              { name: 'Biology', description: 'Complete GCSE Biology curriculum' },
-              { name: 'Chemistry', description: 'Complete GCSE Chemistry curriculum' },
-              { name: 'Physics', description: 'Complete GCSE Physics curriculum' },
+              { name: 'Maths', description: 'GCSE Maths (Foundation & Higher)' },
               { name: 'Combined Science', description: 'Trilogy and Synergy pathways' },
-              { name: 'History', description: 'GCSE History with source analysis' },
-              { name: 'Geography', description: 'Physical and human geography' }
+              { name: 'Triple Science', description: 'Biology, Chemistry, and Physics' },
+              { name: 'English Language', description: 'Reading, writing, and language skills' },
+              { name: 'English Literature', description: 'Poetry, prose, and drama analysis' }
             ].map((subject) => (
               <div key={subject.name} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-blue-600">
                 <div className="flex items-start mb-2">

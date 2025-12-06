@@ -38,7 +38,20 @@ function Login() {
       }
     } catch (err) {
       console.error(err)
-      setError(err.message)
+      // Provide user-friendly error messages
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already registered. Please sign in instead or use a different email.')
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.')
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.')
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email. Please sign up first.')
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again.')
+      } else {
+        setError(err.message)
+      }
     }
   }
 
@@ -71,6 +84,18 @@ function Login() {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded relative" role="alert">
                 <span className="block sm:inline">{error}</span>
+                {error.includes('already registered') && !isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(true)
+                      setError('')
+                    }}
+                    className="mt-2 text-sm font-medium underline hover:text-red-700"
+                  >
+                    Switch to Sign In
+                  </button>
+                )}
               </div>
             )}
 
