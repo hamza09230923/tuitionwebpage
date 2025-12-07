@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { GraduationCap, ArrowLeft, User, BookOpen, Mail, Lock } from 'lucide-react'
 import { auth, db } from './firebase'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
@@ -9,6 +9,7 @@ function Login() {
   const [isLogin, setIsLogin] = useState(true)
   const [userType, setUserType] = useState('parent') // 'parent' or 'student'
   const [error, setError] = useState('')
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -22,7 +23,7 @@ function Login() {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password)
         console.log('User logged in')
-        // Redirect or update UI
+        navigate('/dashboard')
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
         const user = userCredential.user
@@ -34,7 +35,7 @@ function Login() {
           createdAt: serverTimestamp()
         })
         console.log('User registered and document created')
-        // Redirect or update UI
+        navigate('/dashboard')
       }
     } catch (err) {
       console.error(err)
