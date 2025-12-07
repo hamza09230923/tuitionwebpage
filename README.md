@@ -5,7 +5,7 @@ LevelUp GCSE is a React-based landing page and future platform for GCSE tutoring
 
 ## Phase 1 – Static Launch (Immediate)
 
-**Goal:** Get `Homepage.jsx` live on a custom domain so you can start marketing.. [web:15]
+**Goal:** Get `Homepage.jsx` live on a custom domain so you can start marketing. [web:15]
 
 ### 1. Setup the repo
 
