@@ -84,7 +84,7 @@ function Home() {
               <strong>GCSE Maths, English & Science</strong> via Zoom
             </p>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              One-to-one personalized lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
+              One-to-one personalized lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and mic optional. We use Zoom chat for engagement - parents can monitor for privacy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
@@ -127,14 +127,14 @@ function Home() {
                 <ZoomIn className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Via Zoom</h3>
-              <p className="text-gray-600">Convenient online lessons from the comfort of your home. High-quality video and interactive whiteboard. Webcam and microphone are optional - we use Zoom chat to check engagement, and parents can monitor participation for privacy.</p>
+              <p className="text-gray-600">Convenient online lessons from the comfort of your home. High-quality video and interactive whiteboard. Webcam and mic optional - Zoom chat used for engagement.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Lock className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Student Privacy</h3>
-              <p className="text-gray-600">Your child only sees the teacher. Private, secure sessions designed for maximum learning focus. Webcam and mic are optional - we use Zoom chat for communication, and parents can check engagement for privacy reasons.</p>
+              <p className="text-gray-600">Your child only sees the teacher. Private, secure sessions designed for maximum learning focus. Webcam and mic optional - Zoom chat for engagement, parents can monitor for privacy.</p>
             </div>
           </div>
         </div>
@@ -341,11 +341,11 @@ function Home() {
             {[
               {
                 q: 'How do the Zoom lessons work?',
-                a: 'Each lesson is conducted one-to-one via Zoom. Your child will see only the teacher, ensuring privacy and focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We use interactive whiteboards and screen sharing to make lessons engaging and effective. All sessions are recorded for your child to review later.'
+                a: 'Each lesson is conducted one-to-one via Zoom. Your child will see only the teacher, ensuring privacy and focus. Webcam and mic optional - we use Zoom chat for engagement, parents can monitor for privacy. Interactive whiteboards and screen sharing make lessons engaging. All sessions are recorded for review.'
               },
               {
                 q: 'What equipment do we need?',
-                a: 'You just need a computer, tablet, or laptop with a stable internet connection. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We recommend using a desktop or laptop for the best experience with the interactive whiteboard.'
+                a: 'You just need a computer, tablet, or laptop with a stable internet connection. Webcam and mic optional - Zoom chat used for engagement, parents can monitor for privacy. Desktop or laptop recommended for the best experience.'
               },
               {
                 q: 'How long are the sessions?',
@@ -479,7 +479,7 @@ function Home() {
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">6. Technical Requirements</h3>
-              <p>You are responsible for ensuring you have adequate internet connection and equipment for Zoom sessions. Note that webcam and microphone are optional - not needed. We use Zoom chat to check engagement, and parents can monitor participation for privacy reasons. We are not liable for technical issues on your end, though we'll do our best to accommodate.</p>
+              <p>You are responsible for ensuring you have adequate internet connection and equipment for Zoom sessions. Webcam and mic optional - Zoom chat used for engagement. We are not liable for technical issues on your end, though we'll do our best to accommodate.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">7. Guarantees</h3>
