@@ -84,7 +84,7 @@ function Home() {
               <strong>GCSE Maths, English & Science</strong> via Zoom
             </p>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              One-to-one personalized lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
+              One-to-one personalised lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
@@ -120,7 +120,7 @@ function Home() {
                 <UserCheck className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">1-to-1 Sessions</h3>
-              <p className="text-gray-600">Personalized one-on-one attention. No group distractions - your child gets the tutor's full focus.</p>
+              <p className="text-gray-600">Personalised one-on-one attention. No group distractions - your child gets the tutor's full focus.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -153,7 +153,7 @@ function Home() {
                 <TrendingUp className="h-6 w-6 text-green-500 mr-2" />
                 <h3 className="text-xl font-semibold">Grade Improvement</h3>
               </div>
-              <p className="text-gray-600">Students consistently improve by 2-3 grades with our proven teaching methods and personalized approach.</p>
+              <p className="text-gray-600">Students consistently improve by 2-3 grades with our proven teaching methods and personalised approach.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
@@ -186,7 +186,7 @@ function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
                 <BookOpen className="h-6 w-6 text-indigo-500 mr-2" />
-                <h3 className="text-xl font-semibold">Personalized Curriculum</h3>
+                <h3 className="text-xl font-semibold">Personalised Curriculum</h3>
               </div>
               <p className="text-gray-600">Lessons tailored to your child's learning style, pace, and specific areas that need improvement.</p>
             </div>
