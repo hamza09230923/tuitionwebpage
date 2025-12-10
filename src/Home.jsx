@@ -18,7 +18,7 @@ function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-2xl font-bold text-gray-900">Lernova</span>
+              <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -145,7 +145,7 @@ function Home() {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4">Benefits for Parents & Students</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Why thousands of families choose Lernova for GCSE success
+            Why thousands of families choose MySchola for GCSE success
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md">
@@ -404,7 +404,7 @@ function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Mail className="h-6 w-6 text-blue-600 mb-3" />
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-gray-600">info@lernova.co.uk</p>
+              <p className="text-gray-600">info@myschola.co.uk</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Phone className="h-6 w-6 text-blue-600 mb-3" />
@@ -459,7 +459,7 @@ function Home() {
           <div className="prose max-w-none text-gray-600 space-y-6">
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Service Agreement</h3>
-              <p>By booking a lesson or consultation with Lernova, you agree to these terms of service. Our services include one-to-one online tutoring sessions delivered via Zoom for students in Years 7-11.</p>
+              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include one-to-one online tutoring sessions delivered via Zoom for students in Years 7-11.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">2. Booking and Cancellation</h3>
@@ -487,7 +487,7 @@ function Home() {
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">8. Intellectual Property</h3>
-              <p>All teaching materials, resources, and session recordings are the intellectual property of Lernova and are for the personal use of the enrolled student only.</p>
+              <p>All teaching materials, resources, and session recordings are the intellectual property of MySchola and are for the personal use of the enrolled student only.</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Last updated: {new Date().toLocaleDateString('en-GB')}</p>
@@ -503,7 +503,7 @@ function Home() {
             <div>
               <div className="flex items-center mb-4">
                 <GraduationCap className="h-8 w-8 text-blue-400" />
-                <span className="ml-2 text-2xl font-bold">Lernova</span>
+                <span className="ml-2 text-2xl font-bold">MySchola</span>
               </div>
               <p className="text-gray-400">Expert GCSE tutoring for Years 7-11 via Zoom.</p>
             </div>
@@ -527,7 +527,7 @@ function Home() {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="mailto:info@lernova.co.uk" className="hover:text-white transition">info@lernova.co.uk</a></li>
+                <li><a href="mailto:info@myschola.co.uk" className="hover:text-white transition">info@myschola.co.uk</a></li>
                 <li><a href="tel:02012345678" className="hover:text-white transition">020 1234 5678</a></li>
                 <li>
                   <a
@@ -543,7 +543,7 @@ function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} Lernova. All rights reserved. Tutoring for Years 7-11.</p>
+            <p>© {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 7-11.</p>
           </div>
         </div>
       </footer>

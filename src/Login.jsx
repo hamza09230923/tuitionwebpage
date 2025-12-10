@@ -62,7 +62,7 @@ function Login() {
         <div className="flex justify-center">
             <Link to="/" className="flex items-center">
                 <GraduationCap className="h-12 w-12 text-blue-600" />
-                <span className="ml-2 text-3xl font-bold text-gray-900">Lernova</span>
+                <span className="ml-2 text-3xl font-bold text-gray-900">MySchola</span>
             </Link>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
