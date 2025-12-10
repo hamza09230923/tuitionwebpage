@@ -404,7 +404,9 @@ function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Mail className="h-6 w-6 text-blue-600 mb-3" />
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-gray-600">support@myschola.co.uk</p>
+              <a href="mailto:support@myschola.uk" className="text-gray-600 hover:text-blue-600 transition">
+                support@myschola.uk
+              </a>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Phone className="h-6 w-6 text-blue-600 mb-3" />
