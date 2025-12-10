@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+
+Sitemap: https://myschola.uk/sitemap.xml
+Sitemap: https://www.myschola.uk/sitemap.xml
+
