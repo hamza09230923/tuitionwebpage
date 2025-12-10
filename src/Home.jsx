@@ -404,7 +404,7 @@ function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Mail className="h-6 w-6 text-blue-600 mb-3" />
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-gray-600">info@myschola.co.uk</p>
+              <p className="text-gray-600">support@myschola.co.uk</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Phone className="h-6 w-6 text-blue-600 mb-3" />
@@ -527,7 +527,7 @@ function Home() {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="mailto:info@myschola.co.uk" className="hover:text-white transition">info@myschola.co.uk</a></li>
+                <li><a href="mailto:support@myschola.co.uk" className="hover:text-white transition">support@myschola.co.uk</a></li>
                 <li><a href="tel:02012345678" className="hover:text-white transition">020 1234 5678</a></li>
                 <li>
                   <a
