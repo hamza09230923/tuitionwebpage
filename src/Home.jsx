@@ -77,7 +77,7 @@ function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Expert GCSE Tutoring for
+              MySchola: #1 GCSE Tutoring Platform for
               <span className="text-blue-600"> Years 7-11</span>
             </h1>
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
