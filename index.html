@@ -14,6 +14,13 @@
     <meta name="description" content="MySchola: #1 GCSE Tutoring Platform for Years 7-11. Expert one-to-one online tutoring in Maths, English & Science via Zoom. Improve grades by 2-3 levels with personalised lessons." />
     <title>MySchola - #1 GCSE Tutoring Platform for Years 7-11 | Maths, English & Science</title>
     
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://assets.calendly.com" crossorigin>
+    <link rel="dns-prefetch" href="https://assets.calendly.com">
+    
+    <!-- Performance: Preload critical resources -->
+    <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml">
+    
     <!-- Open Graph / Facebook - Required for link previews and search results -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://myschola.uk/" />
@@ -54,9 +61,10 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     
-    <!-- Calendly embed script - Required for popup widget -->
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+    <!-- Calendly CSS loaded asynchronously for better performance -->
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet"></noscript>
+    <!-- Calendly script will be loaded on-demand when user clicks booking button -->
   </body>
 </html>
 

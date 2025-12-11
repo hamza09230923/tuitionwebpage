@@ -40,14 +40,31 @@ function Home() {
   const openCalendlyPopup = () => {
     const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
     
+    // Load Calendly script dynamically for better performance (only when needed)
     if (window.Calendly) {
-      // Calendly script is loaded - use popup widget
       window.Calendly.initPopupWidget({
         url: calendlyUrl
       })
     } else {
-      // Fallback: open Calendly in new tab if script hasn't loaded yet
-      window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
+      // Load Calendly script on-demand
+      const script = document.createElement('script')
+      script.src = 'https://assets.calendly.com/assets/external/widget.js'
+      script.async = true
+      script.onload = () => {
+        if (window.Calendly) {
+          window.Calendly.initPopupWidget({
+            url: calendlyUrl
+          })
+        }
+      }
+      document.body.appendChild(script)
+      
+      // Fallback: open in new tab if script fails to load after 1 second
+      setTimeout(() => {
+        if (!window.Calendly) {
+          window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
+        }
+      }, 1000)
     }
   }
 
@@ -99,14 +116,14 @@ function Home() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div id="mobile-menu" className="md:hidden bg-white border-t" role="menu">
+          <div id="mobile-menu" className="md:hidden bg-white border-t" role="menu" aria-label="Mobile navigation menu">
             <div className="px-4 pt-2 pb-3 space-y-1">
-              <a href="#home" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">Home</a>
-              <a href="#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">How It Works</a>
-              <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">Subjects</a>
-              <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">Testimonials</a>
-              <a href="#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">FAQ</a>
-              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:bg-gray-50 font-medium">Log In</Link>
+              <a href="#home" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Home</a>
+              <a href="#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">How It Works</a>
+              <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
+              <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
+              <a href="#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
+              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:bg-gray-50 font-medium" role="menuitem">Log In</Link>
               <button
                 onClick={() => {
                   openCalendlyPopup()
@@ -114,6 +131,7 @@ function Home() {
                 }}
                 className="block w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                 aria-label="Book a free consultation"
+                role="menuitem"
               >
                 Book Free Consultation
               </button>
@@ -409,12 +427,13 @@ function Home() {
                   onClick={() => toggleFAQ(index)}
                   aria-expanded={openFAQ === index}
                   aria-controls={`faq-answer-${index}`}
+                  id={`faq-question-${index}`}
                 >
                   <span className="font-semibold text-gray-900 flex items-center">
                     <HelpCircle className="h-5 w-5 text-blue-600 mr-2" aria-hidden="true" />
                     {faq.q}
                   </span>
-                  <span className="text-blue-600" aria-hidden="true">
+                  <span className="text-blue-600" aria-hidden="true" aria-label={openFAQ === index ? "Collapse answer" : "Expand answer"}>
                     {openFAQ === index ? '−' : '+'}
                   </span>
                 </button>
@@ -539,14 +558,14 @@ function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center mb-4">
-                <GraduationCap className="h-8 w-8 text-blue-400" />
+                <GraduationCap className="h-8 w-8 text-blue-400" aria-hidden="true" />
                 <span className="ml-2 text-2xl font-bold">MySchola</span>
               </div>
               <p className="text-gray-400">Expert GCSE tutoring for Years 7-11 via Zoom.</p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-400" role="list">
                 <li><a href="#home" className="hover:text-white transition">Home</a></li>
                 <li><a href="#how-it-works" className="hover:text-white transition">How It Works</a></li>
                 <li><a href="#subjects" className="hover:text-white transition">Subjects</a></li>
@@ -555,7 +574,7 @@ function Home() {
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-400" role="list">
                 <li><a href="#privacy-policy" className="hover:text-white transition">Privacy Policy</a></li>
                 <li><a href="#terms-of-service" className="hover:text-white transition">Terms of Service</a></li>
                 <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
@@ -563,7 +582,7 @@ function Home() {
             </div>
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-400" role="list">
                 <li><a href="mailto:support@myschola.co.uk" className="hover:text-white transition">support@myschola.co.uk</a></li>
                 <li><a href="tel:02012345678" className="hover:text-white transition">020 1234 5678</a></li>
                 <li>
