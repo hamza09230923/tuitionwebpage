@@ -53,12 +53,17 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Skip to main content link for screen readers */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg">
+        Skip to main content
+      </a>
+      
       {/* Navigation */}
-      <nav className="fixed w-full top-0 z-50 bg-white shadow-sm">
+      <nav className="fixed w-full top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <GraduationCap className="h-8 w-8 text-blue-600" />
+              <GraduationCap className="h-8 w-8 text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
             </div>
 
@@ -72,7 +77,8 @@ function Home() {
               <Link to="/login" className="text-gray-700 hover:text-blue-600 transition font-medium">Log In</Link>
               <button
                 onClick={openCalendlyPopup}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                aria-label="Book a free consultation"
               >
                 Book Free Consultation
               </button>
@@ -80,17 +86,20 @@ function Home() {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2"
+              className="md:hidden p-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t">
+          <div id="mobile-menu" className="md:hidden bg-white border-t" role="menu">
             <div className="px-4 pt-2 pb-3 space-y-1">
               <a href="#home" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">Home</a>
               <a href="#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">How It Works</a>
@@ -103,7 +112,8 @@ function Home() {
                   openCalendlyPopup()
                   setMobileMenuOpen(false)
                 }}
-                className="block w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700"
+                className="block w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                aria-label="Book a free consultation"
               >
                 Book Free Consultation
               </button>
@@ -113,7 +123,8 @@ function Home() {
       </nav>
 
       {/* Hero Section - Clear Headline */}
-      <section id="home" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <main id="main-content">
+      <section id="home" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100" aria-label="Hero section">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
@@ -129,10 +140,11 @@ function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={openCalendlyPopup}
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition inline-flex items-center justify-center"
+                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                aria-label="Book a free consultation"
               >
                 Book Free Consultation
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -140,26 +152,26 @@ function Home() {
       </section>
 
       {/* How Lessons Work Section */}
-      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="how-it-works-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">How Our Lessons Work</h2>
+          <h2 id="how-it-works-heading" className="text-4xl font-bold text-center mb-12">How Our Lessons Work</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <UserCheck className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">1-to-1 Sessions</h3>
               <p className="text-gray-600">Personalised one-on-one attention. No group distractions - your child gets the tutor's full focus.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <ZoomIn className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Via Zoom</h3>
               <p className="text-gray-600">Convenient online lessons from the comfort of your home. High-quality video and interactive whiteboard. Webcam and microphone are optional - we use Zoom chat to check engagement, and parents can monitor participation for privacy.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <Lock className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Student Privacy</h3>
@@ -170,51 +182,51 @@ function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="benefits-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-4">Benefits for Parents & Students</h2>
+          <h2 id="benefits-heading" className="text-4xl font-bold text-center mb-4">Benefits for Parents & Students</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
             Why thousands of families choose MySchola for GCSE success
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
-                <TrendingUp className="h-6 w-6 text-green-500 mr-2" />
+                <TrendingUp className="h-6 w-6 text-green-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Grade Improvement</h3>
               </div>
               <p className="text-gray-600">Students consistently improve by 2-3 grades with our proven teaching methods and personalised approach.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
-                <Award className="h-6 w-6 text-blue-500 mr-2" />
+                <Award className="h-6 w-6 text-blue-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Confidence Building</h3>
               </div>
               <p className="text-gray-600">Watch your child's confidence soar as they master difficult concepts and see their progress week by week.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
-                <Target className="h-6 w-6 text-red-500 mr-2" />
+                <Target className="h-6 w-6 text-red-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Exam Focus</h3>
               </div>
               <p className="text-gray-600">Targeted exam preparation with past papers, exam techniques, and strategies tailored to GCSE requirements.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
-                <Clock className="h-6 w-6 text-purple-500 mr-2" />
+                <Clock className="h-6 w-6 text-purple-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Flexible Scheduling</h3>
               </div>
               <p className="text-gray-600">Choose times that work around your family's schedule. Evening and weekend slots available.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
-                <Users className="h-6 w-6 text-orange-500 mr-2" />
+                <Users className="h-6 w-6 text-orange-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Expert Tutors</h3>
               </div>
               <p className="text-gray-600">Qualified UK teachers with DBS checks and proven track records of GCSE success.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
-                <BookOpen className="h-6 w-6 text-indigo-500 mr-2" />
+                <BookOpen className="h-6 w-6 text-indigo-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Personalised Curriculum</h3>
               </div>
               <p className="text-gray-600">Lessons tailored to your child's learning style, pace, and specific areas that need improvement.</p>
@@ -224,9 +236,9 @@ function Home() {
       </section>
 
       {/* Subjects/Services Section */}
-      <section id="subjects" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="subjects" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="subjects-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
+          <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
             Comprehensive GCSE support for Years 7-11
           </p>
@@ -240,7 +252,7 @@ function Home() {
             ].map((subject) => (
               <div key={subject.name} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-blue-600">
                 <div className="flex items-start mb-2">
-                  <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" aria-hidden="true" />
                   <div>
                     <h3 className="text-lg font-semibold mb-1">{subject.name}</h3>
                     <p className="text-gray-600 text-sm">{subject.description}</p>
@@ -253,9 +265,9 @@ function Home() {
       </section>
 
       {/* Social Proof / Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="testimonials-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-4">What Parents & Students Say</h2>
+          <h2 id="testimonials-heading" className="text-4xl font-bold text-center mb-4">What Parents & Students Say</h2>
           <p className="text-center text-gray-600 mb-12">Real results from real families</p>
 
           {/* Results/Stats */}
@@ -317,7 +329,7 @@ function Home() {
               <div key={idx} className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" aria-hidden="true" />
                   ))}
                 </div>
                 <p className="text-gray-600 mb-4 italic">"{testimonial.text}"</p>
@@ -332,19 +344,20 @@ function Home() {
       </section>
 
       {/* Book Call Section */}
-      <section id="book-call" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600">
+      <section id="book-call" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600" aria-labelledby="book-call-heading">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-4xl font-bold mb-6">Ready to Start Your Child's GCSE Success Journey?</h2>
+          <h2 id="book-call-heading" className="text-4xl font-bold mb-6">Ready to Start Your Child's GCSE Success Journey?</h2>
           <p className="text-xl text-blue-100 mb-8">
             Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={openCalendlyPopup}
-              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition inline-flex items-center justify-center"
+              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+              aria-label="Book a free consultation"
             >
               Book Free Consultation
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </button>
           </div>
           <p className="text-blue-100 text-sm mt-6">No credit card required • Free 30-minute consultation</p>
@@ -352,9 +365,9 @@ function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="faq-heading">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+          <h2 id="faq-heading" className="text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {[
               {
@@ -392,19 +405,21 @@ function Home() {
             ].map((faq, index) => (
               <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                 <button
-                  className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition"
+                  className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                   onClick={() => toggleFAQ(index)}
+                  aria-expanded={openFAQ === index}
+                  aria-controls={`faq-answer-${index}`}
                 >
                   <span className="font-semibold text-gray-900 flex items-center">
-                    <HelpCircle className="h-5 w-5 text-blue-600 mr-2" />
+                    <HelpCircle className="h-5 w-5 text-blue-600 mr-2" aria-hidden="true" />
                     {faq.q}
                   </span>
-                  <span className="text-blue-600">
+                  <span className="text-blue-600" aria-hidden="true">
                     {openFAQ === index ? '−' : '+'}
                   </span>
                 </button>
                 {openFAQ === index && (
-                  <div className="px-6 pb-4 text-gray-600">
+                  <div id={`faq-answer-${index}`} className="px-6 pb-4 text-gray-600" role="region" aria-labelledby={`faq-question-${index}`}>
                     {faq.a}
                   </div>
                 )}
@@ -415,19 +430,19 @@ function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="contact-heading">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">Get in Touch</h2>
+          <h2 id="contact-heading" className="text-4xl font-bold text-center mb-12">Get in Touch</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <Mail className="h-6 w-6 text-blue-600 mb-3" />
+              <Mail className="h-6 w-6 text-blue-600 mb-3" aria-hidden="true" />
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
               <a href="mailto:support@myschola.uk" className="text-gray-600 hover:text-blue-600 transition">
                 support@myschola.uk
               </a>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <Phone className="h-6 w-6 text-blue-600 mb-3" />
+              <Phone className="h-6 w-6 text-blue-600 mb-3" aria-hidden="true" />
               <h3 className="text-xl font-semibold mb-2">Call Us</h3>
               <p className="text-gray-600">020 1234 5678</p>
               <p className="text-sm text-gray-500 mt-1">Mon-Fri 9am-6pm</p>
@@ -516,8 +531,10 @@ function Home() {
         </div>
       </section>
 
+      </main>
+      
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
@@ -552,7 +569,8 @@ function Home() {
                 <li>
                   <button
                     onClick={openCalendlyPopup}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-block mt-2"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-block mt-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                    aria-label="Book a consultation"
                   >
                     Book Consultation
                   </button>
