@@ -96,15 +96,6 @@ function Home() {
                 Book Free Consultation
                 <ArrowRight className="ml-2 h-5 w-5" />
               </a>
-              <a
-                href="https://calendly.com/your-link"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition border-2 border-blue-600 inline-flex items-center justify-center"
-              >
-                Apply for Trial Lesson
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
             </div>
           </div>
         </div>
@@ -317,15 +308,6 @@ function Home() {
               className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition inline-flex items-center justify-center"
             >
               Book Free Consultation
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
-            <a
-              href="https://calendly.com/your-link"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition inline-flex items-center justify-center"
-            >
-              Apply for Trial Lesson
               <ArrowRight className="ml-2 h-5 w-5" />
             </a>
           </div>
