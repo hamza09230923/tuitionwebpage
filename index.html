@@ -44,7 +44,7 @@
       },
       "contactPoint": {
         "@type": "ContactPoint",
-        "email": "support@myschola.uk",
+        "email": "support@myschola.co.uk",
         "contactType": "Customer Service"
       },
       "sameAs": [
@@ -59,12 +59,11 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Main script - defer for better performance -->
-    <script type="module" src="/src/main.jsx" defer></script>
+    <script type="module" src="/src/main.jsx"></script>
     
-    <!-- Calendly CSS loaded asynchronously for better performance with cache -->
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" media="print" onload="this.media='all'" crossorigin="anonymous">
-    <noscript><link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" crossorigin="anonymous"></noscript>
+    <!-- Calendly CSS loaded asynchronously for better performance -->
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet"></noscript>
     <!-- Calendly script will be loaded on-demand when user clicks booking button -->
   </body>
 </html>

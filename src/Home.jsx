@@ -1,5 +1,4 @@
-// Import only icons that are actually used to reduce bundle size
-import { Menu, X, BookOpen, Users, Award, ArrowRight, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, HelpCircle, ZoomIn, UserCheck, Lock } from 'lucide-react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, Check, Star, GraduationCap, Video, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -293,15 +292,15 @@ function Home() {
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-blue-600 text-white p-6 rounded-lg text-center">
               <div className="text-4xl font-bold mb-2">95%</div>
-              <div className="text-white">Students improve grades</div>
+              <div className="text-blue-100">Students improve grades</div>
             </div>
             <div className="bg-green-600 text-white p-6 rounded-lg text-center">
               <div className="text-4xl font-bold mb-2">2-3</div>
-              <div className="text-white">Grade improvement average</div>
+              <div className="text-green-100">Grade improvement average</div>
             </div>
             <div className="bg-purple-600 text-white p-6 rounded-lg text-center">
               <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-white">Successful students</div>
+              <div className="text-purple-100">Successful students</div>
             </div>
           </div>
 
@@ -366,7 +365,7 @@ function Home() {
       <section id="book-call" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600" aria-labelledby="book-call-heading">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 id="book-call-heading" className="text-4xl font-bold mb-6">Ready to Start Your Child's GCSE Success Journey?</h2>
-          <p className="text-xl text-white mb-8">
+          <p className="text-xl text-blue-100 mb-8">
             Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -379,7 +378,7 @@ function Home() {
               <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-          <p className="text-white text-sm mt-6 opacity-90">No credit card required • Free 30-minute consultation</p>
+          <p className="text-blue-100 text-sm mt-6">No credit card required • Free 30-minute consultation</p>
         </div>
       </section>
 
@@ -584,7 +583,7 @@ function Home() {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400" role="list">
-                <li><a href="mailto:support@myschola.uk" className="hover:text-white transition">support@myschola.uk</a></li>
+                <li><a href="mailto:support@myschola.co.uk" className="hover:text-white transition">support@myschola.co.uk</a></li>
                 <li><a href="tel:02012345678" className="hover:text-white transition">020 1234 5678</a></li>
                 <li>
                   <button
