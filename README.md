@@ -64,4 +64,40 @@ LevelUp GCSE is a React-based landing page and future platform for GCSE tutoring
 - [ ] Buy a `.co.uk` domain on Namecheap or Google Domains. [web:16]
 - [ ] Set up local React environment & paste the code into `src/App.jsx`. [web:15]
 - [ ] Deploy to Vercel or Firebase Hosting. [web:11]
-- [ ] Link all “Book Consultation” buttons to your Calendly event URL. [web:15]
+- [x] Calendly integration complete - See setup instructions below
+
+## Calendly Integration Setup
+
+**Status:** ✅ Calendly popup widget is integrated into all "Book Consultation" buttons.
+
+### Step 1: Add Your Calendly Event URL
+
+1. Open `src/Home.jsx`
+2. Find the `openCalendlyPopup` function (around line 15-30)
+3. Replace `'YOUR_CALENDLY_EVENT_URL'` with your actual Calendly event URL
+   - Example: `'https://calendly.com/myschola/free-20-minute-gcse-parent-consultation'`
+
+### Step 2: Configure Calendly Event Questions
+
+Go to your Calendly dashboard → Your event type ("Free 20-minute GCSE Parent Consultation") → "Invitee Questions"
+
+Add these as **REQUIRED** questions:
+
+1. **Parent full name** (Text field)
+2. **Parent email address** (Email field - Calendly collects this by default, but make it required)
+3. **Parent phone number** (Phone field)
+4. **Child's school year** (Dropdown: Year 7, Year 8, Year 9, Year 10, Year 11)
+5. **Subjects interested in** (Multiple choice: Maths, English Language, English Literature, Combined Science, Triple Science)
+6. **"How did you hear about MySchola?"** (Text field or dropdown)
+7. **Consent checkbox:** "I agree to be contacted about this consultation by email, phone and/or WhatsApp."
+8. **Consent checkbox:** "I agree to receive occasional marketing emails from MySchola (I can unsubscribe at any time)."
+
+### What Calendly Does Automatically
+
+- Stores all responses in your Calendly dashboard
+- Sends confirmation emails to parents
+- Adds events to your connected calendar (Google Calendar, Outlook, etc.)
+- Sends reminder emails before the consultation
+- Handles cancellations and rescheduling
+
+**Note:** Your website only needs the embed code (already added in `index.html`) and the popup function (already in `Home.jsx`). No backend code needed!

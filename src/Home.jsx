@@ -10,6 +10,47 @@ function Home() {
     setOpenFAQ(openFAQ === index ? null : index)
   }
 
+  /**
+   * CALENDLY INTEGRATION
+   * 
+   * STEP 1: Replace 'YOUR_CALENDLY_EVENT_URL' below with your actual Calendly event URL
+   * Example: 'https://calendly.com/myschola/free-20-minute-gcse-parent-consultation'
+   * 
+   * STEP 2: Configure Calendly Event Questions
+   * Go to your Calendly dashboard → Your event type → "Invitee Questions"
+   * Add these as REQUIRED questions:
+   * 
+   * 1. Parent full name (Text field)
+   * 2. Parent email address (Email field - Calendly collects this by default, but make it required)
+   * 3. Parent phone number (Phone field)
+   * 4. Child's school year (Dropdown: Year 7, Year 8, Year 9, Year 10, Year 11)
+   * 5. Subjects interested in (Multiple choice: Maths, English Language, English Literature, Combined Science, Triple Science)
+   * 6. "How did you hear about MySchola?" (Text field or dropdown)
+   * 7. Consent checkbox: "I agree to be contacted about this consultation by email, phone and/or WhatsApp."
+   * 8. Consent checkbox: "I agree to receive occasional marketing emails from MySchola (I can unsubscribe at any time)."
+   * 
+   * Calendly will automatically:
+   * - Store all responses
+   * - Send confirmation emails to parents
+   * - Add events to your calendar
+   * - Send reminder emails
+   * 
+   * Your website only needs the embed code (already added in index.html) and this function.
+   */
+  const openCalendlyPopup = () => {
+    const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
+    
+    if (window.Calendly) {
+      // Calendly script is loaded - use popup widget
+      window.Calendly.initPopupWidget({
+        url: calendlyUrl
+      })
+    } else {
+      // Fallback: open Calendly in new tab if script hasn't loaded yet
+      window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -29,14 +70,12 @@ function Home() {
               <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
               <a href="#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
               <Link to="/login" className="text-gray-700 hover:text-blue-600 transition font-medium">Log In</Link>
-              <a
-                href="https://calendly.com/your-link"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={openCalendlyPopup}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
               >
                 Book Free Consultation
-              </a>
+              </button>
             </div>
 
             {/* Mobile menu button */}
@@ -59,14 +98,15 @@ function Home() {
               <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">Testimonials</a>
               <a href="#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50">FAQ</a>
               <Link to="/login" className="block px-3 py-2 text-gray-700 hover:bg-gray-50 font-medium">Log In</Link>
-              <a
-                href="https://calendly.com/your-link"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700"
+              <button
+                onClick={() => {
+                  openCalendlyPopup()
+                  setMobileMenuOpen(false)
+                }}
+                className="block w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700"
               >
                 Book Free Consultation
-              </a>
+              </button>
             </div>
           </div>
         )}
@@ -87,15 +127,13 @@ function Home() {
               One-to-one personalised lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="https://calendly.com/your-link"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={openCalendlyPopup}
                 className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition inline-flex items-center justify-center"
               >
                 Book Free Consultation
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -301,15 +339,13 @@ function Home() {
             Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://calendly.com/your-link"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={openCalendlyPopup}
               className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition inline-flex items-center justify-center"
             >
               Book Free Consultation
               <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
+            </button>
           </div>
           <p className="text-blue-100 text-sm mt-6">No credit card required • Free 30-minute consultation</p>
         </div>
@@ -514,14 +550,12 @@ function Home() {
                 <li><a href="mailto:support@myschola.co.uk" className="hover:text-white transition">support@myschola.co.uk</a></li>
                 <li><a href="tel:02012345678" className="hover:text-white transition">020 1234 5678</a></li>
                 <li>
-                  <a
-                    href="https://calendly.com/your-link"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={openCalendlyPopup}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-block mt-2"
                   >
                     Book Consultation
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
