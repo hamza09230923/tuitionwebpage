@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Students can read their own data
+    match /students/{studentId} {
+      allow read: if request.auth != null && request.auth.uid == studentId;
+      allow write: if false; // Only admins can write (manually or via admin panel)
+    }
+    
+    // Students can read subjects
+    match /subjects/{subjectId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    
+    // Students can read recordings
+    match /recordings/{recordingId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    
+    // Students can read homeworks
+    match /homeworks/{homeworkId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    
+    // Students can read and write their own submissions
+    match /submissions/{submissionId} {
+      allow read: if request.auth != null && 
+        resource.data.studentId == request.auth.uid;
+      allow create: if request.auth != null && 
+        request.resource.data.studentId == request.auth.uid;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
+
