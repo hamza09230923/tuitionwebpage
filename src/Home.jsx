@@ -17,7 +17,7 @@ function Home() {
    * Example: 'https://calendly.com/myschola/free-20-minute-gcse-parent-consultation'
    * 
    * STEP 2: Configure Calendly Event Questions
-   * Go to your Calendly dashboard → Your event type → "Invitee Questions"
+   * Go to your Calendly dashboard -> Your event type -> "Invitee Questions"
    * Add these as REQUIRED questions:
    * 
    * 1. Parent full name (Text field)
@@ -25,7 +25,7 @@ function Home() {
    * 3. Parent phone number (Phone field)
    * 4. Child's school year (Dropdown: Year 7, Year 8, Year 9, Year 10, Year 11)
    * 5. Subjects interested in (Multiple choice: Maths, English Language, English Literature, Combined Science, Triple Science)
-   * 6. "How did you hear about MySchola?" (Text field or dropdown)
+   * 6. "How did you hear about MySchola- " (Text field or dropdown)
    * 7. Consent checkbox: "I agree to be contacted about this consultation by email, phone and/or WhatsApp."
    * 8. Consent checkbox: "I agree to receive occasional marketing emails from MySchola (I can unsubscribe at any time)."
    * 
@@ -105,11 +105,11 @@ function Home() {
             <button
               className="md:hidden p-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={mobileMenuOpen -  "Close menu" : "Open menu"}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+              {mobileMenuOpen -  <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -311,37 +311,37 @@ function Home() {
                 name: 'Sarah M., Parent',
                 text: 'My daughter went from a Grade 5 to Grade 8 in Maths in just one term! The 1-to-1 Zoom sessions were perfect - she felt comfortable asking questions without other students around.',
                 rating: 5,
-                result: 'Maths: Grade 5 → Grade 8'
+                result: 'Maths: Grade 5 to Grade 8'
               },
               {
                 name: 'James T., Student',
                 text: 'I was really struggling with English Literature, but my tutor made it click. The exam techniques I learned helped me get a Grade 7. The Zoom sessions were so convenient!',
                 rating: 5,
-                result: 'English Lit: Grade 4 → Grade 7'
+                result: 'English Lit: Grade 4 to Grade 7'
               },
               {
                 name: 'Emma L., Parent',
                 text: 'The confidence my son gained was incredible. He went from dreading Science to loving it. His Chemistry grade improved from 5 to 8. Worth every penny!',
                 rating: 5,
-                result: 'Chemistry: Grade 5 → Grade 8'
+                result: 'Chemistry: Grade 5 to Grade 8'
               },
               {
                 name: 'Michael R., Student',
                 text: 'My tutor was amazing! She explained everything so clearly and helped me with past papers. I finally understood how to approach exam questions properly.',
                 rating: 5,
-                result: 'Physics: Grade 6 → Grade 9'
+                result: 'Physics: Grade 6 to Grade 9'
               },
               {
                 name: 'Lisa K., Parent',
                 text: 'As a working parent, the flexible scheduling was a lifesaver. My daughter could do evening sessions that fit around school and activities. Highly recommend!',
                 rating: 5,
-                result: 'Maths: Grade 6 → Grade 8'
+                result: 'Maths: Grade 6 to Grade 8'
               },
               {
                 name: 'David P., Parent',
                 text: 'The privacy of the sessions meant my son felt comfortable making mistakes and asking for help. His confidence has grown so much, and his grades show it!',
                 rating: 5,
-                result: 'English: Grade 5 → Grade 7'
+                result: 'English: Grade 5 to Grade 7'
               }
             ].map((testimonial, idx) => (
               <div key={idx} className="bg-white p-6 rounded-lg shadow-md">
@@ -352,7 +352,7 @@ function Home() {
                 </div>
                 <p className="text-gray-600 mb-4 italic">"{testimonial.text}"</p>
                 <div className="border-t pt-4">
-                  <p className="font-semibold text-gray-900">— {testimonial.name}</p>
+                  <p className="font-semibold text-gray-900">- {testimonial.name}</p>
                   <p className="text-sm text-blue-600 font-medium mt-1">{testimonial.result}</p>
                 </div>
               </div>
@@ -364,7 +364,7 @@ function Home() {
       {/* Book Call Section */}
       <section id="book-call" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600" aria-labelledby="book-call-heading">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 id="book-call-heading" className="text-4xl font-bold mb-6">Ready to Start Your Child's GCSE Success Journey?</h2>
+          <h2 id="book-call-heading" className="text-4xl font-bold mb-6">Ready to Start Your Child's GCSE Success Journey- </h2>
           <p className="text-xl text-blue-100 mb-8">
             Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
           </p>
@@ -378,7 +378,7 @@ function Home() {
               <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-          <p className="text-blue-100 text-sm mt-6">No credit card required • Free 30-minute consultation</p>
+          <p className="text-blue-100 text-sm mt-6">No credit card required - Free 30-minute consultation</p>
         </div>
       </section>
 
@@ -389,35 +389,35 @@ function Home() {
           <div className="space-y-4">
             {[
               {
-                q: 'How do the Zoom lessons work?',
+                q: 'How do the Zoom lessons work- ',
                 a: 'Each lesson is conducted one-to-one via Zoom. Your child will see only the teacher, ensuring privacy and focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We use interactive whiteboards and screen sharing to make lessons engaging and effective. All sessions are recorded for your child to review later.'
               },
               {
-                q: 'What equipment do we need?',
+                q: 'What equipment do we need- ',
                 a: 'You just need a computer, tablet, or laptop with a stable internet connection. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We recommend using a desktop or laptop for the best experience with the interactive whiteboard.'
               },
               {
-                q: 'How long are the sessions?',
+                q: 'How long are the sessions- ',
                 a: 'Standard sessions are 60 minutes, but we also offer 45-minute and 90-minute options depending on your child\'s needs and attention span. You can discuss the best duration during your free consultation.'
               },
               {
-                q: 'Can I choose the tutor?',
+                q: 'Can I choose the tutor- ',
                 a: 'Yes! During your consultation, we\'ll discuss your child\'s learning style and match them with the best tutor. You can also request specific tutors based on availability.'
               },
               {
-                q: 'What if my child misses a session?',
+                q: 'What if my child misses a session- ',
                 a: 'We offer flexible rescheduling with 24 hours notice. Missed sessions can be rescheduled to another time that works for you. We understand that life happens!'
               },
               {
-                q: 'Do you provide homework and practice materials?',
+                q: 'Do you provide homework and practice materials- ',
                 a: 'Absolutely! Each tutor provides tailored homework assignments, practice papers, and additional resources to reinforce learning between sessions. All materials are included in the lesson price.'
               },
               {
-                q: 'How quickly will we see results?',
+                q: 'How quickly will we see results- ',
                 a: 'Most students see improvement within 4-6 weeks of regular sessions. However, every child is different. We track progress regularly and adjust our approach to ensure maximum effectiveness.'
               },
               {
-                q: 'What age groups do you teach?',
+                q: 'What age groups do you teach- ',
                 a: 'We specialize in Years 7-11, preparing students for GCSEs. This includes both Foundation and Higher tier courses across all major GCSE subjects.'
               }
             ].map((faq, index) => (
@@ -433,8 +433,8 @@ function Home() {
                     <HelpCircle className="h-5 w-5 text-blue-600 mr-2" aria-hidden="true" />
                     {faq.q}
                   </span>
-                  <span className="text-blue-600" aria-hidden="true" aria-label={openFAQ === index ? "Collapse answer" : "Expand answer"}>
-                    {openFAQ === index ? '−' : '+'}
+                    <span className="text-blue-600" aria-hidden="true" aria-label={openFAQ === index ? 'Collapse answer' : 'Expand answer'}>
+                      {openFAQ === index ? '-' : '+'}
                   </span>
                 </button>
                 {openFAQ === index && (
@@ -598,7 +598,7 @@ function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 7-11.</p>
+            <p>(c) {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 7-11.</p>
           </div>
         </div>
       </footer>
