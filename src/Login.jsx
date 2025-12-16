@@ -17,11 +17,19 @@ function Login() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          console.log('Checking student document for UID:', user.uid)
-          let studentDoc
+          console.log('Checking profile documents for UID:', user.uid)
+
+          let studentDoc, teacherDoc, adminDoc
           try {
-            studentDoc = await getDoc(doc(db, 'students', user.uid))
-            console.log('Student document exists:', studentDoc.exists())
+            ;[studentDoc, teacherDoc, adminDoc] = await Promise.all([
+              getDoc(doc(db, 'students', user.uid)),
+              getDoc(doc(db, 'teachers', user.uid)),
+              getDoc(doc(db, 'admins', user.uid))
+            ])
+
+            console.log('Student doc exists:', studentDoc.exists())
+            console.log('Teacher doc exists:', teacherDoc.exists())
+            console.log('Admin doc exists:', adminDoc.exists())
           } catch (firestoreError) {
             console.error('Firestore error:', firestoreError)
             if (firestoreError.code === 'permission-denied') {
@@ -33,19 +41,26 @@ function Login() {
             }
             throw firestoreError
           }
-          
+
           if (studentDoc.exists()) {
-            // User is logged in and has student document, redirect to dashboard
+            // Student account: redirect to dashboard
             const returnPath = location.state?.from?.pathname || '/app/dashboard'
-            console.log('Redirecting to:', returnPath)
+            console.log('Redirecting student to:', returnPath)
             navigate(returnPath, { replace: true })
             return
-          } else {
-            // User is logged in but no student document - sign them out
-            console.warn('Student document not found for UID:', user.uid)
-            await auth.signOut()
-            setError('Student profile not found. Please contact your teacher.')
           }
+
+          if (teacherDoc.exists() || adminDoc.exists()) {
+            // Teacher or admin account: redirect to admin panel (upload/management)
+            console.log('Redirecting teacher/admin to /admin')
+            navigate('/admin', { replace: true })
+            return
+          }
+
+          // Logged in but no profile anywhere – sign out
+          console.warn('No student/teacher/admin profile found for UID:', user.uid)
+          await auth.signOut()
+          setError('Profile not found. Please contact your administrator.')
         } catch (err) {
           console.error('Error checking student status:', err)
           if (err.code === 'permission-denied') {
@@ -78,18 +93,25 @@ function Login() {
       const user = userCredential.user
       console.log('Sign in successful. User UID:', user.uid)
       
-      // Verify student document exists
-      console.log('Checking student document in Firestore...')
-      let studentDoc
+      // Verify profile exists in one of the role collections
+      console.log('Checking profile documents in Firestore...')
+      let studentDoc, teacherDoc, adminDoc
       try {
-        studentDoc = await getDoc(doc(db, 'students', user.uid))
+        ;[studentDoc, teacherDoc, adminDoc] = await Promise.all([
+          getDoc(doc(db, 'students', user.uid)),
+          getDoc(doc(db, 'teachers', user.uid)),
+          getDoc(doc(db, 'admins', user.uid))
+        ])
+
         console.log('Student document exists:', studentDoc.exists())
+        console.log('Teacher document exists:', teacherDoc.exists())
+        console.log('Admin document exists:', adminDoc.exists())
       } catch (firestoreError) {
         console.error('Firestore error:', firestoreError)
         // Check if it's a permission error
         if (firestoreError.code === 'permission-denied') {
           console.error('PERMISSION DENIED - Check your Firestore security rules!')
-          setError('Permission denied. Please check that Firestore security rules are published and allow authenticated users to read their own student document.')
+          setError('Permission denied. Please check that Firestore security rules are published and allow authenticated users to read their own profile document.')
           setLoading(false)
           await auth.signOut()
           return
@@ -97,24 +119,27 @@ function Login() {
         throw firestoreError // Re-throw if it's not a permission error
       }
       
-      if (!studentDoc.exists()) {
-        // Sign out if no student document
-        console.error('Student document not found for UID:', user.uid)
-        console.error('Please create a document in Firestore:')
-        console.error('  Collection: students')
-        console.error('  Document ID:', user.uid)
-        console.error('  Fields: name (string), email (string), subjects (array)')
-        
-        await auth.signOut()
-        setError(`Student profile not found. Please create a document in Firestore with Document ID: ${user.uid}`)
-        setLoading(false)
+      if (studentDoc.exists()) {
+        // Student document exists, redirect to student dashboard
+        console.log('Student document found. Redirecting to dashboard...')
+        const returnPath = location.state?.from?.pathname || '/app/dashboard'
+        navigate(returnPath, { replace: true })
         return
       }
-      
-      // Student document exists, redirect to dashboard
-      console.log('Student document found. Redirecting to dashboard...')
-      const returnPath = location.state?.from?.pathname || '/app/dashboard'
-      navigate(returnPath, { replace: true })
+
+      if (teacherDoc.exists() || adminDoc.exists()) {
+        // Teacher or admin document exists, redirect to admin panel
+        console.log('Teacher/admin document found. Redirecting to admin panel...')
+        navigate('/admin', { replace: true })
+        return
+      }
+
+      // No matching profile found
+      console.error('No student/teacher/admin profile found for UID:', user.uid)
+      await auth.signOut()
+      setError(`Profile not found. Please create a document in Firestore in one of: students, teachers, admins with Document ID: ${user.uid}`)
+      setLoading(false)
+      return
     } catch (err) {
       console.error(err)
       // Provide user-friendly error messages

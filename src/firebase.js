@@ -2,26 +2,26 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
+import { getStorage } from 'firebase/storage';
 
-// Firebase configuration from environment variables
-// Create a .env file in the root directory with your Firebase credentials
+// Firebase configuration for myscola-5ec1f project
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: 'AIzaSyBkMktbTfBNIdhtBwCC_cRBEavKeuTyCGA',
+  authDomain: 'myschola-5ec1f.firebaseapp.com',
+  projectId: 'myschola-5ec1f',
+  // Use the Firebase Storage bucket name (not the hosting domain)
+  // Check in Firebase Console → Storage for the exact bucket ID.
+  storageBucket: 'myschola-5ec1f.appspot.com',
+  messagingSenderId: '927860875256',
+  appId: '1:927860875256:web:ce73f8eabd09cac6f3400d',
+  measurementId: 'G-XTC703H7RN'
 };
 
-// Validate that all required config values are present
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.error('Firebase configuration is missing. Please check your .env file.');
-  throw new Error('Firebase configuration error');
-}
-
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Export Firebase services used in the app
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
+export const storage = getStorage(app);

@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Video, FileText, Save, X, CheckCircle, Clock } from 'lucide-react'
-import { db } from '../firebase'
+import { auth, db, storage } from '../firebase'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { collection, getDocs, addDoc, serverTimestamp, doc, getDoc, Timestamp, updateDoc, query, where } from 'firebase/firestore'
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 
 function Admin() {
   const navigate = useNavigate()
-  const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
+  const [authChecking, setAuthChecking] = useState(true)
+  const [isTeacher, setIsTeacher] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedSubjectData, setSelectedSubjectData] = useState(null)
@@ -15,9 +19,11 @@ function Admin() {
   
   // Recording form
   const [recordingTitle, setRecordingTitle] = useState('')
-  const [recordingVideoUrl, setRecordingVideoUrl] = useState('')
+  const [recordingFile, setRecordingFile] = useState(null)
+  const [uploadProgress, setUploadProgress] = useState(null)
   const [examBoard, setExamBoard] = useState('')
   const [tier, setTier] = useState('')
+  const [yearGroup, setYearGroup] = useState('')
   
   // Approval
   const [pendingRecordings, setPendingRecordings] = useState([])
@@ -30,6 +36,57 @@ function Admin() {
   
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  // Check Firebase auth and ensure user is a teacher or admin
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // Not logged in at all – go to login
+        navigate('/login', { replace: true })
+        setAuthChecking(false)
+        return
+      }
+
+      try {
+        const [teacherDoc, adminDoc] = await Promise.all([
+          getDoc(doc(db, 'teachers', user.uid)),
+          getDoc(doc(db, 'admins', user.uid))
+        ])
+
+        const teacherExists = teacherDoc.exists()
+        const adminExists = adminDoc.exists()
+
+        if (teacherExists || adminExists) {
+          setAuthenticated(true)
+          setIsTeacher(teacherExists)
+          setIsAdmin(adminExists)
+          setMessage('')
+        } else {
+          // Logged in but not a teacher/admin
+          setMessage('You are not authorised to access the admin panel.')
+          navigate('/login', { replace: true })
+        }
+      } catch (err) {
+        console.error('Error checking admin/teacher status:', err)
+        setMessage('Failed to verify your permissions.')
+        navigate('/login', { replace: true })
+      } finally {
+        setAuthChecking(false)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [navigate])
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth)
+      navigate('/login', { replace: true })
+    } catch (err) {
+      console.error('Error logging out:', err)
+      setMessage('Failed to log out. Please try again.')
+    }
+  }
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -104,17 +161,6 @@ function Admin() {
     setTier('')
   }, [selectedSubject, subjects])
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123'
-    if (password === adminPassword) {
-      setAuthenticated(true)
-      setMessage('')
-    } else {
-      setMessage('Incorrect password')
-    }
-  }
-
   const addQuestion = () => {
     setQuestions([...questions, { question: '', correctAnswer: '' }])
   }
@@ -129,7 +175,7 @@ function Admin() {
     setQuestions(updated)
   }
 
-  // Check if subject is English (no tier needed)
+  // Check if subject is English (no Foundation/Higher tier)
   const isEnglishSubject = () => {
     if (!selectedSubjectData) return false
     const name = selectedSubjectData.name?.toLowerCase() || ''
@@ -138,39 +184,69 @@ function Admin() {
 
   const handleSubmitRecording = async (e) => {
     e.preventDefault()
-    if (!selectedSubject || !recordingTitle || !recordingVideoUrl || !examBoard) {
+    if (!selectedSubject || !recordingTitle || !examBoard || !yearGroup) {
       setMessage('Please fill in all required fields')
       return
     }
 
-    // Validate tier for non-English subjects
+    if (!recordingFile) {
+      setMessage('Please select a video file (MP4)')
+      return
+    }
+
+    // Foundation/Higher required only for Maths & Sciences (non-English)
     if (!isEnglishSubject() && !tier) {
-      setMessage('Please select a tier (Foundation or Higher)')
+      setMessage('Please select a tier (Foundation or Higher) for this subject')
       return
     }
 
     setLoading(true)
     setMessage('')
     try {
+      // Upload video file to Firebase Storage with progress
+      const filePath = `recordings/${selectedSubject}/${Date.now()}_${recordingFile.name}`
+      const fileRef = ref(storage, filePath)
+      const uploadTask = uploadBytesResumable(fileRef, recordingFile)
+
+      await new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+            setUploadProgress(percent)
+          },
+          (error) => reject(error),
+          () => resolve()
+        )
+      })
+
+      const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref)
+
       await addDoc(collection(db, 'recordings'), {
         subjectId: selectedSubject,
         title: recordingTitle,
-        videoUrl: recordingVideoUrl,
+        videoUrl: downloadUrl,
+        originalFileName: recordingFile.name,
         examBoard: examBoard,
-        tier: isEnglishSubject() ? null : tier, // No tier for English
-        approvalStatus: 'pending', // Default to pending
+        tier: isEnglishSubject() ? null : tier,
+        yearGroup,
+        // Auto-approve recordings created from the teacher/admin panel
+        approvalStatus: 'approved',
         date: serverTimestamp(),
         createdAt: serverTimestamp()
       })
       
       setMessage('Recording added successfully! It will be visible to students after approval.')
       setRecordingTitle('')
-      setRecordingVideoUrl('')
+      setRecordingFile(null)
       setExamBoard('')
       setTier('')
+      setYearGroup('')
+      setUploadProgress(null)
     } catch (err) {
       console.error('Error adding recording:', err)
       setMessage('Failed to add recording')
+      setUploadProgress(null)
     } finally {
       setLoading(false)
     }
@@ -245,43 +321,20 @@ function Admin() {
     }
   }
 
-  if (!authenticated) {
+  if (authChecking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Login</h1>
-          <form onSubmit={handleLogin}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            {message && (
-              <div className="mb-4 text-red-600 text-sm">{message}</div>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              Login
-            </button>
-          </form>
-          <button
-            onClick={() => navigate('/')}
-            className="mt-4 w-full text-gray-600 hover:text-gray-900 underline text-sm"
-          >
-            Back to site
-          </button>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Checking permissions...</p>
         </div>
       </div>
     )
+  }
+
+  if (!authenticated) {
+    // We already navigated away in the auth effect; render nothing here
+    return null
   }
 
   return (
@@ -289,14 +342,83 @@ function Admin() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <button
-              onClick={() => navigate('/')}
-              className="text-gray-600 hover:text-gray-900 underline text-sm"
-            >
-              Back to site
-            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {isAdmin ? 'Admin Panel' : 'Teacher Panel'}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {isAdmin
+                  ? 'Manage recordings, homework and approvals.'
+                  : 'Add recordings and homework for your students.'}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/app/dashboard')}
+                className="text-gray-600 hover:text-gray-900 underline text-sm"
+              >
+                Back to dashboard
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-red-600 hover:text-red-700 underline"
+              >
+                Log out
+              </button>
+            </div>
           </div>
+        </div>
+
+        {/* Subject overview (student-like cards) */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Your Subjects</h2>
+              <p className="text-sm text-gray-600">Select a subject to manage recordings or homework.</p>
+            </div>
+          </div>
+          {subjects.length === 0 ? (
+            <div className="text-gray-600 text-sm">No subjects available.</div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {subjects.map((subject) => (
+                <div
+                  key={subject.id}
+                  className={`border rounded-lg p-4 transition hover:shadow-sm ${
+                    selectedSubject === subject.id ? 'border-blue-500 ring-1 ring-blue-200' : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900">{subject.name}</h3>
+                    {selectedSubject === subject.id && (
+                      <span className="text-xs text-blue-600 font-semibold">Selected</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{subject.description || 'No description provided.'}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedSubject(subject.id)}
+                      className="px-3 py-2 text-sm rounded-md border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
+                    >
+                      Manage
+                    </button>
+                    <button
+                      onClick={() => navigate(`/app/subject/${subject.id}/recordings`)}
+                      className="px-3 py-2 text-sm rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      View as student
+                    </button>
+                    <button
+                      onClick={() => navigate(`/app/subject/${subject.id}/homework`)}
+                      className="px-3 py-2 text-sm rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      Homework view
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -323,22 +445,24 @@ function Admin() {
             <FileText className="h-4 w-4" />
             Add Homework
           </button>
-          <button
-            onClick={() => setActiveTab('approve')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition relative ${
-              activeTab === 'approve'
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <CheckCircle className="h-4 w-4" />
-            Approve Recordings
-            {pendingRecordings.length > 0 && (
-              <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                {pendingRecordings.length}
-              </span>
-            )}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab('approve')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition relative ${
+                activeTab === 'approve'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <CheckCircle className="h-4 w-4" />
+              Approve Recordings
+              {pendingRecordings.length > 0 && (
+                <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                  {pendingRecordings.length}
+                </span>
+              )}
+            </button>
+          )}
         </div>
 
         {message && (
@@ -408,10 +532,29 @@ function Admin() {
                 </select>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Year Group *
+                </label>
+                <select
+                  value={yearGroup}
+                  onChange={(e) => setYearGroup(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Year Group</option>
+                  <option value="Year 7">Year 7</option>
+                  <option value="Year 8">Year 8</option>
+                  <option value="Year 9">Year 9</option>
+                  <option value="Year 10">Year 10</option>
+                  <option value="Year 11">Year 11</option>
+                </select>
+              </div>
+
               {!isEnglishSubject() && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tier *
+                    Tier (Maths & Sciences only) *
                   </label>
                   <select
                     value={tier}
@@ -429,23 +572,39 @@ function Admin() {
               {isEnglishSubject() && (
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                   <p className="text-sm text-blue-800">
-                    ℹ️ English subjects do not have Foundation/Higher tiers.
+                    ℹ️ English subjects do not use Foundation/Higher tiers. Tier will be stored as not set.
                   </p>
                 </div>
               )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Video URL *
+                  Video file (MP4) *
                 </label>
                 <input
-                  type="url"
-                  value={recordingVideoUrl}
-                  onChange={(e) => setRecordingVideoUrl(e.target.value)}
+                  type="file"
+                  accept="video/mp4"
+                  onChange={(e) => setRecordingFile(e.target.files?.[0] || null)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://youtube.com/watch?v=..."
                   required
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Please upload an MP4 video file from your device.
+                </p>
+                {uploadProgress !== null && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs text-gray-600 mb-1">
+                      <span>Uploading...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-2 bg-blue-600 transition-all"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -461,7 +620,7 @@ function Admin() {
         )}
 
         {/* Approval Tab */}
-        {activeTab === 'approve' && (
+        {activeTab === 'approve' && isAdmin && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Approve Recordings</h2>
             <p className="text-sm text-gray-600 mb-6">
@@ -488,6 +647,9 @@ function Admin() {
                         <div className="space-y-1 text-sm text-gray-600">
                           <p><span className="font-medium">Subject:</span> {recording.subjectName}</p>
                           <p><span className="font-medium">Exam Board:</span> {recording.examBoard}</p>
+                          {recording.yearGroup && (
+                            <p><span className="font-medium">Year:</span> {recording.yearGroup}</p>
+                          )}
                           {recording.tier && (
                             <p><span className="font-medium">Tier:</span> {recording.tier}</p>
                           )}
