@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Video, FileText, Save, X, CheckCircle, Clock } from 'lucide-react'
-import { db } from '../firebase'
+import { db, storage } from '../firebase'
 import { collection, getDocs, addDoc, serverTimestamp, doc, getDoc, Timestamp, updateDoc, query, where } from 'firebase/firestore'
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 
 function Admin() {
   const navigate = useNavigate()
@@ -16,6 +17,8 @@ function Admin() {
   // Recording form
   const [recordingTitle, setRecordingTitle] = useState('')
   const [recordingVideoUrl, setRecordingVideoUrl] = useState('')
+  const [recordingFile, setRecordingFile] = useState(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [examBoard, setExamBoard] = useState('')
   const [tier, setTier] = useState('')
   
@@ -138,8 +141,14 @@ function Admin() {
 
   const handleSubmitRecording = async (e) => {
     e.preventDefault()
-    if (!selectedSubject || !recordingTitle || !recordingVideoUrl || !examBoard) {
+    if (!selectedSubject || !recordingTitle || !examBoard) {
       setMessage('Please fill in all required fields')
+      return
+    }
+
+    // Require either a video URL or an uploaded file
+    if (!recordingVideoUrl && !recordingFile) {
+      setMessage('Provide a video URL or upload a file')
       return
     }
 
@@ -152,10 +161,33 @@ function Admin() {
     setLoading(true)
     setMessage('')
     try {
+      let finalVideoUrl = recordingVideoUrl
+
+      // If a file is provided, upload to Firebase Storage first
+      if (recordingFile) {
+        const storagePath = `recordings/${selectedSubject}/${Date.now()}-${recordingFile.name}`
+        const storageRef = ref(storage, storagePath)
+        const uploadTask = uploadBytesResumable(storageRef, recordingFile)
+
+        await new Promise((resolve, reject) => {
+          uploadTask.on('state_changed',
+            (snapshot) => {
+              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+              setUploadProgress(progress)
+            },
+            (err) => reject(err),
+            async () => {
+              finalVideoUrl = await getDownloadURL(uploadTask.snapshot.ref)
+              resolve()
+            }
+          )
+        })
+      }
+
       await addDoc(collection(db, 'recordings'), {
         subjectId: selectedSubject,
         title: recordingTitle,
-        videoUrl: recordingVideoUrl,
+        videoUrl: finalVideoUrl,
         examBoard: examBoard,
         tier: isEnglishSubject() ? null : tier, // No tier for English
         approvalStatus: 'pending', // Default to pending
@@ -166,11 +198,14 @@ function Admin() {
       setMessage('Recording added successfully! It will be visible to students after approval.')
       setRecordingTitle('')
       setRecordingVideoUrl('')
+      setRecordingFile(null)
+      setUploadProgress(0)
       setExamBoard('')
       setTier('')
     } catch (err) {
       console.error('Error adding recording:', err)
       setMessage('Failed to add recording')
+      setUploadProgress(0)
     } finally {
       setLoading(false)
     }
@@ -444,8 +479,22 @@ function Admin() {
                   onChange={(e) => setRecordingVideoUrl(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://youtube.com/watch?v=..."
-                  required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Or upload video file
+                </label>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => setRecordingFile(e.target.files?.[0] || null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <p className="text-sm text-gray-600 mt-2">Uploading... {uploadProgress}%</p>
+                )}
               </div>
             </div>
 
@@ -641,4 +690,3 @@ function Admin() {
 }
 
 export default Admin
-
