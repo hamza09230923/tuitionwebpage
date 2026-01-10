@@ -23,7 +23,7 @@ function Home() {
    * 1. Parent full name (Text field)
    * 2. Parent email address (Email field - Calendly collects this by default, but make it required)
    * 3. Parent phone number (Phone field)
-   * 4. Child's school year (Dropdown: Year 7, Year 8, Year 9, Year 10, Year 11)
+   * 4. Child's school year (Dropdown: Year 9, Year 10, Year 11)
    * 5. Subjects interested in (Multiple choice: Maths, English Language, English Literature, Combined Science, Triple Science)
    * 6. "How did you hear about MySchola?" (Text field or dropdown)
    * 7. Consent checkbox: "I agree to be contacted about this consultation by email, phone and/or WhatsApp."
@@ -147,13 +147,13 @@ function Home() {
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               MySchola: #1 GCSE Tutoring Platform for
-              <span className="text-blue-600"> Years 7-11</span>
+              <span className="text-blue-600"> Years 9-11</span>
             </h1>
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
               <strong>GCSE Maths, English & Science</strong> via Zoom
             </p>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              One-to-one personalised lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
+              One-to-one personalised lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We use interactive whiteboards and screen sharing to make lessons engaging and effective. All sessions are recorded for your child to review later.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -186,14 +186,14 @@ function Home() {
                 <ZoomIn className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Via Zoom</h3>
-              <p className="text-gray-600">Convenient online lessons from the comfort of your home. High-quality video and interactive whiteboard. Webcam and microphone are optional - we use Zoom chat to check engagement, and parents can monitor participation for privacy.</p>
+              <p className="text-gray-600">Convenient online lessons from the comfort of your home. High-quality interactive whiteboards and screen sharing make lessons engaging and effective.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <Lock className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Student Privacy</h3>
-              <p className="text-gray-600">Your child only sees the teacher. Private, secure sessions designed for maximum learning focus. Webcam and mic are optional - we use Zoom chat for communication, and parents can check engagement for privacy reasons.</p>
+              <p className="text-gray-600">Your child only sees the teacher. Private, secure sessions designed for maximum learning focus. All sessions are recorded and available for review.</p>
             </div>
           </div>
         </div>
@@ -258,14 +258,14 @@ function Home() {
         <div className="max-w-7xl mx-auto">
           <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Comprehensive GCSE support for Years 7-11
+            Comprehensive GCSE support for Years 9-11
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { name: 'Maths', description: 'GCSE Maths (Foundation & Higher)' },
-              { name: 'Combined Science', description: 'Trilogy and Synergy pathways' },
-              { name: 'Triple Science', description: 'Biology, Chemistry, and Physics' },
-              { name: 'English Language', description: 'Reading, writing, and language skills' },
+              { name: 'Maths', description: 'GCSE Maths (Higher tier)' },
+              { name: 'Combined Science', description: 'Higher tier (Trilogy and Synergy pathways)' },
+              { name: 'Triple Science', description: 'Higher tier (Biology, Chemistry, and Physics)' },
+              { name: 'English Language', description: 'Higher tier - Reading, writing, and language skills' },
               { name: 'English Literature', description: 'Poetry, prose, and drama analysis' }
             ].map((subject) => (
               <div key={subject.name} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-blue-600">
@@ -394,11 +394,11 @@ function Home() {
               },
               {
                 q: 'What equipment do we need?',
-                a: 'You just need a computer, tablet, or laptop with a stable internet connection. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We recommend using a desktop or laptop for the best experience with the interactive whiteboard.'
+                a: 'You just need a computer, tablet, or laptop with a stable internet connection. Webcam and microphone are optional - not needed. We recommend using a desktop or laptop for the best experience with the interactive whiteboard.'
               },
               {
                 q: 'How long are the sessions?',
-                a: 'Standard sessions are 60 minutes, but we also offer 45-minute and 90-minute options depending on your child\'s needs and attention span. You can discuss the best duration during your free consultation.'
+                a: 'Each lesson is 60 minutes long. This duration provides optimal focus and learning time for students.'
               },
               {
                 q: 'Can I choose the tutor?',
@@ -406,7 +406,7 @@ function Home() {
               },
               {
                 q: 'What if my child misses a session?',
-                a: 'We offer flexible rescheduling with 24 hours notice. Missed sessions can be rescheduled to another time that works for you. We understand that life happens!'
+                a: 'All sessions are recorded and available for your child to watch. If your child misses a live session, they can access the pre-recorded video through their student dashboard to catch up on the content.'
               },
               {
                 q: 'Do you provide homework and practice materials?',
@@ -418,7 +418,7 @@ function Home() {
               },
               {
                 q: 'What age groups do you teach?',
-                a: 'We specialize in Years 7-11, preparing students for GCSEs. This includes both Foundation and Higher tier courses across all major GCSE subjects.'
+                a: 'We specialize in Years 9-11, preparing students for GCSEs. We offer Higher tier courses for Maths, English Language, Combined Science, and Triple Science.'
               }
             ].map((faq, index) => (
               <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -513,11 +513,12 @@ function Home() {
           <div className="prose max-w-none text-gray-600 space-y-6">
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Service Agreement</h3>
-              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include one-to-one online tutoring sessions delivered via Zoom for students in Years 7-11.</p>
+              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include one-to-one online tutoring sessions delivered via Zoom for students in Years 9-11.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">2. Booking and Cancellation</h3>
               <p>Lessons must be booked in advance. Cancellations require 24 hours notice for a full refund or reschedule. Cancellations with less than 24 hours notice may be charged at 50% of the lesson fee. No-shows will be charged the full lesson fee.</p>
+              <p className="mt-3">For pay-as-you-go bookings: Once payment is made, cancellations are not allowed. However, if your child misses a session, they can access the pre-recorded video of the lesson through their student dashboard to review the content at their convenience.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">3. Payment Terms</h3>
@@ -525,7 +526,7 @@ function Home() {
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">4. Tutor Matching</h3>
-              <p>We strive to match students with the most suitable tutor. However, if you're not satisfied after the first session, we offer a free replacement tutor or full refund.</p>
+              <p>We carefully match students with our expert tutors based on learning style, subject needs, and availability. Our tutors are highly qualified and experienced in delivering GCSE content. We encourage open communication during the initial session to ensure the best learning experience. If you have any concerns about your tutor match, please contact us so we can work together to find the best solution for your child's learning journey.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">5. Student Conduct</h3>
@@ -561,7 +562,7 @@ function Home() {
                 <GraduationCap className="h-8 w-8 text-blue-400" aria-hidden="true" />
                 <span className="ml-2 text-2xl font-bold">MySchola</span>
               </div>
-              <p className="text-gray-400">Expert GCSE tutoring for Years 7-11 via Zoom.</p>
+              <p className="text-gray-400">Expert GCSE tutoring for Years 9-11 via Zoom.</p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
@@ -583,7 +584,7 @@ function Home() {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400" role="list">
-                <li><a href="mailto:support@myschola.co.uk" className="hover:text-white transition">support@myschola.co.uk</a></li>
+                <li><a href="mailto:support@myschola.uk" className="hover:text-white transition">support@myschola.uk</a></li>
                 <li><a href="tel:02012345678" className="hover:text-white transition">020 1234 5678</a></li>
                 <li>
                   <button
@@ -598,7 +599,7 @@ function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 7-11.</p>
+            <p>© {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 9-11.</p>
           </div>
         </div>
       </footer>

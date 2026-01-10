@@ -86,7 +86,7 @@ Add these as **REQUIRED** questions:
 1. **Parent full name** (Text field)
 2. **Parent email address** (Email field - Calendly collects this by default, but make it required)
 3. **Parent phone number** (Phone field)
-4. **Child's school year** (Dropdown: Year 7, Year 8, Year 9, Year 10, Year 11)
+4. **Child's school year** (Dropdown: Year 9, Year 10, Year 11)
 5. **Subjects interested in** (Multiple choice: Maths, English Language, English Literature, Combined Science, Triple Science)
 6. **"How did you hear about MySchola?"** (Text field or dropdown)
 7. **Consent checkbox:** "I agree to be contacted about this consultation by email, phone and/or WhatsApp."
