@@ -1,11 +1,104 @@
-import { Menu, X, BookOpen, Users, Award, ArrowRight, Check, Star, GraduationCap, Video, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
-import { useState } from 'react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Video, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import testimonialVideo from '../testimonial1-5gwMtUAO.mp4'
+import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
+import testimonialVideo2 from './testimonials/testimonial2.mp4'
+
+// Video Player Component with proper thumbnail handling
+function VideoPlayer({ videoSrc, isActive, translateX, translateY, scale, opacity, blur, zIndex }) {
+  const videoRef = useRef(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    // Load video metadata to show thumbnail
+    const loadVideo = () => {
+      if (video.readyState === 0) {
+        video.load()
+      }
+    }
+
+    // Set to first frame to show thumbnail (works on mobile)
+    const handleLoadedMetadata = () => {
+      if (video.readyState >= 2) {
+        // Set to a very small time to show first frame
+        video.currentTime = 0.01
+        video.pause()
+      }
+    }
+
+    // Ensure video loads when it becomes active
+    if (isActive) {
+      loadVideo()
+    }
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata)
+    
+    // Force load metadata for thumbnail preview
+    if (video.readyState < 2) {
+      video.load()
+    } else {
+      // If already loaded, set to first frame
+      video.currentTime = 0.01
+      video.pause()
+    }
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+    }
+  }, [isActive, videoSrc])
+
+  return (
+    <div
+      className="absolute"
+      style={{
+        transform: `translateX(${translateX}%) translateY(${translateY}%) scale(${scale})`,
+        opacity: opacity,
+        zIndex: zIndex,
+        filter: `blur(${blur}px)`,
+        pointerEvents: isActive ? 'auto' : 'none',
+        transition: 'all 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
+        willChange: 'transform, opacity, filter'
+      }}
+    >
+      <div className={`rounded-2xl overflow-hidden bg-white shadow-lg transition-all duration-700 ${
+        isActive 
+          ? 'shadow-xl' 
+          : 'shadow-md'
+      }`}>
+        <video
+          ref={videoRef}
+          className="w-full h-auto max-w-xs"
+          controls={isActive}
+          playsInline
+          preload="metadata"
+        >
+          <source src={videoSrc} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  )
+}
 
 function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFAQ, setOpenFAQ] = useState(null)
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
+  
+  const testimonialVideos = [
+    { src: testimonialVideo2, id: 2 },
+    { src: testimonialVideo1, id: 1 }
+  ]
+
+  const nextVideo = () => {
+    setCurrentVideoIndex((prev) => (prev + 1) % testimonialVideos.length)
+  }
+
+  const prevVideo = () => {
+    setCurrentVideoIndex((prev) => (prev - 1 + testimonialVideos.length) % testimonialVideos.length)
+  }
 
   const toggleFAQ = (index) => {
     setOpenFAQ(openFAQ === index ? null : index)
@@ -310,18 +403,105 @@ function Home() {
       {/* Social Proof / Testimonials Section */}
       <section id="video-testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 id="video-testimonials-heading" className="text-4xl font-bold mb-4">Video Testimonials</h2>
-          <p className="text-gray-600 mb-8">Hear directly from parents and students about their results.</p>
-          <div className="max-w-xs mx-auto rounded-2xl overflow-hidden shadow-lg bg-black">
-            <video
-              className="w-full h-auto"
-              controls
-              playsInline
-              preload="metadata"
-            >
-              <source src={testimonialVideo} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+          <h2 id="video-testimonials-heading" className="text-4xl font-bold mb-4 text-gray-900">Video Testimonials</h2>
+          <p className="text-gray-600 mb-12">Hear directly from parents and students about their results.</p>
+          
+          {/* Professional Video Carousel */}
+          <div className="relative">
+            <div className="relative h-[450px] md:h-[500px] flex items-center justify-center overflow-visible">
+              <div className="relative w-full h-full flex items-center justify-center">
+                {testimonialVideos.map((video, index) => {
+                  const isActive = index === currentVideoIndex
+                  const isPrev = index === (currentVideoIndex - 1 + testimonialVideos.length) % testimonialVideos.length
+                  const isNext = index === (currentVideoIndex + 1) % testimonialVideos.length
+                  
+                  // Professional positioning - fixed to prevent cropping
+                  let translateX = 0
+                  let translateY = 0
+                  let scale = 1
+                  let opacity = 1
+                  let blur = 0
+                  let zIndex = 10
+                  
+                  if (isActive) {
+                    translateX = 0
+                    translateY = 0
+                    scale = 1
+                    opacity = 1
+                    blur = 0
+                    zIndex = 30
+                  } else if (isPrev) {
+                    translateX = -65
+                    translateY = 20
+                    scale = 0.75
+                    opacity = 0.5
+                    blur = 1
+                    zIndex = 10
+                  } else if (isNext) {
+                    translateX = 65
+                    translateY = 20
+                    scale = 0.75
+                    opacity = 0.5
+                    blur = 1
+                    zIndex = 10
+                  } else {
+                    translateX = 0
+                    translateY = 0
+                    scale = 0.5
+                    opacity = 0
+                    blur = 3
+                    zIndex = 1
+                  }
+                  
+                  return (
+                    <VideoPlayer
+                      key={video.id}
+                      videoSrc={video.src}
+                      isActive={isActive}
+                      translateX={translateX}
+                      translateY={translateY}
+                      scale={scale}
+                      opacity={opacity}
+                      blur={blur}
+                      zIndex={zIndex}
+                    />
+                  )
+                })}
+              </div>
+              
+              {/* Professional Navigation Buttons */}
+              <button
+                onClick={prevVideo}
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 hover:text-blue-600 p-3 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-200 z-40"
+                aria-label="Previous video"
+              >
+                <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+              
+              <button
+                onClick={nextVideo}
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 hover:text-blue-600 p-3 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-200 z-40"
+                aria-label="Next video"
+              >
+                <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+            </div>
+            
+            {/* Professional Dots Indicator - Positioned below video */}
+            <div className="flex justify-center items-center gap-3 mt-12 mb-4">
+              {testimonialVideos.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentVideoIndex(index)}
+                  className={`transition-all duration-300 rounded-full ${
+                    index === currentVideoIndex
+                      ? 'bg-blue-600 w-10 h-2.5 shadow-md'
+                      : 'bg-gray-300 w-2.5 h-2.5 hover:bg-gray-400 hover:scale-125'
+                  }`}
+                  aria-label={`Go to video ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
