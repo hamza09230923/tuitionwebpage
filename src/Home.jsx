@@ -1,6 +1,7 @@
-import { Menu, X, BookOpen, Users, Award, ArrowRight, Check, Star, GraduationCap, Video, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock } from 'lucide-react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, Check, Star, GraduationCap, Video, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import testimonialVideo from '../testimonial1-5gwMtUAO.mp4'
 
 function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -78,39 +79,55 @@ function Home() {
       {/* Navigation */}
       <nav className="fixed w-full top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-gray-700 hover:text-blue-600 transition">Home</a>
-              <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
-              <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
-              <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
-              <a href="#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
-              <Link to="/login" className="text-gray-700 hover:text-blue-600 transition font-medium">Log In</Link>
-              <button
-                onClick={openCalendlyPopup}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-                aria-label="Book a free consultation"
-              >
-                Book Free Consultation
-              </button>
+            <div className="hidden md:flex justify-center">
+              <div className="flex items-center space-x-8">
+                <a href="#home" className="text-gray-700 hover:text-blue-600 transition">Home</a>
+                <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
+                <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
+                <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
+                <a href="#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
+              </div>
             </div>
 
-            {/* Mobile menu button */}
-            <button
-              className="md:hidden p-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-menu"
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
-            </button>
+            <div className="flex items-center justify-end">
+              <div className="hidden md:flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 inline-flex items-center"
+                  aria-label="Log in"
+                >
+                  Log In
+                </Link>
+                <a
+                  href="https://wa.me/447344193804"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center gap-2"
+                  aria-label="Contact us on WhatsApp"
+                >
+                  <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                  Contact Us
+                </a>
+              </div>
+
+              {/* Mobile menu button */}
+              <button
+                className="md:hidden p-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu"
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -123,18 +140,26 @@ function Home() {
               <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
               <a href="#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
-              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:bg-gray-50 font-medium" role="menuitem">Log In</Link>
-              <button
-                onClick={() => {
-                  openCalendlyPopup()
-                  setMobileMenuOpen(false)
-                }}
-                className="block w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-                aria-label="Book a free consultation"
+              <Link
+                to="/login"
+                className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                 role="menuitem"
               >
-                Book Free Consultation
-              </button>
+                Log In
+              </Link>
+              <a
+                href="https://wa.me/447344193804"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-3 py-2 bg-green-500 text-white rounded-lg text-center hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                aria-label="Contact us on WhatsApp"
+                role="menuitem"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                  Contact Us
+                </span>
+              </a>
             </div>
           </div>
         )}
@@ -147,7 +172,7 @@ function Home() {
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               MySchola: #1 GCSE Tutoring Platform for
-              <span className="text-blue-600"> Years 7-11</span>
+              <span className="text-blue-600"> Years 9-11</span>
             </h1>
             <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
               <strong>GCSE Maths, English & Science</strong> via Zoom
@@ -258,7 +283,7 @@ function Home() {
         <div className="max-w-7xl mx-auto">
           <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Comprehensive GCSE support for Years 7-11
+            Comprehensive GCSE support for Years 9-11
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
@@ -283,6 +308,24 @@ function Home() {
       </section>
 
       {/* Social Proof / Testimonials Section */}
+      <section id="video-testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 id="video-testimonials-heading" className="text-4xl font-bold mb-4">Video Testimonials</h2>
+          <p className="text-gray-600 mb-8">Hear directly from parents and students about their results.</p>
+          <div className="max-w-xs mx-auto rounded-2xl overflow-hidden shadow-lg bg-black">
+            <video
+              className="w-full h-auto"
+              controls
+              playsInline
+              preload="metadata"
+            >
+              <source src={testimonialVideo} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </section>
+
       <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="testimonials-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="testimonials-heading" className="text-4xl font-bold text-center mb-4">What Parents & Students Say</h2>
@@ -418,7 +461,7 @@ function Home() {
               },
               {
                 q: 'What age groups do you teach?',
-                a: 'We specialize in Years 7-11, preparing students for GCSEs. This includes both Foundation and Higher tier courses across all major GCSE subjects.'
+                a: 'We specialize in Years 9-11, preparing students for GCSEs. This includes both Foundation and Higher tier courses across all major GCSE subjects.'
               }
             ].map((faq, index) => (
               <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -463,7 +506,9 @@ function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Phone className="h-6 w-6 text-blue-600 mb-3" aria-hidden="true" />
               <h3 className="text-xl font-semibold mb-2">Call Us</h3>
-              <p className="text-gray-600">020 1234 5678</p>
+              <a href="tel:+447344193804" className="text-gray-600 hover:text-blue-600 transition">
+                +44 7344 193804
+              </a>
               <p className="text-sm text-gray-500 mt-1">Mon-Fri 9am-6pm</p>
             </div>
           </div>
@@ -513,7 +558,7 @@ function Home() {
           <div className="prose max-w-none text-gray-600 space-y-6">
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Service Agreement</h3>
-              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include one-to-one online tutoring sessions delivered via Zoom for students in Years 7-11.</p>
+              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include one-to-one online tutoring sessions delivered via Zoom for students in Years 9-11.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">2. Booking and Cancellation</h3>
@@ -561,7 +606,7 @@ function Home() {
                 <GraduationCap className="h-8 w-8 text-blue-400" aria-hidden="true" />
                 <span className="ml-2 text-2xl font-bold">MySchola</span>
               </div>
-              <p className="text-gray-400">Expert GCSE tutoring for Years 7-11 via Zoom.</p>
+              <p className="text-gray-400">Expert GCSE tutoring for Years 9-11 via Zoom.</p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
@@ -584,7 +629,18 @@ function Home() {
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400" role="list">
                 <li><a href="mailto:support@myschola.co.uk" className="hover:text-white transition">support@myschola.co.uk</a></li>
-                <li><a href="tel:02012345678" className="hover:text-white transition">020 1234 5678</a></li>
+                <li><a href="tel:+447344193804" className="hover:text-white transition">+44 7344 193804</a></li>
+                <li>
+                  <a
+                    href="https://wa.me/447344193804"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-400 hover:text-green-300 transition inline-flex items-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                    Contact Us on WhatsApp
+                  </a>
+                </li>
                 <li>
                   <button
                     onClick={openCalendlyPopup}
@@ -598,10 +654,21 @@ function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 7-11.</p>
+            <p>© {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 9-11.</p>
           </div>
         </div>
       </footer>
+
+      {/* Floating WhatsApp Button */}
+      <a
+        href="https://wa.me/447344193804"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-all duration-300 hover:scale-110 z-50 focus:outline-none focus:ring-4 focus:ring-green-300"
+        aria-label="Contact us on WhatsApp"
+      >
+        <MessageCircle className="h-6 w-6" aria-hidden="true" />
+      </a>
     </div>
   )
 }

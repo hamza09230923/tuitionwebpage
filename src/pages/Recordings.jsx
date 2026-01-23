@@ -1,8 +1,26 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Video, Play, BookOpen, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Video, Play, BookOpen } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore'
+
+const ACCESS_STORAGE_KEY = 'subjectAccess'
+
+const readAccessList = () => {
+  try {
+    const raw = localStorage.getItem(ACCESS_STORAGE_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+const writeAccessList = (list) => {
+  localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(list))
+}
+
+const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 
 function Recordings() {
   const { subjectId } = useParams()
@@ -10,48 +28,40 @@ function Recordings() {
   const [recordings, setRecordings] = useState([])
   const [filteredRecordings, setFilteredRecordings] = useState([])
   const [subject, setSubject] = useState(null)
-  const [student, setStudent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [studentSettings, setStudentSettings] = useState(null)
+  const [pinRequired, setPinRequired] = useState(false)
+  const [pinValue, setPinValue] = useState('')
+  const [pinError, setPinError] = useState('')
+  const [subjectPin, setSubjectPin] = useState('')
+  const [accessList, setAccessList] = useState(readAccessList())
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Check authentication
         const user = auth.currentUser
         if (!user) {
           navigate('/login')
           return
         }
 
-        // Get student document to check exam board/tier settings
-        const studentDoc = await getDoc(doc(db, 'students', user.uid))
-        if (!studentDoc.exists()) {
-          setError('Student profile not found')
-          setLoading(false)
-          return
-        }
-
-        const studentData = studentDoc.data()
-        setStudent(studentData)
-
-        // Get subject-specific settings for this student
-        // Check if student has subjectSettings object with exam board/tier per subject
-        const subjectSettings = studentData.subjectSettings || {}
-        const currentSubjectSettings = subjectSettings[subjectId] || null
-        setStudentSettings(currentSubjectSettings)
-
-        // Get subject name
         const subjectDocRef = doc(db, 'subjects', subjectId)
         const subjectDoc = await getDoc(subjectDocRef)
         if (subjectDoc.exists()) {
-          setSubject({ id: subjectId, ...subjectDoc.data() })
+          const subjectData = { id: subjectId, ...subjectDoc.data() }
+          setSubject(subjectData)
+          const pin = getSubjectPin(subjectData)
+          setSubjectPin(pin)
+
+          const unlocked = !pin || accessList.includes(subjectId)
+          if (!unlocked) {
+            setPinRequired(true)
+            setLoading(false)
+            return
+          }
         }
 
-        // Get recordings for this subject
-        // Note: If you get an index error, create a composite index in Firestore
-        // for: collection='recordings', fields=['subjectId', 'approvalStatus', 'date']
         let recordingsQuery
         try {
           recordingsQuery = query(
@@ -60,33 +70,29 @@ function Recordings() {
             orderBy('date', 'desc')
           )
         } catch (err) {
-          // Fallback if orderBy fails (e.g., missing index or no date field)
           console.warn('OrderBy failed, using simple query:', err)
           recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', subjectId)
           )
         }
-        
+
         const recordingsSnapshot = await getDocs(recordingsQuery)
-        // Filter to only show approved recordings (or old recordings without approvalStatus)
         const recordingsData = recordingsSnapshot.docs
           .map(doc => ({
             id: doc.id,
             ...doc.data()
           }))
-          .filter(recording => {
-            // Show if approved, or if no approvalStatus field (backward compatibility)
-            return recording.approvalStatus === 'approved' || !recording.approvalStatus
-          })
+          .filter(recording => recording.approvalStatus === 'approved' || !recording.approvalStatus)
           .sort((a, b) => {
-            // Sort by date descending
             const dateA = a.date?.toDate ? a.date.toDate() : (a.date ? new Date(a.date) : new Date(0))
             const dateB = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : new Date(0))
             return dateB - dateA
           })
-        
+
         setRecordings(recordingsData)
+        setFilteredRecordings(recordingsData)
+        setPinRequired(false)
         setLoading(false)
       } catch (err) {
         console.error('Error loading recordings:', err)
@@ -96,70 +102,48 @@ function Recordings() {
     }
 
     if (subjectId) {
+      setLoading(true)
+      setError('')
       loadData()
     }
-  }, [subjectId, navigate])
+  }, [subjectId, navigate, accessList, reloadKey])
 
-  // Check if subject is English (no tier)
+  const handleUnlock = (e) => {
+    e.preventDefault()
+    const pin = String(subjectPin || '').trim()
+    if (!pin) {
+      setPinRequired(false)
+      return
+    }
+
+    if (pinValue.trim() !== pin) {
+      setPinError('Incorrect PIN')
+      return
+    }
+
+    const updated = Array.from(new Set([...accessList, subjectId]))
+    setAccessList(updated)
+    writeAccessList(updated)
+    setPinValue('')
+    setPinError('')
+    setPinRequired(false)
+    setReloadKey((prev) => prev + 1)
+  }
+
   const isEnglishSubject = () => {
     if (!subject) return false
     const name = subject.name?.toLowerCase() || ''
     return name.includes('english')
   }
 
-  // Filter recordings based on student's exam board and tier settings
-  useEffect(() => {
-    if (!recordings.length) {
-      setFilteredRecordings([])
-      return
-    }
-
-    // If student has no settings, show all recordings (backward compatibility)
-    if (!studentSettings || !studentSettings.examBoard) {
-      setFilteredRecordings(recordings)
-      return
-    }
-
-    const studentExamBoard = studentSettings.examBoard
-    const studentTier = studentSettings.tier
-
-    // Filter recordings to match student's exam board and tier
-    const filtered = recordings.filter(recording => {
-      const recordingBoard = recording.examBoard
-      const recordingTier = recording.tier
-
-      // Must match exam board
-      if (recordingBoard !== studentExamBoard) {
-        return false
-      }
-
-      // For English subjects, no tier matching needed
-      if (isEnglishSubject()) {
-        return true
-      }
-
-      // For other subjects, must match tier
-      if (recordingTier && studentTier) {
-        return recordingTier === studentTier
-      }
-
-      // If recording has no tier but student has tier, don't show it
-      // If student has no tier but recording has tier, don't show it
-      return !recordingTier && !studentTier
-    })
-
-    setFilteredRecordings(filtered)
-  }, [recordings, studentSettings, subject])
-
-  // Group filtered recordings by exam board and tier
   const groupRecordings = () => {
     const groups = {}
-    
+
     filteredRecordings.forEach(recording => {
       const board = recording.examBoard || 'Other'
       const tier = recording.tier || (isEnglishSubject() ? 'General' : 'Other')
       const key = `${board}_${tier}`
-      
+
       if (!groups[key]) {
         groups[key] = {
           examBoard: board,
@@ -169,9 +153,7 @@ function Recordings() {
       }
       groups[key].recordings.push(recording)
     })
-    
-    // Sort groups: AQA first, then Edexcel, then others
-    // Within each board: Foundation before Higher (if applicable)
+
     return Object.values(groups).sort((a, b) => {
       if (a.examBoard !== b.examBoard) {
         if (a.examBoard === 'AQA') return -1
@@ -191,10 +173,10 @@ function Recordings() {
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Date not available'
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    return date.toLocaleDateString('en-GB', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     })
   }
 
@@ -204,6 +186,48 @@ function Recordings() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading recordings...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (pinRequired) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Link
+            to="/app/dashboard"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Link>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">Enter Subject PIN</h1>
+            <p className="text-sm text-gray-600 mb-4">
+              This subject is locked. Enter the PIN to access recordings.
+            </p>
+            <form onSubmit={handleUnlock} className="space-y-4">
+              <input
+                type="password"
+                value={pinValue}
+                onChange={(e) => setPinValue(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Subject PIN"
+                autoFocus
+              />
+              {pinError && (
+                <div className="text-sm text-red-600">{pinError}</div>
+              )}
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+              >
+                Unlock Subject
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     )
@@ -228,24 +252,6 @@ function Recordings() {
             </h1>
           </div>
           <p className="text-gray-600">Watch past lesson recordings for this subject.</p>
-          {studentSettings && (
-            <div className="mt-3 flex items-center gap-2 text-sm">
-              <span className="text-gray-500">Your settings:</span>
-              <span className="font-semibold text-blue-600">
-                {studentSettings.examBoard}
-                {!isEnglishSubject() && studentSettings.tier && ` - ${studentSettings.tier}`}
-              </span>
-            </div>
-          )}
-          {!studentSettings && (
-            <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-md p-3 flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-yellow-800">
-                <p className="font-medium mb-1">No exam board settings found</p>
-                <p>Please contact your administrator to set your exam board and tier preferences. Until then, all recordings are shown.</p>
-              </div>
-            </div>
-          )}
         </div>
 
         {error && (
@@ -257,30 +263,13 @@ function Recordings() {
         {filteredRecordings.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
             <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            {studentSettings ? (
-              <>
-                <p className="text-gray-600 font-medium mb-2">No recordings available for your settings.</p>
-                <p className="text-sm text-gray-500">
-                  Your settings: <span className="font-semibold">{studentSettings.examBoard}{!isEnglishSubject() && studentSettings.tier ? ` - ${studentSettings.tier}` : ''}</span>
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  {recordings.length > 0 
-                    ? `There are ${recordings.length} recording(s) available, but none match your exam board/tier settings.`
-                    : 'No recordings have been added for this subject yet.'}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-gray-600">No recordings available yet.</p>
-                <p className="text-sm text-gray-500 mt-2">Check back later for new recordings.</p>
-              </>
-            )}
+            <p className="text-gray-600">No recordings available yet.</p>
+            <p className="text-sm text-gray-500 mt-2">Check back later for new recordings.</p>
           </div>
         ) : (
           <div className="space-y-6">
             {groupRecordings().map((group, groupIndex) => (
               <div key={groupIndex} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                {/* Section Header */}
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 px-6 py-4">
                   <div className="flex items-center gap-3">
                     <BookOpen className="h-5 w-5 text-blue-600" />
@@ -300,7 +289,6 @@ function Recordings() {
                   </div>
                 </div>
 
-                {/* Recordings List */}
                 <div className="p-6 space-y-4">
                   {group.recordings.map((recording) => (
                     <div
@@ -339,4 +327,3 @@ function Recordings() {
 }
 
 export default Recordings
-

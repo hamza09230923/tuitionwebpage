@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, FileText, CheckCircle, Clock } from 'lucide-react'
-import { auth, db } from '../firebase'
-import { collection, query, where, getDocs, doc, setDoc, serverTimestamp, getDoc, Timestamp } from 'firebase/firestore'
+import { ArrowLeft, FileText, Clock, Download } from 'lucide-react'
+import { db } from '../firebase'
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
 
 function Homework() {
   const { subjectId } = useParams()
@@ -10,9 +10,6 @@ function Homework() {
   const [subject, setSubject] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedHomework, setSelectedHomework] = useState(null)
-  const [answers, setAnswers] = useState({})
-  const [submitting, setSubmitting] = useState(false)
-  const [submissions, setSubmissions] = useState({})
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,23 +35,6 @@ function Homework() {
         
         setHomeworks(homeworksData)
 
-        // Get user's submissions
-        const user = auth.currentUser
-        if (user) {
-          const submissionsQuery = query(
-            collection(db, 'submissions'),
-            where('studentId', '==', user.uid),
-            where('homeworkId', 'in', homeworksData.map(h => h.id))
-          )
-          
-          const submissionsSnapshot = await getDocs(submissionsQuery)
-          const submissionsData = {}
-          submissionsSnapshot.docs.forEach(doc => {
-            submissionsData[doc.data().homeworkId] = doc.data()
-          })
-          setSubmissions(submissionsData)
-        }
-
         setLoading(false)
       } catch (err) {
         console.error('Error loading homework:', err)
@@ -66,68 +46,6 @@ function Homework() {
       loadData()
     }
   }, [subjectId])
-
-  const handleAnswerChange = (questionIndex, value) => {
-    setAnswers({
-      ...answers,
-      [questionIndex]: value
-    })
-  }
-
-  const calculateScore = (homework, answers) => {
-    let correct = 0
-    homework.questions.forEach((question, index) => {
-      const userAnswer = answers[index]?.toString().toLowerCase().trim()
-      const correctAnswer = question.correctAnswer?.toString().toLowerCase().trim()
-      
-      if (userAnswer === correctAnswer) {
-        correct++
-      }
-    })
-    return Math.round((correct / homework.questions.length) * 100)
-  }
-
-  const handleSubmit = async () => {
-    if (!selectedHomework) return
-
-    setSubmitting(true)
-    try {
-      const user = auth.currentUser
-      if (!user) {
-        alert('You must be logged in to submit homework')
-        return
-      }
-
-      const score = calculateScore(selectedHomework, answers)
-      
-      await setDoc(doc(db, 'submissions', `${user.uid}_${selectedHomework.id}`), {
-        studentId: user.uid,
-        homeworkId: selectedHomework.id,
-        subjectId: subjectId,
-        answers: answers,
-        score: score,
-        submittedAt: serverTimestamp()
-      })
-
-      // Update local submissions
-      setSubmissions({
-        ...submissions,
-        [selectedHomework.id]: {
-          score: score,
-          submittedAt: new Date()
-        }
-      })
-
-      alert(`Homework submitted! Your score: ${score}%`)
-      setSelectedHomework(null)
-      setAnswers({})
-    } catch (err) {
-      console.error('Error submitting homework:', err)
-      alert('Failed to submit homework. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'No due date'
@@ -174,7 +92,7 @@ function Homework() {
               Homework - {subject?.name || 'Subject'}
             </h1>
           </div>
-          <p className="text-gray-600">Complete and submit your homework assignments.</p>
+          <p className="text-gray-600">Download your homework assignments.</p>
         </div>
 
         {selectedHomework ? (
@@ -184,7 +102,6 @@ function Homework() {
               <button
                 onClick={() => {
                   setSelectedHomework(null)
-                  setAnswers({})
                 }}
                 className="text-gray-600 hover:text-gray-900"
               >
@@ -195,42 +112,25 @@ function Homework() {
             {selectedHomework.description && (
               <p className="text-gray-600 mb-6">{selectedHomework.description}</p>
             )}
+            <p className="text-sm text-gray-500 mb-6">
+              Due: {formatDate(selectedHomework.dueDate)}
+            </p>
 
-            <div className="space-y-6 mb-6">
-              {selectedHomework.questions?.map((question, index) => (
-                <div key={index} className="border-b border-gray-200 pb-4">
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Question {index + 1}: {question.question}
-                  </label>
-                  <input
-                    type="text"
-                    value={answers[index] || ''}
-                    onChange={(e) => handleAnswerChange(index, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Your answer"
-                  />
-                </div>
-              ))}
-            </div>
+            {selectedHomework.attachmentUrl && (
+              <a
+                href={selectedHomework.attachmentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 mb-6"
+              >
+                <Download className="h-5 w-5" />
+                Download {selectedHomework.attachmentName || 'homework file'}
+              </a>
+            )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
-              >
-                {submitting ? 'Submitting...' : 'Submit Homework'}
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedHomework(null)
-                  setAnswers({})
-                }}
-                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
-            </div>
+            {!selectedHomework.attachmentUrl && (
+              <p className="text-gray-600">No homework file attached.</p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -241,7 +141,6 @@ function Homework() {
               </div>
             ) : (
               homeworks.map((homework) => {
-                const submission = submissions[homework.id]
                 const overdue = isOverdue(homework.dueDate)
                 
                 return (
@@ -257,22 +156,24 @@ function Homework() {
                         {homework.description && (
                           <p className="text-gray-600 mb-2">{homework.description}</p>
                         )}
+                        {homework.attachmentUrl && (
+                          <a
+                            href={homework.attachmentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 mb-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download {homework.attachmentName || 'homework file'}
+                          </a>
+                        )}
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
                             Due: {formatDate(homework.dueDate)}
                           </div>
-                          {homework.questions && (
-                            <span>{homework.questions.length} questions</span>
-                          )}
                         </div>
-                        {submission && (
-                          <div className="mt-3 flex items-center gap-2 text-green-600">
-                            <CheckCircle className="h-5 w-5" />
-                            <span className="font-semibold">Last score: {submission.score}%</span>
-                          </div>
-                        )}
-                        {overdue && !submission && (
+                        {overdue && (
                           <div className="mt-3 text-red-600 text-sm font-medium">
                             Overdue
                           </div>
@@ -282,7 +183,7 @@ function Homework() {
                         onClick={() => setSelectedHomework(homework)}
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
                       >
-                        {submission ? 'Review/Resubmit' : 'Start Homework'}
+                        View Details
                       </button>
                     </div>
                   </div>

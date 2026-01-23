@@ -6,6 +6,8 @@ import StudentDashboard from './pages/StudentDashboard'
 import Recordings from './pages/Recordings'
 import Homework from './pages/Homework'
 import Admin from './pages/Admin'
+import ShareLink from './pages/ShareLink'
+import HomeworkShareLink from './pages/HomeworkShareLink'
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/share-link" element={<ShareLink />} />
+        <Route path="/admin/homework-share-link" element={<HomeworkShareLink />} />
         
         {/* Protected student routes */}
         <Route

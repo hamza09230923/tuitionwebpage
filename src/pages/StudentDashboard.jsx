@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { 
   BookOpen, 
   LogOut, 
@@ -19,8 +19,7 @@ import {
 } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore'
-import { Link } from 'react-router-dom'
+import { doc, getDoc } from 'firebase/firestore'
 
 // Function to get subject icon based on subject name
 const getSubjectIcon = (subjectName) => {
@@ -72,6 +71,24 @@ const getSubjectColor = (subjectName) => {
   }
 }
 
+const ACCESS_STORAGE_KEY = 'subjectAccess'
+
+const readAccessList = () => {
+  try {
+    const raw = localStorage.getItem(ACCESS_STORAGE_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+const writeAccessList = (list) => {
+  localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(list))
+}
+
+const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
+
 function StudentDashboard() {
   const navigate = useNavigate()
   const [student, setStudent] = useState(null)
@@ -79,6 +96,10 @@ function StudentDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [debugInfo, setDebugInfo] = useState(null)
+  const [unlockedSubjects, setUnlockedSubjects] = useState(readAccessList())
+  const [unlockSubjectId, setUnlockSubjectId] = useState(null)
+  const [pinInput, setPinInput] = useState('')
+  const [pinError, setPinError] = useState('')
 
   useEffect(() => {
     const loadStudentData = async () => {
@@ -158,6 +179,39 @@ function StudentDashboard() {
     loadStudentData()
   }, [navigate])
 
+
+  const isUnlocked = (subject) => {
+    const pin = String(getSubjectPin(subject) || '').trim()
+    return !pin || unlockedSubjects.includes(subject.id)
+  }
+
+  const startUnlock = (subjectId) => {
+    setUnlockSubjectId(subjectId)
+    setPinInput('')
+    setPinError('')
+  }
+
+  const confirmUnlock = (subject) => {
+    const pin = String(getSubjectPin(subject) || '').trim()
+    if (pin && pinInput.trim() !== pin) {
+      setPinError('Incorrect PIN')
+      return
+    }
+
+    const updated = Array.from(new Set([...unlockedSubjects, subject.id]))
+    setUnlockedSubjects(updated)
+    writeAccessList(updated)
+    setUnlockSubjectId(null)
+    setPinInput('')
+    setPinError('')
+  }
+
+  const cancelUnlock = () => {
+    setUnlockSubjectId(null)
+    setPinInput('')
+    setPinError('')
+  }
+
   const handleSignOut = async () => {
     try {
       await signOut(auth)
@@ -236,7 +290,7 @@ function StudentDashboard() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Subjects</h2>
           <p className="text-gray-600">
-            Select a subject to join Zoom sessions, watch recordings, or complete homework.
+            Select a subject to join Zoom sessions, watch recordings, or download homework.
           </p>
         </div>
 
@@ -248,7 +302,7 @@ function StudentDashboard() {
             aria-live="polite"
           >
             <p className="text-sm text-yellow-800 font-medium mb-1">
-              ⚠️ Some subjects may not be loading correctly
+              Some subjects may not be loading correctly
             </p>
             <p className="text-xs text-yellow-700">
               Expected {debugInfo.expected} subject(s), loaded {debugInfo.loaded}. 
@@ -296,37 +350,83 @@ function StudentDashboard() {
                   </div>
                   
                   <div className="space-y-3">
-                    {subject.zoomLink && (
-                      <a
-                        href={subject.zoomLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                        aria-label={`Join Zoom session for ${subject.name}`}
-                      >
-                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                        Join Zoom
-                      </a>
+                    {isUnlocked(subject) ? (
+                      <>
+                        {subject.zoomLink && (
+                          <a
+                            href={subject.zoomLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                            aria-label={`Join Zoom session for ${subject.name}`}
+                          >
+                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                            Join Zoom
+                          </a>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <Link
+                            to={`/app/subject/${subject.id}/recordings`}
+                            className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 px-4 py-2 rounded-lg border border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                            aria-label={`View recordings for ${subject.name}`}
+                          >
+                            <Video className="h-4 w-4" aria-hidden="true" />
+                            Recordings
+                          </Link>
+                          <Link
+                            to={`/app/subject/${subject.id}/homework`}
+                            className="flex items-center justify-center gap-2 text-green-600 hover:text-green-700 px-4 py-2 border border-green-200 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition font-medium"
+                            aria-label={`View homework for ${subject.name}`}
+                          >
+                            <FileText className="h-4 w-4" aria-hidden="true" />
+                            Homework
+                          </Link>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600">This subject is locked. Enter the PIN to unlock.</p>
+                        {unlockSubjectId === subject.id ? (
+                          <div className="space-y-2">
+                            <input
+                              type="password"
+                              value={pinInput}
+                              onChange={(e) => setPinInput(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Subject PIN"
+                            />
+                            {pinError && (
+                              <p className="text-sm text-red-600">{pinError}</p>
+                            )}
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => confirmUnlock(subject)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                              >
+                                Unlock
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelUnlock}
+                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => startUnlock(subject.id)}
+                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                          >
+                            Enter PIN
+                          </button>
+                        )}
+                      </div>
                     )}
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <Link
-                        to={`/app/subject/${subject.id}/recordings`}
-                        className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 px-4 py-2 rounded-lg border border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                        aria-label={`View recordings for ${subject.name}`}
-                      >
-                        <Video className="h-4 w-4" aria-hidden="true" />
-                        Recordings
-                      </Link>
-                      <Link
-                        to={`/app/subject/${subject.id}/homework`}
-                        className="flex items-center justify-center gap-2 text-green-600 hover:text-green-700 px-4 py-2 border border-green-200 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition font-medium"
-                        aria-label={`View homework for ${subject.name}`}
-                      >
-                        <FileText className="h-4 w-4" aria-hidden="true" />
-                        Homework
-                      </Link>
-                    </div>
                   </div>
                 </article>
               )
