@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { GraduationCap, ArrowLeft, Mail, Lock } from 'lucide-react'
 import { auth, db } from './firebase'
-import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 
 function Login() {
@@ -12,56 +12,45 @@ function Login() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Check if user is already logged in and has student document
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          console.log('Checking student document for UID:', user.uid)
-          let studentDoc
-          try {
-            studentDoc = await getDoc(doc(db, 'students', user.uid))
-            console.log('Student document exists:', studentDoc.exists())
-          } catch (firestoreError) {
-            console.error('Firestore error:', firestoreError)
-            if (firestoreError.code === 'permission-denied') {
-              console.error('PERMISSION DENIED - Check your Firestore security rules!')
-              setError('Permission denied. Please check that Firestore security rules are published.')
-              await auth.signOut()
-              setCheckingAuth(false)
-              return
-            }
-            throw firestoreError
-          }
-          
-          if (studentDoc.exists()) {
-            // User is logged in and has student document, redirect to dashboard
-            const returnPath = location.state?.from?.pathname || '/app/dashboard'
-            console.log('Redirecting to:', returnPath)
-            navigate(returnPath, { replace: true })
-            return
-          } else {
-            // User is logged in but no student document - sign them out
-            console.warn('Student document not found for UID:', user.uid)
-            await auth.signOut()
-            setError('Student profile not found. Please contact your teacher.')
-          }
-        } catch (err) {
-          console.error('Error checking student status:', err)
-          if (err.code === 'permission-denied') {
-            setError('Permission denied. Please check Firestore security rules.')
-          } else {
-            setError('Error checking student profile. Please try again.')
-          }
-        }
-      } else {
-        console.log('No user logged in')
-      }
-      setCheckingAuth(false)
-    })
+  const routeForRole = async (uid) => {
+    // Admins
+    const adminDoc = await getDoc(doc(db, 'admins', uid))
+    if (adminDoc.exists()) {
+      navigate('/admin', { replace: true })
+      return true
+    }
 
-    return () => unsubscribe()
-  }, [navigate, location])
+    // Teachers (route to admin panel for now)
+    const teacherDoc = await getDoc(doc(db, 'teachers', uid))
+    if (teacherDoc.exists()) {
+      navigate('/admin', { replace: true })
+      return true
+    }
+
+    // Students
+    const studentDoc = await getDoc(doc(db, 'students', uid))
+    if (studentDoc.exists()) {
+      const returnPath = location.state?.from?.pathname || '/app/dashboard'
+      navigate(returnPath, { replace: true })
+      return true
+    }
+
+    return false
+  }
+
+  // Always start at the login page (clear any existing session)
+  useEffect(() => {
+    const clearSession = async () => {
+      try {
+        await auth.signOut()
+      } catch (err) {
+        console.error('Error signing out existing session:', err)
+      } finally {
+        setCheckingAuth(false)
+      }
+    }
+    clearSession()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -77,44 +66,13 @@ function Login() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
       console.log('Sign in successful. User UID:', user.uid)
-      
-      // Verify student document exists
-      console.log('Checking student document in Firestore...')
-      let studentDoc
-      try {
-        studentDoc = await getDoc(doc(db, 'students', user.uid))
-        console.log('Student document exists:', studentDoc.exists())
-      } catch (firestoreError) {
-        console.error('Firestore error:', firestoreError)
-        // Check if it's a permission error
-        if (firestoreError.code === 'permission-denied') {
-          console.error('PERMISSION DENIED - Check your Firestore security rules!')
-          setError('Permission denied. Please check that Firestore security rules are published and allow authenticated users to read their own student document.')
-          setLoading(false)
-          await auth.signOut()
-          return
-        }
-        throw firestoreError // Re-throw if it's not a permission error
-      }
-      
-      if (!studentDoc.exists()) {
-        // Sign out if no student document
-        console.error('Student document not found for UID:', user.uid)
-        console.error('Please create a document in Firestore:')
-        console.error('  Collection: students')
-        console.error('  Document ID:', user.uid)
-        console.error('  Fields: name (string), email (string), subjects (array)')
-        
+      // Determine role and route
+      const routed = await routeForRole(user.uid)
+      if (!routed) {
+        console.error('No role document found for UID:', user.uid)
         await auth.signOut()
-        setError(`Student profile not found. Please create a document in Firestore with Document ID: ${user.uid}`)
-        setLoading(false)
-        return
+        setError('Profile not found. Please contact your administrator.')
       }
-      
-      // Student document exists, redirect to dashboard
-      console.log('Student document found. Redirecting to dashboard...')
-      const returnPath = location.state?.from?.pathname || '/app/dashboard'
-      navigate(returnPath, { replace: true })
     } catch (err) {
       console.error(err)
       // Provide user-friendly error messages

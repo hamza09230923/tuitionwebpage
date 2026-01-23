@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Video, FileText, Save, X, CheckCircle, Clock } from 'lucide-react'
-import { db, storage } from '../firebase'
-import { collection, getDocs, addDoc, serverTimestamp, doc, getDoc, Timestamp, updateDoc, query, where } from 'firebase/firestore'
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
+import { Video, FileText, Save, CheckCircle } from 'lucide-react'
+import { auth, db } from '../firebase'
+import { onAuthStateChanged } from 'firebase/auth'
+import { collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where } from 'firebase/firestore'
+import { createHidriveUpload } from '../api/functionsClient'
 
 function Admin() {
   const navigate = useNavigate()
-  const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedSubjectData, setSelectedSubjectData] = useState(null)
@@ -16,7 +17,6 @@ function Admin() {
   
   // Recording form
   const [recordingTitle, setRecordingTitle] = useState('')
-  const [recordingVideoUrl, setRecordingVideoUrl] = useState('')
   const [recordingFile, setRecordingFile] = useState(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [examBoard, setExamBoard] = useState('')
@@ -29,10 +29,43 @@ function Admin() {
   const [homeworkTitle, setHomeworkTitle] = useState('')
   const [homeworkDescription, setHomeworkDescription] = useState('')
   const [homeworkDueDate, setHomeworkDueDate] = useState('')
-  const [questions, setQuestions] = useState([{ question: '', correctAnswer: '' }])
+  const [homeworkFile, setHomeworkFile] = useState(null)
+  const [homeworkUploadProgress, setHomeworkUploadProgress] = useState(0)
   
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  // Require a signed-in user with admin or teacher role document
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setAuthenticated(false)
+        setCheckingAuth(false)
+        navigate('/login', { replace: true })
+        return
+      }
+
+      try {
+        const adminDoc = await getDoc(doc(db, 'admins', user.uid))
+        const teacherDoc = adminDoc.exists() ? null : await getDoc(doc(db, 'teachers', user.uid))
+
+        if (adminDoc.exists() || teacherDoc?.exists()) {
+          setAuthenticated(true)
+        } else {
+          setAuthenticated(false)
+          navigate('/login', { replace: true })
+        }
+      } catch (err) {
+        console.error('Error verifying role:', err)
+        setAuthenticated(false)
+        navigate('/login', { replace: true })
+      } finally {
+        setCheckingAuth(false)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [navigate])
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -107,37 +140,65 @@ function Admin() {
     setTier('')
   }, [selectedSubject, subjects])
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123'
-    if (password === adminPassword) {
-      setAuthenticated(true)
-      setMessage('')
-    } else {
-      setMessage('Incorrect password')
-    }
-  }
-
-  const addQuestion = () => {
-    setQuestions([...questions, { question: '', correctAnswer: '' }])
-  }
-
-  const removeQuestion = (index) => {
-    setQuestions(questions.filter((_, i) => i !== index))
-  }
-
-  const updateQuestion = (index, field, value) => {
-    const updated = [...questions]
-    updated[index][field] = value
-    setQuestions(updated)
-  }
-
   // Check if subject is English (no tier needed)
   const isEnglishSubject = () => {
     if (!selectedSubjectData) return false
     const name = selectedSubjectData.name?.toLowerCase() || ''
     return name.includes('english')
   }
+
+  const uploadFileWithProgress = (file, uploadConfig, onProgress) => new Promise((resolve, reject) => {
+    if (!uploadConfig?.uploadUrl) {
+      reject(new Error('Upload URL is missing'))
+      return
+    }
+
+    const xhr = new XMLHttpRequest()
+    xhr.open(uploadConfig.method || 'PUT', uploadConfig.uploadUrl, true)
+    xhr.responseType = 'json'
+
+    if (uploadConfig.headers) {
+      Object.entries(uploadConfig.headers).forEach(([key, value]) => {
+        if (value) {
+          xhr.setRequestHeader(key, value)
+        }
+      })
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const progress = Math.round((event.loaded / event.total) * 100)
+        if (onProgress) {
+          onProgress(progress)
+        }
+      }
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (onProgress) {
+          onProgress(100)
+        }
+        let responseData = xhr.response
+        if (!responseData && xhr.responseText) {
+          try {
+            responseData = JSON.parse(xhr.responseText)
+          } catch {
+            responseData = null
+          }
+        }
+        resolve({ response: responseData })
+      } else {
+        reject(new Error(`Upload failed (${xhr.status})`))
+      }
+    }
+
+    xhr.onerror = () => {
+      reject(new Error('Upload failed'))
+    }
+
+    xhr.send(file)
+  })
 
   const handleSubmitRecording = async (e) => {
     e.preventDefault()
@@ -146,13 +207,11 @@ function Admin() {
       return
     }
 
-    // Require either a video URL or an uploaded file
-    if (!recordingVideoUrl && !recordingFile) {
-      setMessage('Provide a video URL or upload a file')
+    if (!recordingFile) {
+      setMessage('Please upload a video file to continue')
       return
     }
 
-    // Validate tier for non-English subjects
     if (!isEnglishSubject() && !tier) {
       setMessage('Please select a tier (Foundation or Higher)')
       return
@@ -161,50 +220,44 @@ function Admin() {
     setLoading(true)
     setMessage('')
     try {
-      let finalVideoUrl = recordingVideoUrl
+      setUploadProgress(0)
+      const uploadConfig = await createHidriveUpload({
+        subjectId: selectedSubject,
+        fileName: recordingFile.name,
+        contentType: recordingFile.type,
+        uploadType: 'recording'
+      })
 
-      // If a file is provided, upload to Firebase Storage first
-      if (recordingFile) {
-        const storagePath = `recordings/${selectedSubject}/${Date.now()}-${recordingFile.name}`
-        const storageRef = ref(storage, storagePath)
-        const uploadTask = uploadBytesResumable(storageRef, recordingFile)
+      const uploadResult = await uploadFileWithProgress(recordingFile, uploadConfig, setUploadProgress)
+      const uploadResponse = uploadResult?.response
+      const hidriveFileId =
+        uploadResponse?.id ||
+        uploadResponse?.pid ||
+        uploadResponse?.file_id ||
+        null
 
-        await new Promise((resolve, reject) => {
-          uploadTask.on('state_changed',
-            (snapshot) => {
-              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-              setUploadProgress(progress)
-            },
-            (err) => reject(err),
-            async () => {
-              finalVideoUrl = await getDownloadURL(uploadTask.snapshot.ref)
-              resolve()
-            }
-          )
-        })
-      }
-
-      await addDoc(collection(db, 'recordings'), {
+      const pendingRecording = {
         subjectId: selectedSubject,
         title: recordingTitle,
-        videoUrl: finalVideoUrl,
         examBoard: examBoard,
-        tier: isEnglishSubject() ? null : tier, // No tier for English
-        approvalStatus: 'pending', // Default to pending
-        date: serverTimestamp(),
-        createdAt: serverTimestamp()
-      })
-      
-      setMessage('Recording added successfully! It will be visible to students after approval.')
+        tier: isEnglishSubject() ? null : tier,
+        hidrivePath: uploadConfig.hidrivePath,
+        hidriveFileId,
+        fileName: recordingFile.name
+      }
+
+      sessionStorage.setItem('pendingRecording', JSON.stringify(pendingRecording))
+
       setRecordingTitle('')
-      setRecordingVideoUrl('')
       setRecordingFile(null)
       setUploadProgress(0)
       setExamBoard('')
       setTier('')
+
+      navigate('/admin/share-link', { state: { pendingRecording } })
     } catch (err) {
       console.error('Error adding recording:', err)
-      setMessage('Failed to add recording')
+      setMessage('Failed to upload recording')
       setUploadProgress(0)
     } finally {
       setLoading(false)
@@ -243,35 +296,72 @@ function Admin() {
 
   const handleSubmitHomework = async (e) => {
     e.preventDefault()
-    if (!selectedSubject || !homeworkTitle || questions.length === 0) {
+    if (!selectedSubject || !homeworkTitle) {
       setMessage('Please fill in all required fields')
       return
     }
 
-    // Validate questions
-    const validQuestions = questions.filter(q => q.question.trim() && q.correctAnswer.trim())
-    if (validQuestions.length === 0) {
-      setMessage('Please add at least one valid question')
+    if (!homeworkFile) {
+      setMessage('Please upload a homework file')
       return
     }
 
     setLoading(true)
     setMessage('')
     try {
-      await addDoc(collection(db, 'homeworks'), {
+      let hidrivePath = null
+      let hidriveFileId = null
+      let attachmentName = null
+      let attachmentContentType = null
+      let attachmentSize = null
+
+      if (homeworkFile) {
+        setHomeworkUploadProgress(0)
+        const uploadConfig = await createHidriveUpload({
+          subjectId: selectedSubject,
+          fileName: homeworkFile.name,
+          contentType: homeworkFile.type,
+          uploadType: 'homework'
+        })
+
+        const uploadResult = await uploadFileWithProgress(
+          homeworkFile,
+          uploadConfig,
+          setHomeworkUploadProgress
+        )
+        const uploadResponse = uploadResult?.response
+        hidriveFileId =
+          uploadResponse?.id ||
+          uploadResponse?.pid ||
+          uploadResponse?.file_id ||
+          null
+
+        hidrivePath = uploadConfig.hidrivePath
+        attachmentName = homeworkFile.name
+        attachmentContentType = homeworkFile.type
+        attachmentSize = homeworkFile.size
+      }
+
+      const pendingHomework = {
         subjectId: selectedSubject,
         title: homeworkTitle,
         description: homeworkDescription,
-        dueDate: homeworkDueDate ? Timestamp.fromDate(new Date(homeworkDueDate)) : null,
-        questions: validQuestions,
-        createdAt: serverTimestamp()
-      })
-      
-      setMessage('Homework added successfully!')
+        dueDate: homeworkDueDate ? new Date(homeworkDueDate).toISOString() : null,
+        attachmentName,
+        attachmentContentType,
+        attachmentSize,
+        hidrivePath,
+        hidriveFileId,
+        fileName: homeworkFile.name
+      }
+
+      sessionStorage.setItem('pendingHomework', JSON.stringify(pendingHomework))
       setHomeworkTitle('')
       setHomeworkDescription('')
       setHomeworkDueDate('')
-      setQuestions([{ question: '', correctAnswer: '' }])
+      setHomeworkFile(null)
+      setHomeworkUploadProgress(0)
+      navigate('/admin/homework-share-link', { state: { pendingHomework } })
     } catch (err) {
       console.error('Error adding homework:', err)
       setMessage('Failed to add homework')
@@ -280,43 +370,19 @@ function Admin() {
     }
   }
 
-  if (!authenticated) {
+  if (checkingAuth) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Login</h1>
-          <form onSubmit={handleLogin}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            {message && (
-              <div className="mb-4 text-red-600 text-sm">{message}</div>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              Login
-            </button>
-          </form>
-          <button
-            onClick={() => navigate('/')}
-            className="mt-4 w-full text-gray-600 hover:text-gray-900 underline text-sm"
-          >
-            Back to site
-          </button>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verifying access...</p>
         </div>
       </div>
     )
+  }
+
+  if (!authenticated) {
+    return null
   }
 
   return (
@@ -326,10 +392,13 @@ function Admin() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
             <button
-              onClick={() => navigate('/')}
+              onClick={async () => {
+                await auth.signOut()
+                navigate('/login', { replace: true })
+              }}
               className="text-gray-600 hover:text-gray-900 underline text-sm"
             >
-              Back to site
+              Sign out
             </button>
           </div>
         </div>
@@ -464,32 +533,27 @@ function Admin() {
               {isEnglishSubject() && (
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                   <p className="text-sm text-blue-800">
-                    ℹ️ English subjects do not have Foundation/Higher tiers.
+                    English subjects do not have Foundation/Higher tiers.
                   </p>
                 </div>
               )}
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Video URL *
-                </label>
-                <input
-                  type="url"
-                  value={recordingVideoUrl}
-                  onChange={(e) => setRecordingVideoUrl(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://youtube.com/watch?v=..."
-                />
+              <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
+                After upload, you will be taken to a new page to paste the HiDrive share link.
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Or upload video file
+                  Upload Video File
                 </label>
                 <input
                   type="file"
                   accept="video/*"
-                  onChange={(e) => setRecordingFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null
+                    setRecordingFile(file)
+                    setUploadProgress(0)
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {uploadProgress > 0 && uploadProgress < 100 && (
@@ -625,53 +689,28 @@ function Admin() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Questions *
-                  </label>
-                  <button
-                    type="button"
-                    onClick={addQuestion}
-                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Question
-                  </button>
-                </div>
-                
-                <div className="space-y-3">
-                  {questions.map((q, index) => (
-                    <div key={index} className="border border-gray-200 rounded-md p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Question {index + 1}</span>
-                        {questions.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeQuestion(index)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                      <input
-                        type="text"
-                        value={q.question}
-                        onChange={(e) => updateQuestion(index, 'question', e.target.value)}
-                        placeholder="Question text"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                      <input
-                        type="text"
-                        value={q.correctAnswer}
-                        onChange={(e) => updateQuestion(index, 'correctAnswer', e.target.value)}
-                        placeholder="Correct answer"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Homework File *
+                </label>
+                <input
+                  type="file"
+                  required
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null
+                    setHomeworkFile(file)
+                    setHomeworkUploadProgress(0)
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                {homeworkUploadProgress > 0 && homeworkUploadProgress < 100 && (
+                  <p className="text-sm text-gray-600 mt-2">Uploading... {homeworkUploadProgress}%</p>
+                )}
               </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
+                After upload, you will be taken to a new page to paste the HiDrive share link.
+              </div>
+
             </div>
 
             <button
