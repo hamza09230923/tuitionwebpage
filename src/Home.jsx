@@ -522,7 +522,7 @@ function Home() {
               <div className="text-green-100">Grade improvement average</div>
             </div>
             <div className="bg-purple-600 text-white p-6 rounded-lg text-center">
-              <div className="text-4xl font-bold mb-2">500+</div>
+              <div className="text-4xl font-bold mb-2">300+</div>
               <div className="text-purple-100">Successful students</div>
             </div>
           </div>
@@ -531,37 +531,37 @@ function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                name: 'Sarah M., Parent',
-                text: 'My daughter went from a Grade 5 to Grade 8 in Maths in just one term! The 1-to-1 Zoom sessions were perfect - she felt comfortable asking questions without other students around.',
+                name: 'Aisha K, Parent',
+                text: 'My son started the term lacking confidence in Maths and was sitting at a Grade 5. After weekly Zoom lessons with MySchola, his understanding improved steadily and he finished the term with a Grade 7.',
                 rating: 5,
-                result: 'Maths: Grade 5 → Grade 8'
+                result: 'Maths: Grade 5 → Grade 7'
               },
               {
-                name: 'James T., Student',
-                text: 'I was really struggling with English Literature, but my tutor made it click. The exam techniques I learned helped me get a Grade 7. The Zoom sessions were so convenient!',
+                name: 'Rahul P, Parent',
+                text: 'MySchola was patient and explained the Poetry Anthology texts in a way my daughter could finally understand. Her confidence grew each week and her English grade jumped from a 5 to an 8.',
                 rating: 5,
-                result: 'English Lit: Grade 4 → Grade 7'
+                result: 'English Lit: Grade 5 → Grade 8'
               },
               {
                 name: 'Emma L., Parent',
-                text: 'The confidence my son gained was incredible. He went from dreading Science to loving it. His Chemistry grade improved from 5 to 8. Worth every penny!',
+                text: 'The confidence my son gained was incredible. He went from hating Chemistry especially Organic Chemistry to loving it. His Chemistry grade improved from 5 to 8. Worth every penny!',
                 rating: 5,
                 result: 'Chemistry: Grade 5 → Grade 8'
               },
               {
                 name: 'Michael R., Student',
-                text: 'My tutor was amazing! She explained everything so clearly and helped me with past papers. I finally understood how to approach exam questions properly.',
+                text: 'Going through past papers and custom exam style questions with Isam and Hamza made a huge difference. Physics finally started to make sense, and I learned how to approach exam questions properly.',
                 rating: 5,
                 result: 'Physics: Grade 6 → Grade 9'
               },
               {
-                name: 'Lisa K., Parent',
-                text: 'As a working parent, the flexible scheduling was a lifesaver. My daughter could do evening sessions that fit around school and activities. Highly recommend!',
-                rating: 5,
+                name: 'Jasmin K., Parent',
+                text: 'As a working parent, the flexible scheduling in the evenings was a lifesaver. My daughter could do sessions that fit around school and activities. Highly recommend!',
+                rating: 4,
                 result: 'Maths: Grade 6 → Grade 8'
               },
               {
-                name: 'David P., Parent',
+                name: 'Emmanuel P., Parent',
                 text: 'The privacy of the sessions meant my son felt comfortable making mistakes and asking for help. His confidence has grown so much, and his grades show it!',
                 rating: 5,
                 result: 'English: Grade 5 → Grade 7'
@@ -601,7 +601,7 @@ function Home() {
               <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-          <p className="text-blue-100 text-sm mt-6">No credit card required • Free 30-minute consultation</p>
+          <p className="text-blue-100 text-sm mt-6">No card required • Free 15-minute consultation</p>
         </div>
       </section>
 
