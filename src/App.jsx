@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import Home from './Home'
 import Login from './Login'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -8,13 +9,25 @@ import Homework from './pages/Homework'
 import Admin from './pages/Admin'
 import ShareLink from './pages/ShareLink'
 import HomeworkShareLink from './pages/HomeworkShareLink'
+import PaymentSuccess from './pages/PaymentSuccess'
+import { trackPageView } from './utils/metaPixel'
+
+function RouteTracker() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    trackPageView()
+  }, [pathname])
+  return null
+}
 
 function App() {
   return (
     <Router>
+      <RouteTracker />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/share-link" element={<ShareLink />} />
         <Route path="/admin/homework-share-link" element={<HomeworkShareLink />} />

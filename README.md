@@ -25,7 +25,7 @@ LevelUp GCSE is a React-based landing page and future platform for GCSE tutoring
 
 **Cost:** £0/month on free tiers. [web:15]
 
-### 3. “No‑code” backend (temporary)
+### 3. "No‑code" backend (temporary)
 
 - **Booking**
 - Create a Calendly account and set up a consultation event. [web:15]
@@ -37,7 +37,7 @@ LevelUp GCSE is a React-based landing page and future platform for GCSE tutoring
 - After the consultation, send this link manually via email.
 - Do not build a custom checkout flow yet. [web:15]
 
-## Phase 2 – Engineer’s Scale‑Up (Months 2–6)
+## Phase 2 – Engineer's Scale‑Up (Months 2–6)
 
 **Goal:** Introduce Node.js & Google Cloud without rewriting the frontend. [web:15]
 
@@ -50,7 +50,7 @@ LevelUp GCSE is a React-based landing page and future platform for GCSE tutoring
 ### 2. Add authentication
 
 - Enable **Firebase Auth**. [web:15]
-- Add a “Login” button to the navbar in `Homepage.jsx`. [web:15]
+- Add a "Login" button to the navbar in `Homepage.jsx`. [web:15]
 - This will act as the gatekeeper for a future **Student Dashboard**. [web:15]
 
 ### 3. Database structure
@@ -101,3 +101,31 @@ Add these as **REQUIRED** questions:
 - Handles cancellations and rescheduling
 
 **Note:** Your website only needs the embed code (already added in `index.html`) and the popup function (already in `Home.jsx`). No backend code needed!
+
+## Stripe Payment Confirmation
+
+**Status:** ✅ Payment confirmation page is integrated.
+
+### Your workflow
+
+1. Customer contacts you via WhatsApp
+2. You send them a Stripe Payment Link via WhatsApp (created in your Stripe Dashboard)
+3. Customer pays → Stripe redirects to your website confirmation page
+
+### Payment confirmation page
+
+- **Route:** `/payment-success`
+- **Purpose:** Where customers land after completing payment via your Stripe Payment Links (sent through WhatsApp).
+
+### Setup in Stripe Dashboard
+
+When creating each Stripe Payment Link for your packages:
+
+- **Bronze Package** — £30/month  
+- **Silver Package** — £56/month  
+- **Gold Package** — £78/month  
+- **Pay-as-you-go Lesson** — £9 per lesson  
+
+Set **After payment** → **Redirect to a page** →  
+`https://myschola.co.uk/payment-success`  
+(Use your actual production domain. For localhost testing: `http://localhost:5173/payment-success`)

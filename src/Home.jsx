@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from './testimonials/testimonial2.mp4'
+import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
 
 // Video Player Component with proper thumbnail handling
 function VideoPlayer({ videoSrc, isActive, translateX, translateY, scale, opacity, blur, zIndex }) {
@@ -132,6 +133,7 @@ function Home() {
    * Your website only needs the embed code (already added in index.html) and this function.
    */
   const openCalendlyPopup = () => {
+    trackLeadConsultation()
     const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
     
     // Load Calendly script dynamically for better performance (only when needed)
@@ -202,6 +204,7 @@ function Home() {
                   href="https://wa.me/447344193804"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={trackLeadWhatsApp}
                   className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center gap-2"
                   aria-label="Contact us on WhatsApp"
                 >
@@ -244,6 +247,7 @@ function Home() {
                 href="https://wa.me/447344193804"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={trackLeadWhatsApp}
                 className="block px-3 py-2 bg-green-500 text-white rounded-lg text-center hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 aria-label="Contact us on WhatsApp"
                 role="menuitem"
@@ -815,6 +819,7 @@ function Home() {
                     href="https://wa.me/447344193804"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={trackLeadWhatsApp}
                     className="text-green-400 hover:text-green-300 transition inline-flex items-center gap-2"
                   >
                     <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -844,6 +849,7 @@ function Home() {
         href="https://wa.me/447344193804"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={trackLeadWhatsApp}
         className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-all duration-300 hover:scale-110 z-50 focus:outline-none focus:ring-4 focus:ring-green-300"
         aria-label="Contact us on WhatsApp"
       >
