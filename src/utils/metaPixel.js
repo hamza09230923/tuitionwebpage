@@ -35,3 +35,17 @@ export function trackPurchase() {
     window.fbq('track', 'Purchase', { currency: 'GBP' })
   }
 }
+
+/** Start Trial: user clicked start-trial CTA (e.g. Book Free Consultation). Fires only on https://myschola.uk/ */
+export function trackStartTrial() {
+  if (typeof window === 'undefined' || !window.fbq) return
+  try {
+    const isMySchola = window.location.hostname === 'myschola.uk'
+    if (!isMySchola) return
+    window.fbq('track', 'StartTrial', {
+      value: 0,
+      currency: 'GBP',
+      predicted_ltv: 0
+    })
+  } catch (_) {}
+}

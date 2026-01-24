@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from './testimonials/testimonial2.mp4'
-import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
+import { trackLeadConsultation, trackLeadWhatsApp, trackStartTrial } from './utils/metaPixel'
 
 // Video Player Component with proper thumbnail handling
 function VideoPlayer({ videoSrc, isActive, translateX, translateY, scale, opacity, blur, zIndex }) {
@@ -134,6 +134,7 @@ function Home() {
    */
   const openCalendlyPopup = () => {
     trackLeadConsultation()
+    trackStartTrial()
     const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
     
     // Load Calendly script dynamically for better performance (only when needed)
