@@ -1,5 +1,5 @@
 /**
- * Meta Pixel (Facebook) tracking for MySchola – Pixel ID: 911142258237855
+ * Meta Pixel (Facebook) tracking for MySchola – Pixel ID: 2772806336415328
  * Base pixel + PageView init in index.html. These helpers fire custom events.
  */
 
