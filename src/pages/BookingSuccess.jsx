@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { CalendarCheck, GraduationCap, ArrowLeft } from 'lucide-react'
-import { trackBookingComplete } from '../utils/metaPixel'
+import { trackBookingComplete, trackBookNow } from '../utils/metaPixel'
 
 function BookingSuccess() {
   useEffect(() => {
     trackBookingComplete()
+    trackBookNow()
   }, [])
 
   return (

@@ -59,3 +59,13 @@ export function trackStartTrial() {
     })
   } catch (_) {}
 }
+
+/** BOOK NOW: user completed booking and landed on booking-success page. */
+export function trackBookNow() {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', 'BOOK NOW', {
+      value: 0,
+      currency: 'GBP'
+    })
+  }
+}

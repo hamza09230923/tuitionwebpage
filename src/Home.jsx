@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from './testimonials/testimonial2.mp4'
-import { trackLeadConsultation, trackLeadWhatsApp, trackStartTrial } from './utils/metaPixel'
+import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
 
 // Video Player Component with proper thumbnail handling
 function VideoPlayer({ videoSrc, isActive, translateX, translateY, scale, opacity, blur, zIndex }) {
@@ -153,7 +153,6 @@ function Home() {
 
   const openCalendlyPopup = () => {
     trackLeadConsultation()
-    trackStartTrial()
     // Change URL to /booking without navigating away
     navigate('/booking', { replace: false })
     // Open Calendly popup on the current page
@@ -164,7 +163,6 @@ function Home() {
   useEffect(() => {
     if (location.pathname === '/booking' && !popupOpened) {
       trackLeadConsultation()
-      trackStartTrial()
       setPopupOpened(true)
       // Small delay to ensure page is fully loaded
       const timer = setTimeout(() => {

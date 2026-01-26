@@ -1,13 +1,12 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, GraduationCap } from 'lucide-react'
-import { trackLeadConsultation, trackStartTrial } from '../utils/metaPixel'
+import { trackLeadConsultation } from '../utils/metaPixel'
 
 function Booking() {
   useEffect(() => {
     // Track the booking page view
     trackLeadConsultation()
-    trackStartTrial()
     
     // Open Calendly popup when page loads
     const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
