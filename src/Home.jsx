@@ -6,6 +6,15 @@ import testimonialVideo2 from './testimonials/testimonial2.mp4'
 import testimonialVideo3 from './testimonials/testmonial3.mp4'
 import testimonialVideo4 from './testimonials/testimonial4.mp4'
 import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
+// University logos
+import nottinghamLogo from './university/nottingham-university-logo.png'
+import kingsCollegeLogo from './university/King\'s_College_London_logo.svg'
+import cambridgeLogo from './university/cambridge.jpg'
+import imperialLogo from './university/Imperial-College-Logo.png'
+import warwickLogo from './university/warwick.svg'
+// Exam board logos
+import aqaLogo from './university/aqa.jpg'
+import edexcelLogo from './university/edexcel-vector-logo.png'
 
 // Video Player Component with proper thumbnail handling
 function VideoPlayer({ videoSrc, isActive, translateX, translateY, scale, opacity, blur, zIndex }) {
@@ -391,35 +400,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Subjects/Services Section */}
-      <section id="subjects" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="subjects-heading">
-        <div className="max-w-7xl mx-auto">
-          <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Comprehensive GCSE support for Years 9-11
-          </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { name: 'Maths', description: 'GCSE Maths (Foundation & Higher)' },
-              { name: 'Combined Science', description: 'Trilogy and Synergy pathways' },
-              { name: 'Triple Science', description: 'Biology, Chemistry, and Physics' },
-              { name: 'English Language', description: 'Reading, writing, and language skills' },
-              { name: 'English Literature', description: 'Poetry, prose, and drama analysis' }
-            ].map((subject) => (
-              <div key={subject.name} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-blue-600">
-                <div className="flex items-start mb-2">
-                  <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" aria-hidden="true" />
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">{subject.name}</h3>
-                    <p className="text-gray-600 text-sm">{subject.description}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Social Proof / Testimonials Section */}
       <section id="video-testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
         <div className="max-w-4xl mx-auto text-center">
@@ -600,6 +580,131 @@ function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Subjects/Services Section */}
+      <section id="subjects" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="subjects-heading">
+        <div className="max-w-7xl mx-auto">
+          <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+            Comprehensive GCSE support for Years 9-11
+          </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { name: 'Maths', description: 'GCSE Maths (Foundation & Higher)' },
+              { name: 'Combined Science', description: 'Trilogy and Synergy pathways' },
+              { name: 'Triple Science', description: 'Biology, Chemistry, and Physics' },
+              { name: 'English Language', description: 'Reading, writing, and language skills' },
+              { name: 'English Literature', description: 'Poetry, prose, and drama analysis' }
+            ].map((subject) => (
+              <div key={subject.name} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-blue-600">
+                <div className="flex items-start mb-2">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" aria-hidden="true" />
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1">{subject.name}</h3>
+                    <p className="text-gray-600 text-sm">{subject.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* University Tutors Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white" aria-labelledby="universities-heading">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 id="universities-heading" className="text-4xl font-bold mb-4 text-gray-900">
+              Our tutors study at the UK's most prestigious universities
+            </h2>
+            <p className="text-gray-600 max-w-3xl mx-auto">
+              Your education is everything. That's why we only hire the best in class. All of our tutors have stellar academic backgrounds and have first-hand experience with the rigorous exam process. Learn from the best to achieve your best.
+            </p>
+          </div>
+          
+          {/* Marquee Banner */}
+          <div className="relative overflow-hidden">
+            <div className="flex animate-marquee">
+              {/* First set of logos */}
+              {[
+                { src: nottinghamLogo, alt: 'University of Nottingham', name: 'Nottingham' },
+                { src: kingsCollegeLogo, alt: "King's College London", name: "King's College" },
+                { src: cambridgeLogo, alt: 'University of Cambridge', name: 'Cambridge' },
+                { src: imperialLogo, alt: 'Imperial College London', name: 'Imperial' },
+                { src: warwickLogo, alt: 'University of Warwick', name: 'Warwick' }
+              ].map((uni, index) => (
+                <div key={`first-${index}`} className="flex-shrink-0 mx-4 sm:mx-6 lg:mx-8">
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 lg:p-10 h-40 sm:h-48 lg:h-56 w-64 sm:w-72 lg:w-80 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                    <img 
+                      src={uni.src} 
+                      alt={uni.alt} 
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              ))}
+              {/* Duplicate set for seamless loop */}
+              {[
+                { src: nottinghamLogo, alt: 'University of Nottingham', name: 'Nottingham' },
+                { src: kingsCollegeLogo, alt: "King's College London", name: "King's College" },
+                { src: cambridgeLogo, alt: 'University of Cambridge', name: 'Cambridge' },
+                { src: imperialLogo, alt: 'Imperial College London', name: 'Imperial' },
+                { src: warwickLogo, alt: 'University of Warwick', name: 'Warwick' }
+              ].map((uni, index) => (
+                <div key={`second-${index}`} className="flex-shrink-0 mx-4 sm:mx-6 lg:mx-8">
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 lg:p-10 h-40 sm:h-48 lg:h-56 w-64 sm:w-72 lg:w-80 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                    <img 
+                      src={uni.src} 
+                      alt={uni.alt} 
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Exam Boards Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="exam-boards-heading">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 id="exam-boards-heading" className="text-4xl font-bold mb-4 text-gray-900">
+              Expert tuition for every exam board
+            </h2>
+            <p className="text-gray-600 max-w-3xl mx-auto">
+              Unlock academic success with tailored support across every exam board. Our team of expert tutors knows the ins and outs of each curriculum, offering customized guidance that fits your exact syllabus.
+            </p>
+          </div>
+          
+          {/* Marquee Banner */}
+          <div className="relative overflow-hidden">
+            <div className="flex animate-marquee-reverse">
+              {/* Multiple sets for smoother scrolling */}
+              {[...Array(3)].map((_, setIndex) => 
+                [
+                  { src: aqaLogo, alt: 'AQA', name: 'AQA' },
+                  { src: edexcelLogo, alt: 'Edexcel', name: 'Edexcel' }
+                ].map((board, index) => (
+                  <div key={`set-${setIndex}-${index}`} className="flex-shrink-0 mx-6 sm:mx-8 lg:mx-10">
+                    <div className="bg-white border border-gray-200 rounded-lg p-8 sm:p-10 lg:p-12 h-44 sm:h-52 lg:h-60 w-64 sm:w-72 lg:w-80 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                      <img 
+                        src={board.src} 
+                        alt={board.alt} 
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </section>
