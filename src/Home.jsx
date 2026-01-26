@@ -1,6 +1,6 @@
 import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Video, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from './testimonials/testimonial2.mp4'
 import { trackLeadConsultation, trackLeadWhatsApp, trackStartTrial } from './utils/metaPixel'
@@ -84,9 +84,12 @@ function VideoPlayer({ videoSrc, isActive, translateX, translateY, scale, opacit
 }
 
 function Home() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFAQ, setOpenFAQ] = useState(null)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
+  const [popupOpened, setPopupOpened] = useState(false)
   
   const testimonialVideos = [
     { src: testimonialVideo2, id: 2 },
@@ -105,65 +108,74 @@ function Home() {
     setOpenFAQ(openFAQ === index ? null : index)
   }
 
-  /**
-   * CALENDLY INTEGRATION
-   * 
-   * STEP 1: Replace 'YOUR_CALENDLY_EVENT_URL' below with your actual Calendly event URL
-   * Example: 'https://calendly.com/myschola/free-20-minute-gcse-parent-consultation'
-   * 
-   * STEP 2: Configure Calendly Event Questions
-   * Go to your Calendly dashboard → Your event type → "Invitee Questions"
-   * Add these as REQUIRED questions:
-   * 
-   * 1. Parent full name (Text field)
-   * 2. Parent email address (Email field - Calendly collects this by default, but make it required)
-   * 3. Parent phone number (Phone field)
-   * 4. Child's school year (Dropdown: Year 7, Year 8, Year 9, Year 10, Year 11)
-   * 5. Subjects interested in (Multiple choice: Maths, English Language, English Literature, Combined Science, Triple Science)
-   * 6. "How did you hear about MySchola?" (Text field or dropdown)
-   * 7. Consent checkbox: "I agree to be contacted about this consultation by email, phone and/or WhatsApp."
-   * 8. Consent checkbox: "I agree to receive occasional marketing emails from MySchola (I can unsubscribe at any time)."
-   * 
-   * Calendly will automatically:
-   * - Store all responses
-   * - Send confirmation emails to parents
-   * - Add events to your calendar
-   * - Send reminder emails
-   * 
-   * Your website only needs the embed code (already added in index.html) and this function.
-   */
-  const openCalendlyPopup = () => {
-    trackLeadConsultation()
-    trackStartTrial()
+  // Helper function to open Calendly popup (mobile-optimized)
+  const openCalendlyWidget = () => {
     const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
+    const isMobile = window.innerWidth < 768 // Mobile breakpoint
     
-    // Load Calendly script dynamically for better performance (only when needed)
     if (window.Calendly) {
-      window.Calendly.initPopupWidget({
-        url: calendlyUrl
+      // Configure popup for better mobile experience
+      window.Calendly.initPopupWidget({ 
+        url: calendlyUrl,
+        text: 'Book Free Consultation',
+        color: '#2563eb',
+        textColor: '#ffffff',
+        branding: true
       })
     } else {
-      // Load Calendly script on-demand
       const script = document.createElement('script')
       script.src = 'https://assets.calendly.com/assets/external/widget.js'
       script.async = true
       script.onload = () => {
         if (window.Calendly) {
-          window.Calendly.initPopupWidget({
-            url: calendlyUrl
+          window.Calendly.initPopupWidget({ 
+            url: calendlyUrl,
+            text: 'Book Free Consultation',
+            color: '#2563eb',
+            textColor: '#ffffff',
+            branding: true
           })
         }
       }
       document.body.appendChild(script)
-      
-      // Fallback: open in new tab if script fails to load after 1 second
       setTimeout(() => {
         if (!window.Calendly) {
-          window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
+          // Fallback: open in new tab on mobile if script fails
+          if (isMobile) {
+            window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
+          } else {
+            window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
+          }
         }
       }, 1000)
     }
   }
+
+  const openCalendlyPopup = () => {
+    trackLeadConsultation()
+    trackStartTrial()
+    // Change URL to /booking without navigating away
+    navigate('/booking', { replace: false })
+    // Open Calendly popup on the current page
+    openCalendlyWidget()
+  }
+
+  // Auto-open popup when visiting /booking directly
+  useEffect(() => {
+    if (location.pathname === '/booking' && !popupOpened) {
+      trackLeadConsultation()
+      trackStartTrial()
+      setPopupOpened(true)
+      // Small delay to ensure page is fully loaded
+      const timer = setTimeout(() => {
+        openCalendlyWidget()
+      }, 300)
+      return () => clearTimeout(timer)
+    } else if (location.pathname !== '/booking') {
+      // Reset popup state when navigating away from /booking
+      setPopupOpened(false)
+    }
+  }, [location.pathname])
 
   return (
     <div className="min-h-screen bg-white">
@@ -268,24 +280,25 @@ function Home() {
       <section id="home" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100" aria-label="Hero section">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 px-2">
               MySchola: #1 GCSE Tutoring Platform for
               <span className="text-blue-600"> Years 9-11</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-600 mb-3 sm:mb-4 max-w-3xl mx-auto px-2">
               <strong>GCSE Maths, English & Science</strong> via Zoom
             </p>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
               One-to-one personalised lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
+                type="button"
                 onClick={openCalendlyPopup}
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-blue-700 active:bg-blue-800 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                 aria-label="Book a free consultation"
               >
                 Book Free Consultation
-                <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -590,20 +603,21 @@ function Home() {
       </section>
 
       {/* Book Call Section */}
-      <section id="book-call" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600" aria-labelledby="book-call-heading">
+      <section id="book-call" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600" aria-labelledby="book-call-heading">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 id="book-call-heading" className="text-4xl font-bold mb-6">Ready to Start Your Child's GCSE Success Journey?</h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <h2 id="book-call-heading" className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 px-2">Ready to Start Your Child's GCSE Success Journey?</h2>
+          <p className="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8 px-2">
             Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
+              type="button"
               onClick={openCalendlyPopup}
-              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+              className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-gray-100 active:bg-gray-200 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
               aria-label="Book a free consultation"
             >
               Book Free Consultation
-              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+              <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
             </button>
           </div>
           <p className="text-blue-100 text-sm mt-6">No card required • Free 15-minute consultation</p>
@@ -829,8 +843,9 @@ function Home() {
                 </li>
                 <li>
                   <button
+                    type="button"
                     onClick={openCalendlyPopup}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-block mt-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                    className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition inline-block mt-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation text-sm sm:text-base"
                     aria-label="Book a consultation"
                   >
                     Book Consultation
@@ -845,16 +860,16 @@ function Home() {
         </div>
       </footer>
 
-      {/* Floating WhatsApp Button */}
+      {/* Floating WhatsApp Button - Mobile Optimized */}
       <a
         href="https://wa.me/447344193804"
         target="_blank"
         rel="noopener noreferrer"
         onClick={trackLeadWhatsApp}
-        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-all duration-300 hover:scale-110 z-50 focus:outline-none focus:ring-4 focus:ring-green-300"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-green-500 text-white p-3 sm:p-4 rounded-full shadow-2xl hover:bg-green-600 active:bg-green-700 transition-all duration-300 hover:scale-110 active:scale-95 z-50 focus:outline-none focus:ring-4 focus:ring-green-300 min-w-[56px] min-h-[56px] flex items-center justify-center touch-manipulation"
         aria-label="Contact us on WhatsApp"
       >
-        <MessageCircle className="h-6 w-6" aria-hidden="true" />
+        <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
       </a>
     </div>
   )

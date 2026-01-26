@@ -36,6 +36,16 @@ export function trackPurchase() {
   }
 }
 
+/** Lead: user completed consultation booking (redirected from Calendly to /booking-success). */
+export function trackBookingComplete() {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', 'Lead', {
+      content_name: 'Consultation Booked',
+      content_category: 'GCSE Tuition'
+    })
+  }
+}
+
 /** Start Trial: user clicked start-trial CTA (e.g. Book Free Consultation). Fires only on https://myschola.uk/ */
 export function trackStartTrial() {
   if (typeof window === 'undefined' || !window.fbq) return
