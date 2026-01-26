@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from './testimonials/testimonial2.mp4'
+import testimonialVideo3 from './testimonials/testmonial3.mp4'
+import testimonialVideo4 from './testimonials/testimonial4.mp4'
 import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
 
 // Video Player Component with proper thumbnail handling
@@ -92,6 +94,8 @@ function Home() {
   const [popupOpened, setPopupOpened] = useState(false)
   
   const testimonialVideos = [
+    { src: testimonialVideo4, id: 4 },
+    { src: testimonialVideo3, id: 3 },
     { src: testimonialVideo2, id: 2 },
     { src: testimonialVideo1, id: 1 }
   ]
@@ -286,7 +290,7 @@ function Home() {
               <strong>GCSE Maths, English & Science</strong> via Zoom
             </p>
             <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-              One-to-one personalised lessons with expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
+              Personalised lessons with one-to-one support from expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -312,8 +316,8 @@ function Home() {
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <UserCheck className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">1-to-1 Sessions</h3>
-              <p className="text-gray-600">Personalised one-on-one attention. No group distractions - your child gets the tutor's full focus.</p>
+              <h3 className="text-xl font-semibold mb-2">One-to-One Support</h3>
+              <p className="text-gray-600">Personalised lessons with one-to-one support. Your child only sees the teacher, ensuring privacy and focus.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
@@ -630,7 +634,7 @@ function Home() {
             {[
               {
                 q: 'How do the Zoom lessons work?',
-                a: 'Each lesson is conducted one-to-one via Zoom. Your child will see only the teacher, ensuring privacy and focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We use interactive whiteboards and screen sharing to make lessons engaging and effective. All sessions are recorded for your child to review later.'
+                a: 'Each lesson feels one-to-one via Zoom. Your child will see only the teacher, ensuring privacy and focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We use interactive whiteboards and screen sharing to make lessons engaging and effective. All sessions are recorded for your child to review later.'
               },
               {
                 q: 'What equipment do we need?',
@@ -638,7 +642,7 @@ function Home() {
               },
               {
                 q: 'How long are the sessions?',
-                a: 'Standard sessions are 60 minutes, but we also offer 45-minute and 90-minute options depending on your child\'s needs and attention span. You can discuss the best duration during your free consultation.'
+                a: 'All lessons are 60 minutes and this duration is fixed.'
               },
               {
                 q: 'Can I choose the tutor?',
@@ -646,7 +650,7 @@ function Home() {
               },
               {
                 q: 'What if my child misses a session?',
-                a: 'We offer flexible rescheduling with 24 hours notice. Missed sessions can be rescheduled to another time that works for you. We understand that life happens!'
+                a: 'All sessions are recorded and uploaded. If your child misses a lesson, they can watch the recording at their convenience. You can ask any questions through our WhatsApp support, available 24/7.'
               },
               {
                 q: 'Do you provide homework and practice materials?',
@@ -755,11 +759,11 @@ function Home() {
           <div className="prose max-w-none text-gray-600 space-y-6">
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Service Agreement</h3>
-              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include one-to-one online tutoring sessions delivered via Zoom for students in Years 9-11.</p>
+              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include feel one-to-one tutoring delivered via Zoom for students in Years 9-11.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">2. Booking and Cancellation</h3>
-              <p>Lessons must be booked in advance. Cancellations require 24 hours notice for a full refund or reschedule. Cancellations with less than 24 hours notice may be charged at 50% of the lesson fee. No-shows will be charged the full lesson fee.</p>
+              <p>Lessons must be booked in advance. Cancellation policies only apply to pay-as-you-go bookings. For bundle purchases, if your child misses a lesson, they can watch the recorded video and ask any questions through our WhatsApp support, available 24/7.</p>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">3. Payment Terms</h3>
@@ -825,7 +829,7 @@ function Home() {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400" role="list">
-                <li><a href="mailto:support@myschola.co.uk" className="hover:text-white transition">support@myschola.co.uk</a></li>
+                <li><a href="mailto:support@myschola.uk" className="hover:text-white transition">support@myschola.uk</a></li>
                 <li><a href="tel:+447344193804" className="hover:text-white transition">+44 7344 193804</a></li>
                 <li>
                   <a
