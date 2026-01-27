@@ -401,7 +401,7 @@ function Home() {
       </section>
 
       {/* Social Proof / Testimonials Section */}
-      <section id="video-testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
+      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
         <div className="max-w-4xl mx-auto text-center">
           <h2 id="video-testimonials-heading" className="text-4xl font-bold mb-4 text-gray-900">Video Testimonials</h2>
           <p className="text-gray-600 mb-12">Hear directly from parents and students about their results.</p>
@@ -506,7 +506,7 @@ function Home() {
         </div>
       </section>
 
-      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="testimonials-heading">
+      <section id="text-testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="testimonials-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="testimonials-heading" className="text-4xl font-bold text-center mb-4">What Parents & Students Say</h2>
           <p className="text-center text-gray-600 mb-12">Real results from real families</p>
