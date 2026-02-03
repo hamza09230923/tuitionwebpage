@@ -5,6 +5,8 @@ import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from './testimonials/testimonial2.mp4'
 import testimonialVideo3 from './testimonials/testmonial3.mp4'
 import testimonialVideo4 from './testimonials/testimonial4.mp4'
+import testimonialVideo5 from './testimonials/testimonial5.mp4'
+import testimonialVideo6 from './testimonials/testimonial6.mp4'
 import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
 // University logos
 import nottinghamLogo from './university/nottingham-university-logo.png'
@@ -103,6 +105,8 @@ function Home() {
   const [popupOpened, setPopupOpened] = useState(false)
   
   const testimonialVideos = [
+    { src: testimonialVideo6, id: 6 },
+    { src: testimonialVideo5, id: 5 },
     { src: testimonialVideo4, id: 4 },
     { src: testimonialVideo3, id: 3 },
     { src: testimonialVideo2, id: 2 },
