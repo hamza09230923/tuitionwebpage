@@ -121,6 +121,41 @@ a:focus-visible {
   }
 }
 
+@keyframes soft-glow {
+  0%, 100% {
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.55);
+  }
+  50% {
+    text-shadow: 0 0 18px rgba(16, 185, 129, 0.9);
+  }
+}
+
+.animate-soft-glow {
+  animation: soft-glow 4s ease-in-out infinite;
+}
+
+@keyframes cta-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.cta-button {
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.35), 0 0 0 2px rgba(59, 130, 246, 0.35);
+}
+
+.cta-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-120%);
+  animation: cta-shimmer 3.2s ease-in-out infinite;
+  opacity: 0.9;
+}
+
 /* High-quality image rendering for logos */
 section img[alt*="University"],
 section img[alt*="College"],

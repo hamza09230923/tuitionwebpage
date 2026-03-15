@@ -1,5 +1,6 @@
 const admin = require('firebase-admin')
 const functions = require('firebase-functions')
+const { google } = require('googleapis')
 
 admin.initializeApp()
 
@@ -55,7 +56,7 @@ const applyCors = (req, res) => {
   }
   res.set('Vary', 'Origin')
   res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type')
-  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
   res.set('Access-Control-Max-Age', '3600')
 }
 
@@ -250,6 +251,82 @@ const normalizeDueDate = (input) => {
     return null
   }
   return admin.firestore.Timestamp.fromDate(date)
+}
+
+const trimInput = (value, maxLength = 200) => {
+  if (!value) return ''
+  const trimmed = String(value).trim()
+  if (!trimmed) return ''
+  return trimmed.slice(0, maxLength)
+}
+
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+const escapeCsv = (value) => {
+  if (value === null || value === undefined) return ''
+  const stringValue = String(value)
+  if (/[",\n]/.test(stringValue)) {
+    return `"${stringValue.replace(/"/g, '""')}"`
+  }
+  return stringValue
+}
+
+const toCsvRow = (values) => values.map(escapeCsv).join(',')
+
+let sheetsClient = null
+
+const getSheetsClient = () => {
+  if (sheetsClient) return sheetsClient
+
+  const clientEmail = process.env.WEBINAR_SHEETS_CLIENT_EMAIL
+  const privateKey = process.env.WEBINAR_SHEETS_PRIVATE_KEY
+
+  if (!clientEmail || !privateKey) {
+    return null
+  }
+
+  const auth = new google.auth.JWT(
+    clientEmail,
+    null,
+    privateKey.replace(/\\n/g, '\n'),
+    ['https://www.googleapis.com/auth/spreadsheets']
+  )
+
+  sheetsClient = google.sheets({ version: 'v4', auth })
+  return sheetsClient
+}
+
+const appendWebinarRow = async (registration) => {
+  const spreadsheetId = process.env.WEBINAR_SHEET_ID
+  if (!spreadsheetId) {
+    return false
+  }
+
+  const sheets = getSheetsClient()
+  if (!sheets) {
+    return false
+  }
+
+  const sheetName = process.env.WEBINAR_SHEET_NAME || 'Registrations'
+  const values = [[
+    registration.fullName,
+    registration.email,
+    registration.phone,
+    registration.year,
+    registration.timezone || '',
+    registration.createdAt || new Date().toISOString(),
+    registration.source || 'webinar-page'
+  ]]
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: `${sheetName}!A:G`,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values }
+  })
+
+  return true
 }
 
 const requestShareLink = async (token, url, options = {}) => {
@@ -592,5 +669,127 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
   } catch (err) {
     console.error('createHomework error:', err)
     jsonError(res, 500, err.message || 'Failed to create homework')
+  }
+})
+
+exports.registerWebinar = functions.https.onRequest(async (req, res) => {
+  if (handleOptions(req, res)) {
+    return
+  }
+  applyCors(req, res)
+
+  if (req.method !== 'POST') {
+    return jsonError(res, 405, 'Method not allowed')
+  }
+
+  try {
+    const {
+      fullName,
+      email,
+      phone,
+      year,
+      timezone
+    } = req.body || {}
+
+    const normalizedName = trimInput(fullName, 120)
+    const normalizedEmail = trimInput(email, 160).toLowerCase()
+    const normalizedPhone = trimInput(phone, 40)
+    const normalizedYear = trimInput(year, 40)
+    const normalizedTimezone = trimInput(timezone, 60)
+
+    if (!normalizedName || !normalizedEmail || !normalizedPhone || !normalizedYear) {
+      return jsonError(res, 400, 'Full name, email, phone number, and year are required')
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      return jsonError(res, 400, 'Email address is invalid')
+    }
+
+    const docRef = await db.collection('webinarRegistrations').add({
+      fullName: normalizedName,
+      email: normalizedEmail,
+      phone: normalizedPhone,
+      year: normalizedYear,
+      timezone: normalizedTimezone || null,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      source: 'webinar-page',
+      userAgent: trimInput(req.get('user-agent'), 200),
+      ip: trimInput(req.get('x-forwarded-for') || req.ip, 80)
+    })
+
+    try {
+      await appendWebinarRow({
+        fullName: normalizedName,
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        year: normalizedYear,
+        timezone: normalizedTimezone || '',
+        createdAt: new Date().toISOString(),
+        source: 'webinar-page'
+      })
+    } catch (sheetError) {
+      console.warn('appendWebinarRow failed:', sheetError)
+    }
+
+    res.status(200).json({ id: docRef.id })
+  } catch (err) {
+    console.error('registerWebinar error:', err)
+    jsonError(res, 500, err.message || 'Failed to register')
+  }
+})
+
+exports.exportWebinarRegistrations = functions.https.onRequest(async (req, res) => {
+  if (handleOptions(req, res)) {
+    return
+  }
+  applyCors(req, res)
+
+  if (req.method !== 'GET') {
+    return jsonError(res, 405, 'Method not allowed')
+  }
+
+  const exportKey = process.env.WEBINAR_EXPORT_KEY
+  if (exportKey && req.query.key !== exportKey) {
+    return jsonError(res, 401, 'Unauthorized')
+  }
+
+  try {
+    const snapshot = await db
+      .collection('webinarRegistrations')
+      .orderBy('createdAt', 'desc')
+      .get()
+
+    const header = [
+      'Full Name',
+      'Email',
+      'Phone',
+      'Year',
+      'Timezone',
+      'Created At',
+      'Source'
+    ]
+
+    const rows = snapshot.docs.map((doc) => {
+      const data = doc.data() || {}
+      const createdAt = data.createdAt?.toDate?.()
+      return [
+        data.fullName || '',
+        data.email || '',
+        data.phone || '',
+        data.year || '',
+        data.timezone || '',
+        createdAt ? createdAt.toISOString() : '',
+        data.source || ''
+      ]
+    })
+
+    const csv = [toCsvRow(header), ...rows.map(toCsvRow)].join('\n')
+
+    res.set('Content-Type', 'text/csv; charset=utf-8')
+    res.set('Content-Disposition', 'attachment; filename="webinar-registrations.csv"')
+    res.status(200).send(csv)
+  } catch (err) {
+    console.error('exportWebinarRegistrations error:', err)
+    jsonError(res, 500, err.message || 'Failed to export registrations')
   }
 })

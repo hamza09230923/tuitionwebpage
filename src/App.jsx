@@ -12,6 +12,8 @@ import HomeworkShareLink from './pages/HomeworkShareLink'
 import PaymentSuccess from './pages/PaymentSuccess'
 import BookingSuccess from './pages/BookingSuccess'
 import Booking from './pages/Booking'
+import Webinar from './pages/Webinar'
+import WebinarThanks from './pages/WebinarThanks'
 import { trackPageView } from './utils/metaPixel'
 
 function isCalendlyScheduledEvent(e) {
@@ -32,15 +34,23 @@ function RouteTracker() {
 
 function CalendlyPopupListener() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   useEffect(() => {
     const handler = (e) => {
       if (isCalendlyScheduledEvent(e)) {
-        navigate('/booking-success', { replace: true })
+        if (pathname.startsWith('/webinar')) {
+          if (typeof window !== 'undefined') {
+            window.sessionStorage.setItem('webinarRegistered', 'true')
+          }
+          navigate('/webinar/thanks', { replace: true })
+        } else {
+          navigate('/booking-success', { replace: true })
+        }
       }
     }
     window.addEventListener('message', handler)
     return () => window.removeEventListener('message', handler)
-  }, [navigate])
+  }, [navigate, pathname])
   return null
 }
 
@@ -58,6 +68,8 @@ function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/share-link" element={<ShareLink />} />
         <Route path="/admin/homework-share-link" element={<HomeworkShareLink />} />
+        <Route path="/webinar" element={<Webinar />} />
+        <Route path="/webinar/thanks" element={<WebinarThanks />} />
         
         {/* Protected student routes */}
         <Route

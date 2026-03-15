@@ -1,4 +1,4 @@
-import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Video, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
@@ -6,7 +6,7 @@ import testimonialVideo2 from './testimonials/testimonial2.mp4'
 import testimonialVideo3 from './testimonials/testmonial3.mp4'
 import testimonialVideo4 from './testimonials/testimonial4.mp4'
 import testimonialVideo5 from './testimonials/testimonial5.mp4'
-import testimonialVideo6 from './testimonials/testimonial6.mp4'
+import benefitsComparisonGraphic from './assets/checklist.jpeg'
 import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
 // University logos
 import nottinghamLogo from './university/nottingham-university-logo.png'
@@ -18,111 +18,112 @@ import warwickLogo from './university/warwick.svg'
 import aqaLogo from './university/aqa.jpg'
 import edexcelLogo from './university/edexcel-vector-logo.png'
 
-// Video Player Component with proper thumbnail handling
-function VideoPlayer({ videoSrc, isActive, translateX, translateY, scale, opacity, blur, zIndex }) {
+function TestimonialVideo({ src, className, showControls = true }) {
   const videoRef = useRef(null)
 
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
-    // Load video metadata to show thumbnail
-    const loadVideo = () => {
-      if (video.readyState === 0) {
-        video.load()
-      }
-    }
-
-    // Set to first frame to show thumbnail (works on mobile)
     const handleLoadedMetadata = () => {
       if (video.readyState >= 2) {
-        // Set to a very small time to show first frame
         video.currentTime = 0.01
         video.pause()
       }
     }
 
-    // Ensure video loads when it becomes active
-    if (isActive) {
-      loadVideo()
-    }
-
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
-    
-    // Force load metadata for thumbnail preview
+
     if (video.readyState < 2) {
       video.load()
     } else {
-      // If already loaded, set to first frame
-      video.currentTime = 0.01
-      video.pause()
+      handleLoadedMetadata()
     }
 
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
     }
-  }, [isActive, videoSrc])
+  }, [src])
 
   return (
-    <div
-      className="absolute"
-      style={{
-        transform: `translateX(${translateX}%) translateY(${translateY}%) scale(${scale})`,
-        opacity: opacity,
-        zIndex: zIndex,
-        filter: `blur(${blur}px)`,
-        pointerEvents: isActive ? 'auto' : 'none',
-        transition: 'all 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
-        willChange: 'transform, opacity, filter'
-      }}
+    <video
+      ref={videoRef}
+      className={className}
+      controls={showControls}
+      playsInline
+      preload="metadata"
     >
-      <div className={`rounded-2xl overflow-hidden bg-white shadow-lg transition-all duration-700 ${
-        isActive 
-          ? 'shadow-xl' 
-          : 'shadow-md'
-      }`}>
-        <video
-          ref={videoRef}
-          className="w-full h-auto max-w-xs"
-          controls={isActive}
-          playsInline
-          preload="metadata"
-        >
-          <source src={videoSrc} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    </div>
+      <source src={src} type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
   )
 }
 
 function Home() {
   const navigate = useNavigate()
   const location = useLocation()
+  const testimonialVideos = [
+    { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
+    { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
+    { src: testimonialVideo3, id: 3, name: 'Eyaad', subjects: ['Physics'], improvedBy: 2 },
+    { src: testimonialVideo2, id: 2, name: 'Atiya', subjects: ['Maths', 'English Literature'], improvedBy: 2 },
+    { src: testimonialVideo1, id: 1, name: 'Nihal', subjects: ['Maths', 'English Literature'], improvedBy: 1 }
+  ]
+  const totalTestimonialVideos = testimonialVideos.length
+  const loopedTestimonialVideos = [...testimonialVideos, ...testimonialVideos, ...testimonialVideos]
+  const loopStartIndex = totalTestimonialVideos
+  const loopEndIndex = totalTestimonialVideos * 2
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFAQ, setOpenFAQ] = useState(null)
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [popupOpened, setPopupOpened] = useState(false)
-  
-  const testimonialVideos = [
-    { src: testimonialVideo6, id: 6 },
-    { src: testimonialVideo5, id: 5 },
-    { src: testimonialVideo4, id: 4 },
-    { src: testimonialVideo3, id: 3 },
-    { src: testimonialVideo2, id: 2 },
-    { src: testimonialVideo1, id: 1 }
-  ]
+  const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(loopStartIndex)
+  const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
+  const [visibleTestimonialCount, setVisibleTestimonialCount] = useState(() => {
+    if (typeof window === 'undefined') return 3
+    if (window.innerWidth >= 1280) return 3
+    if (window.innerWidth >= 768) return 2
+    return 1
+  })
 
-  const nextVideo = () => {
-    setCurrentVideoIndex((prev) => (prev + 1) % testimonialVideos.length)
-  }
+  const formatImprovement = (improvedBy) => (
+    improvedBy === 1 ? 'Improved by 1 grade' : `Improved by ${improvedBy} grades`
+  )
 
-  const prevVideo = () => {
-    setCurrentVideoIndex((prev) => (prev - 1 + testimonialVideos.length) % testimonialVideos.length)
-  }
+  useEffect(() => {
+    const updateVisibleCount = () => {
+      const nextCount = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1
+      setVisibleTestimonialCount(nextCount)
+    }
 
-  const toggleFAQ = (index) => {
+    updateVisibleCount()
+    window.addEventListener('resize', updateVisibleCount)
+    return () => window.removeEventListener('resize', updateVisibleCount)
+  }, [])
+
+  useEffect(() => {
+    if (activeTestimonialIndex < loopStartIndex || activeTestimonialIndex >= loopEndIndex) {
+      setCarouselTransitionEnabled(false)
+      const nextIndex = activeTestimonialIndex < loopStartIndex
+        ? activeTestimonialIndex + totalTestimonialVideos
+        : activeTestimonialIndex - totalTestimonialVideos
+      setActiveTestimonialIndex(nextIndex)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setCarouselTransitionEnabled(true))
+      })
+    }
+  }, [activeTestimonialIndex, loopStartIndex, loopEndIndex, totalTestimonialVideos])
+
+
+    const toggleFAQ = (index) => {
     setOpenFAQ(openFAQ === index ? null : index)
+  }
+
+  const goToPreviousTestimonial = () => {
+    setActiveTestimonialIndex((prev) => prev - 1)
+  }
+
+  const goToNextTestimonial = () => {
+    setActiveTestimonialIndex((prev) => prev + 1)
   }
 
   // Helper function to open Calendly popup (mobile-optimized)
@@ -198,9 +199,14 @@ function Home() {
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg">
         Skip to main content
       </a>
+
+      {/* Cohort Banner */}
+      <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
+        Join our March cohort as soon as possible — spaces are running out!
+      </div>
       
       {/* Navigation */}
-      <nav className="fixed w-full top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
+      <nav className="sticky top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16">
             <div className="flex items-center">
@@ -295,10 +301,12 @@ function Home() {
       <section id="home" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100" aria-label="Hero section">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 px-2">
-              MySchola: #1 GCSE Tutoring Platform for
-              <span className="text-blue-600"> Years 9-11</span>
-            </h1>
+            <div className="relative inline-block px-2">
+              <h1 className="relative z-10 text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
+                MySchola: #1 GCSE Tutoring Platform for
+                <span className="text-blue-600"> Years 9-11</span>
+              </h1>
+            </div>
             <p className="text-lg sm:text-xl text-gray-600 mb-3 sm:mb-4 max-w-3xl mx-auto px-2">
               <strong>GCSE Maths, English & Science</strong> via Zoom
             </p>
@@ -324,7 +332,10 @@ function Home() {
       <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="how-it-works-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="how-it-works-heading" className="text-4xl font-bold text-center mb-12">How Our Lessons Work</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+            A clear, supportive structure that keeps students confident and parents fully in the loop.
+          </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <UserCheck className="h-8 w-8 text-white" />
@@ -346,6 +357,27 @@ function Home() {
               <h3 className="text-xl font-semibold mb-2">Student Privacy</h3>
               <p className="text-gray-600">Your child only sees the teacher. Private, secure sessions designed for maximum learning focus. Webcam and mic are optional - we use Zoom chat for communication, and parents can check engagement for privacy reasons.</p>
             </div>
+            <div className="text-center p-6 bg-blue-50 rounded-lg">
+              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+                <MessageCircle className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">24/7 Personalised Support</h3>
+              <p className="text-gray-600">Students can ask questions anytime between lessons. Tutors respond with personalised explanations, feedback, and next-step guidance.</p>
+            </div>
+            <div className="text-center p-6 bg-blue-50 rounded-lg">
+              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+                <Users className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Parent Evenings</h3>
+              <p className="text-gray-600">Regular parent evenings to review progress, share targets, and agree on the next steps for maximum grade improvement.</p>
+            </div>
+            <div className="text-center p-6 bg-blue-50 rounded-lg">
+              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+                <FileText className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Regular Exam-Style Tests</h3>
+              <p className="text-gray-600">We set regular exams and topic checks to track progress, build exam technique, and close gaps quickly.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -357,6 +389,14 @@ function Home() {
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
             Why thousands of families choose MySchola for GCSE success
           </p>
+          <div className="mb-12 flex justify-center">
+            <img
+              src={benefitsComparisonGraphic}
+              alt="Comparison table showing MySchola benefits against other providers and one-to-one home tutors"
+              className="w-full max-w-6xl h-auto rounded-2xl border border-gray-200 shadow-sm object-contain"
+              loading="lazy"
+            />
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
@@ -406,105 +446,83 @@ function Home() {
 
       {/* Social Proof / Testimonials Section */}
       <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <h2 id="video-testimonials-heading" className="text-4xl font-bold mb-4 text-gray-900">Video Testimonials</h2>
-          <p className="text-gray-600 mb-12">Hear directly from parents and students about their results.</p>
-          
-          {/* Professional Video Carousel */}
-          <div className="relative">
-            <div className="relative h-[450px] md:h-[500px] flex items-center justify-center overflow-visible">
-              <div className="relative w-full h-full flex items-center justify-center">
-                {testimonialVideos.map((video, index) => {
-                  const isActive = index === currentVideoIndex
-                  const isPrev = index === (currentVideoIndex - 1 + testimonialVideos.length) % testimonialVideos.length
-                  const isNext = index === (currentVideoIndex + 1) % testimonialVideos.length
-                  
-                  // Professional positioning - fixed to prevent cropping
-                  let translateX = 0
-                  let translateY = 0
-                  let scale = 1
-                  let opacity = 1
-                  let blur = 0
-                  let zIndex = 10
-                  
-                  if (isActive) {
-                    translateX = 0
-                    translateY = 0
-                    scale = 1
-                    opacity = 1
-                    blur = 0
-                    zIndex = 30
-                  } else if (isPrev) {
-                    translateX = -65
-                    translateY = 20
-                    scale = 0.75
-                    opacity = 0.5
-                    blur = 1
-                    zIndex = 10
-                  } else if (isNext) {
-                    translateX = 65
-                    translateY = 20
-                    scale = 0.75
-                    opacity = 0.5
-                    blur = 1
-                    zIndex = 10
-                  } else {
-                    translateX = 0
-                    translateY = 0
-                    scale = 0.5
-                    opacity = 0
-                    blur = 3
-                    zIndex = 1
-                  }
-                  
+          <p className="text-gray-600 mb-12">Short clips from students, with the subject and grade improvements below.</p>
+
+          <div className="relative sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-4">
+            <button
+              type="button"
+              onClick={goToPreviousTestimonial}
+              className="hidden sm:flex items-center justify-center h-12 w-12 rounded-full border border-slate-200 bg-white/95 text-blue-700 shadow-lg transition hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Previous testimonial videos"
+              title="Previous"
+            >
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <div className="overflow-hidden sm:col-start-2">
+              <div
+                className={`flex ${carouselTransitionEnabled ? 'transition-transform duration-500 ease-out' : ''} will-change-transform`}
+                style={{ transform: `translateX(-${activeTestimonialIndex * (100 / visibleTestimonialCount)}%)` }}
+              >
+                {loopedTestimonialVideos.map((video, index) => {
+                  const centerOffset = Math.floor(visibleTestimonialCount / 2)
+                  const isCenter = index === activeTestimonialIndex + centerOffset
+
                   return (
-                    <VideoPlayer
-                      key={video.id}
-                      videoSrc={video.src}
-                      isActive={isActive}
-                      translateX={translateX}
-                      translateY={translateY}
-                      scale={scale}
-                      opacity={opacity}
-                      blur={blur}
-                      zIndex={zIndex}
-                    />
+                    <div key={`${video.id}-${index}`} className="flex-shrink-0 px-3" style={{ width: `${100 / visibleTestimonialCount}%` }}>
+                      <div
+                        className={`h-full rounded-2xl border border-slate-200 bg-white transition-all duration-500 ${isCenter ? 'shadow-2xl scale-100 opacity-100' : 'shadow-md scale-95 opacity-60'}`}
+                      >
+                        <TestimonialVideo
+                          src={video.src}
+                          className="w-full h-auto rounded-t-2xl"
+                        />
+                        <div className="p-4 text-center">
+                          <p className="text-lg font-semibold text-gray-900">{video.name}</p>
+                          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold">
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-slate-700">
+                              {video.subjects.join(' / ')}
+                            </span>
+                            <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                              {formatImprovement(video.improvedBy)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )
                 })}
               </div>
-              
-              {/* Professional Navigation Buttons */}
-              <button
-                onClick={prevVideo}
-                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 hover:text-blue-600 p-3 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-200 z-40"
-                aria-label="Previous video"
-              >
-                <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
-              </button>
-              
-              <button
-                onClick={nextVideo}
-                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-700 hover:text-blue-600 p-3 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-200 z-40"
-                aria-label="Next video"
-              >
-                <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
-              </button>
             </div>
-            
-            {/* Professional Dots Indicator - Positioned below video */}
-            <div className="flex justify-center items-center gap-3 mt-12 mb-4">
-              {testimonialVideos.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentVideoIndex(index)}
-                  className={`transition-all duration-300 rounded-full ${
-                    index === currentVideoIndex
-                      ? 'bg-blue-600 w-10 h-2.5 shadow-md'
-                      : 'bg-gray-300 w-2.5 h-2.5 hover:bg-gray-400 hover:scale-125'
-                  }`}
-                  aria-label={`Go to video ${index + 1}`}
-                />
-              ))}
+            <button
+              type="button"
+              onClick={goToNextTestimonial}
+              className="hidden sm:flex items-center justify-center h-12 w-12 rounded-full border border-slate-200 bg-white/95 text-blue-700 shadow-lg transition hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Next testimonial videos"
+              title="Next"
+            >
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <div className="flex items-center justify-between sm:hidden mt-4 px-2">
+              <button
+                type="button"
+                onClick={goToPreviousTestimonial}
+                className="flex items-center justify-center h-10 w-10 rounded-full border border-slate-200 bg-white/95 text-blue-700 shadow-lg transition hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Previous testimonial videos"
+                title="Previous"
+              >
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={goToNextTestimonial}
+                className="flex items-center justify-center h-10 w-10 rounded-full border border-slate-200 bg-white/95 text-blue-700 shadow-lg transition hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Next testimonial videos"
+                title="Next"
+              >
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </button>
             </div>
           </div>
         </div>
@@ -514,8 +532,7 @@ function Home() {
         <div className="max-w-7xl mx-auto">
           <h2 id="testimonials-heading" className="text-4xl font-bold text-center mb-4">What Parents & Students Say</h2>
           <p className="text-center text-gray-600 mb-12">Real results from real families</p>
-
-          {/* Results/Stats */}
+{/* Results/Stats */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-blue-600 text-white p-6 rounded-lg text-center">
               <div className="text-4xl font-bold mb-2">95%</div>
@@ -861,45 +878,107 @@ function Home() {
         </div>
       </section>
 
-      {/* Terms of Service Section */}
+      {/* Refund & Cancellation Policy Section */}
       <section id="terms-of-service" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">Terms of Service</h2>
+          <h2 className="text-4xl font-bold text-center mb-4">Refund & Cancellation Policy</h2>
+          <p className="text-center text-gray-500 mb-12">MySchola - Last updated: 9 March 2026</p>
           <div className="prose max-w-none text-gray-600 space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Service Agreement</h3>
-              <p>By booking a lesson or consultation with MySchola, you agree to these terms of service. Our services include feel one-to-one tutoring delivered via Zoom for students in Years 9-11.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Overview</h3>
+              <p>This Refund & Cancellation Policy explains how refunds, cancellations, and subscription changes work for services provided by MySchola.</p>
+              <p>By purchasing or subscribing to any MySchola service, you agree to this policy in addition to our Terms of Service.</p>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">2. Booking and Cancellation</h3>
-              <p>Lessons must be booked in advance. Cancellation policies only apply to pay-as-you-go bookings. For bundle purchases, if your child misses a lesson, they can watch the recorded video and ask any questions through our WhatsApp support, available 24/7.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">2. Subscription Payments</h3>
+              <p>MySchola provides tutoring and educational services on a weekly or monthly subscription basis.</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Payments are processed automatically through Stripe or other secure payment providers.</li>
+                <li>Subscription fees vary depending on the subjects, number of sessions, and selected package.</li>
+                <li>Subscriptions renew automatically at the end of each billing cycle unless cancelled beforehand.</li>
+              </ul>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">3. Payment Terms</h3>
-              <p>Payment is required in advance for lesson packages. We accept payment via Stripe. Refunds for unused lessons in a package will be calculated on a pro-rata basis, minus any applicable fees.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">3. 7-Day Money-Back Guarantee</h3>
+              <p>We offer a 7-day money-back guarantee from the date of your first payment.</p>
+              <p>You may request a full refund within 7 calendar days if:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>The request is made within 7 days of the initial purchase.</li>
+                <li>The request is submitted in writing.</li>
+                <li>There has been no excessive or abusive use of the service.</li>
+              </ul>
+              <p>This guarantee allows parents and students to determine whether the service is suitable for their needs.</p>
+              <p>Refunds are not intended for customers who primarily consume a significant portion of the service and then request a refund.</p>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">4. Tutor Matching</h3>
-              <p>We strive to match students with the most suitable tutor. However, if you're not satisfied after the first session, we offer a free replacement tutor or full refund.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">4. Partial Refunds</h3>
+              <p>In certain situations, partial refunds may be offered at MySchola's discretion, including but not limited to:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Removing one subject from a multi-subject subscription.</li>
+                <li>Downgrading to a smaller tutoring package.</li>
+                <li>Reduction in services during an active billing period.</li>
+              </ul>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">5. Student Conduct</h3>
-              <p>Students are expected to attend lessons punctually, be respectful to tutors, and engage actively in learning. Any inappropriate behavior may result in session termination without refund.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">5. No Refunds After 7 Days</h3>
+              <p>After the 7-day money-back guarantee period has passed:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>No refunds will be issued for time already used.</li>
+                <li>Missed lessons, unused sessions, or lack of attendance do not qualify for refunds.</li>
+                <li>Refunds are not issued for failure to attend or engage with lessons.</li>
+              </ul>
+              <p>If a subscription is cancelled after this period, the cancellation will only prevent future charges.</p>
+              <p>Any partial refund will be calculated proportionally based on the remaining value of the unused service.</p>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">6. Technical Requirements</h3>
-              <p>You are responsible for ensuring you have adequate internet connection and equipment for Zoom sessions. Note that webcam and microphone are optional - not needed. We use Zoom chat to check engagement, and parents can monitor participation for privacy reasons. We are not liable for technical issues on your end, though we'll do our best to accommodate.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">6. Cancellation Policy</h3>
+              <p>You may cancel your subscription at any time.</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Cancellations apply to future billing periods only.</li>
+                <li>Access to tutoring sessions and learning resources will remain active until the end of the current paid billing period.</li>
+                <li>Once a billing cycle has begun, it is considered earned and non-refundable after the 7-day guarantee period.</li>
+              </ul>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">7. Guarantees</h3>
-              <p>While we work hard to help students achieve their goals, we cannot guarantee specific grade improvements as results depend on multiple factors including student effort, attendance, and engagement.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">7. How to Cancel or Request a Refund</h3>
+              <p>All cancellation or refund requests must be submitted in writing.</p>
+              <p>You can contact us via WhatsApp or SMS: +44 7344 193804.</p>
+              <p>Your request should include:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>The student's full name.</li>
+                <li>The email address or phone number used during registration.</li>
+                <li>A clear request to cancel or request a refund.</li>
+              </ul>
+              <p>Our support team will review and respond to requests as quickly as possible.</p>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">8. Intellectual Property</h3>
-              <p>All teaching materials, resources, and session recordings are the intellectual property of MySchola and are for the personal use of the enrolled student only.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">8. Immediate Access to Digital Services</h3>
+              <p>Access to MySchola's digital platform, tutoring sessions, recordings, and learning resources is typically provided within minutes of successful payment.</p>
+              <p>By accessing the service immediately, you acknowledge that:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Digital educational services begin immediately after purchase.</li>
+                <li>Your subscription is considered active once access has been granted.</li>
+              </ul>
+              <p>This does not affect your statutory rights or the 7-day money-back guarantee, but it helps prevent misuse of the refund policy.</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Last updated: {new Date().toLocaleDateString('en-GB')}</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">9. Abuse of the Refund Policy</h3>
+              <p>To ensure fairness for all students and families, MySchola reserves the right to:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Refuse refund requests where there is evidence of repeated or abusive refund behaviour.</li>
+                <li>Suspend or terminate accounts in cases of misuse, fraudulent activity, or bad-faith use of the service.</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">10. Changes to This Policy</h3>
+              <p>MySchola may update this Refund & Cancellation Policy from time to time.</p>
+              <p>The most current version will always be available on our website.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">11. Contact</h3>
+              <p>MySchola</p>
+              <p>For support, refunds, or cancellations:</p>
+              <p>WhatsApp / SMS: +44 7344 193804</p>
             </div>
           </div>
         </div>
@@ -931,7 +1010,7 @@ function Home() {
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400" role="list">
                 <li><a href="#privacy-policy" className="hover:text-white transition">Privacy Policy</a></li>
-                <li><a href="#terms-of-service" className="hover:text-white transition">Terms of Service</a></li>
+                <li><a href="#terms-of-service" className="hover:text-white transition">Refund & Cancellation Policy</a></li>
                 <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
@@ -987,3 +1066,5 @@ function Home() {
 }
 
 export default Home
+
+

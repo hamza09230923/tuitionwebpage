@@ -38,6 +38,27 @@ const callFunction = async (path, payload) => {
   return response.json()
 }
 
+const callPublicFunction = async (path, payload) => {
+  if (!FUNCTIONS_BASE_URL) {
+    throw new Error('Functions base URL is not configured')
+  }
+
+  const response = await fetch(`${FUNCTIONS_BASE_URL}/${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload || {})
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(text || `Request failed (${response.status})`)
+  }
+
+  return response.json()
+}
+
 export const createHidriveUpload = (payload) =>
   callFunction('createHidriveUpload', payload)
 
@@ -46,3 +67,6 @@ export const createRecording = (payload) =>
 
 export const createHomework = (payload) =>
   callFunction('createHomework', payload)
+
+export const registerWebinar = (payload) =>
+  callPublicFunction('registerWebinar', payload)

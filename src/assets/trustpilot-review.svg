@@ -1,0 +1,31 @@
+<svg width="860" height="440" viewBox="0 0 860 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Trustpilot five-star rating graphic</title>
+  <desc id="desc">Trustpilot logo with five green rating tiles and white stars.</desc>
+  <rect width="860" height="440" fill="#E5E5E5"/>
+
+  <polygon points="110,42 132,105 200,105 145,145 167,208 110,168 53,208 75,145 20,105 88,105" fill="#00B67A"/>
+  <polygon points="146,146 166,208 110,168" fill="#005128"/>
+
+  <text x="240" y="170" fill="#111827" font-size="132" font-family="Arial, Helvetica, sans-serif" font-weight="700">Trustpilot</text>
+
+  <g transform="translate(30,264)">
+    <rect x="0" y="0" width="152" height="152" fill="#00B67A"/>
+    <polygon points="76,30 92,76 140,76 100,104 116,148 76,118 36,148 52,104 12,76 60,76" fill="#FFFFFF"/>
+  </g>
+  <g transform="translate(193,264)">
+    <rect x="0" y="0" width="152" height="152" fill="#00B67A"/>
+    <polygon points="76,30 92,76 140,76 100,104 116,148 76,118 36,148 52,104 12,76 60,76" fill="#FFFFFF"/>
+  </g>
+  <g transform="translate(356,264)">
+    <rect x="0" y="0" width="152" height="152" fill="#00B67A"/>
+    <polygon points="76,30 92,76 140,76 100,104 116,148 76,118 36,148 52,104 12,76 60,76" fill="#FFFFFF"/>
+  </g>
+  <g transform="translate(519,264)">
+    <rect x="0" y="0" width="152" height="152" fill="#00B67A"/>
+    <polygon points="76,30 92,76 140,76 100,104 116,148 76,118 36,148 52,104 12,76 60,76" fill="#FFFFFF"/>
+  </g>
+  <g transform="translate(682,264)">
+    <rect x="0" y="0" width="152" height="152" fill="#00B67A"/>
+    <polygon points="76,30 92,76 140,76 100,104 116,148 76,118 36,148 52,104 12,76 60,76" fill="#FFFFFF"/>
+  </g>
+</svg>

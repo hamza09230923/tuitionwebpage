@@ -1,0 +1,81 @@
+<svg width="1536" height="768" viewBox="0 0 1536 768" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">MySchola benefits comparison</title>
+  <desc id="desc">Comparison table showing MySchola features against other providers and one-to-one home tutors.</desc>
+  <rect width="1536" height="768" fill="#EEEDF2"/>
+
+  <text x="768" y="92" text-anchor="middle" fill="#0B1020" font-family="Arial, Helvetica, sans-serif" font-size="84" font-weight="700">
+    The grades you want, done right
+  </text>
+
+  <rect x="608" y="150" width="330" height="94" rx="22" fill="#D8E2F7"/>
+  <text x="772" y="207" text-anchor="middle" fill="#0B1020" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700">MySchola</text>
+
+  <text x="1090" y="226" text-anchor="middle" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="600">Other Providers</text>
+  <text x="1340" y="226" text-anchor="middle" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="600">1-1 Home Tutors</text>
+
+  <rect x="36" y="214" width="1464" height="496" rx="18" fill="#F3F3F6"/>
+  <rect x="608" y="214" width="330" height="496" rx="0" fill="#D8E2F7"/>
+
+  <line x1="68" y1="282" x2="1468" y2="282" stroke="#D8DCE7" stroke-width="2"/>
+  <line x1="68" y1="344" x2="1468" y2="344" stroke="#D8DCE7" stroke-width="2"/>
+  <line x1="68" y1="406" x2="1468" y2="406" stroke="#D8DCE7" stroke-width="2"/>
+  <line x1="68" y1="468" x2="1468" y2="468" stroke="#D8DCE7" stroke-width="2"/>
+  <line x1="68" y1="530" x2="1468" y2="530" stroke="#D8DCE7" stroke-width="2"/>
+  <line x1="68" y1="592" x2="1468" y2="592" stroke="#D8DCE7" stroke-width="2"/>
+  <line x1="68" y1="654" x2="1468" y2="654" stroke="#D8DCE7" stroke-width="2"/>
+
+  <g fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500">
+    <text x="70" y="260">Guaranteed grade improvement in 12 weeks</text>
+    <text x="70" y="322">Unlimited 1:1 out-of-hours support</text>
+    <text x="70" y="384">Grade monitoring + progress tracking</text>
+    <text x="70" y="446">Homework &amp; mock exams with feedback</text>
+    <text x="70" y="508">Initial assessments</text>
+    <text x="70" y="570">Live Webinars for exam technique</text>
+    <text x="70" y="632">Qualified tutors</text>
+    <text x="70" y="694">UK's most affordable tuition service</text>
+  </g>
+
+  <defs>
+    <g id="check">
+      <circle cx="0" cy="0" r="20" fill="#15B66B"/>
+      <path d="M-10 0 L-2 8 L11 -8" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g id="cross">
+      <circle cx="0" cy="0" r="20" fill="#EB2940"/>
+      <path d="M-8 -8 L8 8 M8 -8 L-8 8" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <!-- Row centers: 260, 322, 384, 446, 508, 570, 632, 694 -->
+  <!-- Column centers: MySchola 772, Other 1080, Home 1330 -->
+
+  <!-- MySchola: all checks -->
+  <use href="#check" x="772" y="260"/>
+  <use href="#check" x="772" y="322"/>
+  <use href="#check" x="772" y="384"/>
+  <use href="#check" x="772" y="446"/>
+  <use href="#check" x="772" y="508"/>
+  <use href="#check" x="772" y="570"/>
+  <use href="#check" x="772" y="632"/>
+  <use href="#check" x="772" y="694"/>
+
+  <!-- Other providers -->
+  <use href="#cross" x="1080" y="260"/>
+  <use href="#cross" x="1080" y="322"/>
+  <use href="#cross" x="1080" y="384"/>
+  <use href="#check" x="1080" y="446"/>
+  <use href="#check" x="1080" y="508"/>
+  <use href="#check" x="1080" y="570"/>
+  <use href="#cross" x="1080" y="632"/>
+  <use href="#cross" x="1080" y="694"/>
+
+  <!-- 1-1 home tutors -->
+  <use href="#cross" x="1330" y="260"/>
+  <use href="#cross" x="1330" y="322"/>
+  <use href="#cross" x="1330" y="384"/>
+  <use href="#cross" x="1330" y="446"/>
+  <use href="#cross" x="1330" y="508"/>
+  <use href="#cross" x="1330" y="570"/>
+  <use href="#check" x="1330" y="632"/>
+  <use href="#cross" x="1330" y="694"/>
+</svg>
