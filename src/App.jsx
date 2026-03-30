@@ -14,6 +14,8 @@ import BookingSuccess from './pages/BookingSuccess'
 import Booking from './pages/Booking'
 import Webinar from './pages/Webinar'
 import WebinarThanks from './pages/WebinarThanks'
+import Courses from './pages/Courses'
+import Package from './pages/Package'
 import { trackPageView } from './utils/metaPixel'
 
 function isCalendlyScheduledEvent(e) {
@@ -70,6 +72,8 @@ function App() {
         <Route path="/admin/homework-share-link" element={<HomeworkShareLink />} />
         <Route path="/webinar" element={<Webinar />} />
         <Route path="/webinar/thanks" element={<WebinarThanks />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/package" element={<Package />} />
         
         {/* Protected student routes */}
         <Route
