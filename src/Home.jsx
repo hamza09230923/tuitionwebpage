@@ -308,7 +308,7 @@ function Home() {
               </h1>
             </div>
             <p className="text-lg sm:text-xl text-gray-600 mb-3 sm:mb-4 max-w-3xl mx-auto px-2">
-              <strong>GCSE Maths, English & Science</strong> via Zoom
+              <strong>GCSE Maths, English &amp; Science</strong> via Zoom
             </p>
             <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
               Personalised lessons with one-to-one support from expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
@@ -826,8 +826,8 @@ function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Mail className="h-6 w-6 text-blue-600 mb-3" aria-hidden="true" />
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <a href="mailto:support@myschola.uk" className="text-gray-600 hover:text-blue-600 transition">
-                support@myschola.uk
+              <a href="mailto:myscholauk@gmail.com" className="text-gray-600 hover:text-blue-600 transition">
+                myscholauk@gmail.com
               </a>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
@@ -1017,7 +1017,7 @@ function Home() {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400" role="list">
-                <li><a href="mailto:support@myschola.uk" className="hover:text-white transition">support@myschola.uk</a></li>
+                <li><a href="mailto:myscholauk@gmail.com" className="hover:text-white transition">myscholauk@gmail.com</a></li>
                 <li><a href="tel:+447344193804" className="hover:text-white transition">+44 7344 193804</a></li>
                 <li>
                   <a

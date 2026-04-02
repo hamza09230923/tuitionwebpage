@@ -1,14 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Calendar,
   Clock,
+  BarChart3,
   ArrowLeft,
   ArrowRight,
   CheckCircle,
   Bell,
-  MessageCircle,
+  CircleX,
   Sparkles,
+  Target,
   UserCheck,
   ZoomIn,
   Lock,
@@ -19,23 +21,27 @@ import testimonialVideo2 from '../testimonials/testimonial2.mp4'
 import testimonialVideo3 from '../testimonials/testmonial3.mp4'
 import testimonialVideo4 from '../testimonials/testimonial4.mp4'
 import testimonialVideo5 from '../testimonials/testimonial5.mp4'
+import benefitsComparisonGraphic from '../assets/checklist.jpeg'
 import nottinghamLogo from '../university/nottingham-university-logo.png'
 import kingsCollegeLogo from '../university/King\'s_College_London_logo.svg'
 import cambridgeLogo from '../university/cambridge.jpg'
 import imperialLogo from '../university/Imperial-College-Logo.png'
 import warwickLogo from '../university/warwick.svg'
 
-const WEBINAR_WEEKDAYS = [6]
-const WEBINAR_HOUR = 12
+const WEBINAR_WEEKDAYS = [0]
+const WEBINAR_HOUR = 16
 const WEBINAR_MINUTE = 0
 const WEBINAR_DURATION_MINUTES = 60
+const HERO_BADGE = 'Free GCSE Strategy Call'
+const HERO_TITLE = 'Struggling to Improve Your Childâ€™s Grades? Letâ€™s Build a Plan'
+const HERO_DESCRIPTION = 'If your child is working hard but not getting the grades they should,'
+const HERO_PROBLEM_LINE = 'the problem is usually not effort.'
+const HERO_SOLUTION_LINE = 'It is exam technique.'
 const WEBINAR_TITLE = 'Join our Free Flagship Live Webinar!'
-const WEBINAR_DESCRIPTION = 'Live GCSE strategy session for Maths, English, and Science — leave with a clear plan to raise grades fast.'
-const WEBINAR_LOCATION = 'Google Meet link shared after registration.'
-const WHATSAPP_NUMBER = '447344193804'
-const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`
-const CALENDLY_WEBINAR_URL = 'https://calendly.com/myscholaukwebinar/free-live-webinar'
-const WEBINAR_WELCOME_VIDEO_URL = 'https://www.youtube-nocookie.com/embed/964lgRt8a_E?rel=0'
+const WEBINAR_DESCRIPTION = 'Live GCSE strategy session for Maths, English, and Science â€” leave with a clear plan to raise grades fast.'
+const WEBINAR_LOCATION = 'Zoom link shared after registration.'
+const CALENDLY_WEBINAR_URL = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
+const WEBINAR_WELCOME_VIDEO_URL = 'https://www.youtube-nocookie.com/embed/ls5ti39_nU0?rel=0'
 
 function TestimonialVideo({ src, className }) {
   const videoRef = useRef(null)
@@ -115,21 +121,6 @@ function getWebinarWindow(now = new Date()) {
   return { start, end, isLive }
 }
 
-function getTimeLeft(targetDate) {
-  const totalMs = Math.max(targetDate - new Date(), 0)
-  const totalSeconds = Math.floor(totalMs / 1000)
-  const days = Math.floor(totalSeconds / 86400)
-  const hours = Math.floor((totalSeconds % 86400) / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  return { days, hours, minutes, seconds }
-}
-
-function padTime(value) {
-  return String(value).padStart(2, '0')
-}
-
 function toGoogleCalendarDate(date) {
   return date
     .toISOString()
@@ -150,11 +141,7 @@ function buildGoogleCalendarUrl(startDate, endDate) {
 }
 
 function Webinar() {
-  const [webinarWindow, setWebinarWindow] = useState(() => getWebinarWindow())
-  const [timeLeft, setTimeLeft] = useState(() => {
-    const windowState = getWebinarWindow()
-    return getTimeLeft(windowState.start)
-  })
+  const webinarWindow = getWebinarWindow()
   const [reminderSet, setReminderSet] = useState(() => {
     if (typeof window === 'undefined') return false
     return window.localStorage.getItem('webinarReminder') === 'true'
@@ -182,17 +169,6 @@ function Webinar() {
   const [recommendationPercent, setRecommendationPercent] = useState(() => (
     typeof window === 'undefined' ? 97 : 0
   ))
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const windowState = getWebinarWindow()
-      const target = windowState.isLive ? windowState.end : windowState.start
-      setWebinarWindow(windowState)
-      setTimeLeft(getTimeLeft(target))
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -246,17 +222,7 @@ function Webinar() {
     }
   }, [])
 
-  const nextWebinarLabel = webinarWindow.start.toLocaleString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit'
-  })
   const calendarUrl = buildGoogleCalendarUrl(webinarWindow.start, webinarWindow.end)
-  const whatsappQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-    WHATSAPP_LINK
-  )}`
 
   const formatImprovement = (improvedBy) => (
     improvedBy === 1 ? 'Improved by 1 grade' : `Improved by ${improvedBy} grades`
@@ -277,6 +243,36 @@ function Webinar() {
       value: '300+',
       label: 'Successful students',
       className: 'bg-purple-600 text-purple-100'
+    }
+  ]
+
+  const revisionRealityPoints = [
+    {
+      stat: '5-10',
+      statLabel: 'hours a week',
+      title: 'Hours In',
+      description: 'Many students are already putting in serious revision time every single week.',
+      icon: Clock,
+      iconClass: 'bg-blue-600 text-white',
+      statClass: 'text-blue-700'
+    },
+    {
+      stat: '4-5',
+      statLabel: 'grade plateau',
+      title: 'Grades Stuck',
+      description: 'Despite the effort, many stay stuck at Grade 4 or 5 and cannot break through.',
+      icon: BarChart3,
+      iconClass: 'bg-amber-500 text-white',
+      statClass: 'text-amber-700'
+    },
+    {
+      stat: 'Lost',
+      statLabel: 'marks in the exam',
+      title: 'Marks Lost',
+      description: 'Students often know the content, but still drop marks through weak structure and poor exam technique.',
+      icon: CircleX,
+      iconClass: 'bg-rose-500 text-white',
+      statClass: 'text-rose-700'
     }
   ]
 
@@ -315,6 +311,28 @@ function Webinar() {
       description: 'Regular practice, progress reviews, and clear next steps to keep improvement steady.'
     }
   ]
+  const webinarHeroTitle = 'GCSE Strategy Call for Parents Who Want Faster Grade Growth'
+  const webinarHeroDescription = 'Exam technique. Clear diagnosis. Confidence. Results.'
+  const heroHighlights = [
+    { icon: TrendingUp, label: 'Results-focused' },
+    { icon: Target, label: 'Exam strategy' },
+    { icon: UserCheck, label: 'Parent clarity' },
+    { icon: CheckCircle, label: 'Action plan' }
+  ]
+  const heroCards = [
+    {
+      eyebrow: 'Pinpoint',
+      title: 'Why grades are stuck'
+    },
+    {
+      eyebrow: 'Plan',
+      title: 'What changes next'
+    },
+    {
+      eyebrow: 'Momentum',
+      title: 'How to move up faster'
+    }
+  ]
 
   const goToPreviousTestimonial = () => {
     setActiveTestimonialIndex((prev) => prev - 1)
@@ -347,16 +365,16 @@ function Webinar() {
 
   const faqItems = [
     {
-      q: 'Who is this webinar for?',
-      a: 'Students in Years 9-11 and parents who want a clear GCSE improvement plan.'
+      q: 'Who is this consultation call for?',
+      a: 'It is for parents of students in Years 9 to 11 who want clear support in GCSE Maths, English, or Science.'
     },
     {
-      q: 'How do I get the Google Meet link?',
-      a: 'Register above and we will send the private Google Meet link by email or WhatsApp.'
+      q: 'What happens on the consultation call?',
+      a: 'We talk through your child\'s current grade, the areas they are struggling with, how our lessons work, and the best next steps for improvement.'
     },
     {
-      q: 'Will there be a recording?',
-      a: 'Yes. A private recording link is shared after the session.'
+      q: 'Do you offer a free trial lesson?',
+      a: 'Yes. If our tuition feels like the right fit after the consultation call, we can offer a free trial lesson so you can see how the teaching works before committing.'
     }
   ]
 
@@ -375,8 +393,8 @@ function Webinar() {
                   Attention
                 </span>
                 <span>Parents of GCSE Years 9, 10 &amp; 11 students</span>
-                <span className="text-white/80">•</span>
-                <span className="text-white/90">Spaces are running out — join our March cohort</span>
+                <span className="text-white/80">|</span>
+                <span className="text-white/90">Spaces are running out - join this month&apos;s cohort</span>
               </div>
             ))}
           </div>
@@ -387,45 +405,98 @@ function Webinar() {
           <div className="pointer-events-none absolute -top-32 -right-24 h-64 w-64 rounded-full bg-blue-200/40 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-40 -left-20 h-72 w-72 rounded-full bg-indigo-200/40 blur-3xl" />
           <div className="relative z-10">
-            <div className="flex flex-wrap items-center gap-3 text-blue-700 font-semibold text-sm uppercase tracking-wide">
-              <span className="inline-flex items-center gap-2 rounded-full bg-blue-100/80 px-3 py-1">
+            <div className="flex justify-center">
+              <span className="inline-flex items-center gap-2 rounded-full bg-blue-100/80 px-4 py-2 text-blue-700 font-semibold text-sm uppercase tracking-wide shadow-sm">
                 <Calendar className="h-4 w-4" aria-hidden="true" />
-                Private Webinar Registration
+                {HERO_BADGE}
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-4">
-              {WEBINAR_TITLE}
-            </h1>
-            <div className="mt-4 w-full rounded-3xl border border-red-200 bg-gradient-to-br from-red-50 via-white to-amber-100/60 p-8 sm:p-10 shadow-sm">
-              <div className="flex flex-col gap-3">
-                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-red-100 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-red-700">
-                  <span className="relative inline-flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
-                  </span>
-                  Limited seats
+            <div className="mt-6 text-center">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900">
+                {webinarHeroTitle}
+              </h1>
+              <p className="mt-4 text-lg sm:text-xl font-semibold text-slate-600">
+                {webinarHeroDescription}
+              </p>
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              {heroHighlights.map(({ icon: Icon, label }) => (
+                <div
+                  key={label}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
+                >
+                  <Icon className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 w-full rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-blue-50 to-indigo-50 p-6 sm:p-8 shadow-[0_24px_60px_rgba(37,99,235,0.12)]">
+              <div className="flex flex-col items-center gap-5 text-center">
+                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-red-100 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-red-700">
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  Limited spaces this month
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-bold text-red-700">
-                  {WEBINAR_DESCRIPTION}
+                <h3 className="max-w-4xl text-3xl leading-tight sm:text-4xl font-bold text-slate-900">
+                  Short call. Sharp diagnosis. Clear next steps.
                 </h3>
-                <p className="text-lg sm:text-xl font-semibold text-gray-700">
-                  Get a step-by-step GCSE improvement roadmap, proven exam techniques, and a clear weekly plan.
-                  Book today to secure a place for your child and receive the private Google Meet link instantly.
+                <p className="max-w-3xl text-base sm:text-lg font-semibold text-slate-600">
+                  We guarantee to boost your child&apos;s grades by 2-3 with the right strategy, structure, and support.
                 </p>
-              </div>
-              <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-red-700">
-                <CheckCircle className="h-4 w-4" aria-hidden="true" />
-                Only a few seats left this week
+                <div className="w-full max-w-3xl rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-100 via-white to-lime-50 p-5 shadow-[0_20px_55px_rgba(16,185,129,0.18)]">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-white">
+                      <TrendingUp className="h-4 w-4" aria-hidden="true" />
+                      Money-back promise
+                    </div>
+                    <p className="text-lg sm:text-2xl font-extrabold text-slate-900">
+                      Follow the system. No improvement. Full refund.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={openCalendlyWidget}
+                  className="group relative inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 px-8 sm:px-12 py-4 sm:py-5 text-white text-lg sm:text-xl font-extrabold ring-2 ring-blue-300/40 hover:shadow-2xl hover:-translate-y-0.5 transition overflow-hidden cta-button"
+                >
+                  <span className="cta-shimmer" aria-hidden="true" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition" aria-hidden="true" />
+                  <span className="relative inline-flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-white/90" aria-hidden="true" />
+                    Book Free Strategy Call
+                  </span>
+                </button>
               </div>
             </div>
-            <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 text-center">
-                A welcome from our co-founders
-              </h3>
-              <p className="mt-2 text-sm sm:text-base text-gray-600 text-center">
-                Watch this short introduction from our co-founder, Isam, before registering for the webinar.
-              </p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {heroCards.map((card) => (
+                <div key={card.title} className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-center shadow-sm">
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">{card.eyebrow}</p>
+                  <p className="mt-2 text-lg font-semibold text-slate-900">{card.title}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-5 sm:p-7 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+              <div className="text-center">
+                <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-blue-700">
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  Founder walkthrough
+                </span>
+                <h3 className="mt-4 text-2xl sm:text-3xl font-black tracking-tight text-slate-900 text-center">
+                  See the MySchola method
+                </h3>
+                <p className="mt-3 text-sm sm:text-base font-semibold text-slate-600 text-center">
+                  Strategy. Structure. Grade momentum.
+                </p>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">Exam technique</span>
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">Parent clarity</span>
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">Grade growth</span>
+                </div>
+              </div>
               <div
                 className="mt-4 overflow-hidden rounded-2xl border border-slate-100 bg-black"
                 style={{ aspectRatio: '16 / 9' }}
@@ -433,7 +504,7 @@ function Webinar() {
                 <iframe
                   className="h-full w-full"
                   src={WEBINAR_WELCOME_VIDEO_URL}
-                  title="Webinar welcome video"
+                  title="Tuition overview video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
@@ -449,11 +520,111 @@ function Webinar() {
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition" aria-hidden="true" />
                   <span className="relative inline-flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-white/90" aria-hidden="true" />
-                    Register for the webinar
+                    Yes, I Want to Book a Call With MySchola
                   </span>
                 </button>
               </div>
             </div>
+
+            <div className="mt-6 overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-6 sm:p-8 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_320px] lg:items-start">
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                    The gaps we fix
+                  </span>
+                  <h3 className="mt-4 max-w-3xl text-2xl sm:text-3xl font-bold text-gray-900">
+                    The three core problems we solve at MySchola:
+                  </h3>
+                  <p className="mt-3 max-w-2xl text-base sm:text-lg text-gray-600">
+                    Many students are already working hard. The real issue is that their effort is not translating into marks in the exam.
+                  </p>
+                </div>
+
+                <div className="rounded-3xl border border-blue-100 bg-white p-5 shadow-lg">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                    The real gap
+                  </div>
+                  <p className="mt-3 text-xl sm:text-2xl font-bold text-gray-900">
+                    The jump from Grade 5 to Grade 9 usually comes down to strategy.
+                  </p>
+                  <p className="mt-3 text-sm sm:text-base text-gray-600">
+                    It is answer structure, exam technique, and knowing exactly how to turn subject knowledge into marks.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-3">
+                {revisionRealityPoints.map((item, index) => {
+                  const Icon = item.icon
+
+                  return (
+                    <div
+                      key={item.title}
+                      className="consultation-problem-card group rounded-3xl border border-slate-200 bg-white p-6 shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                      style={{ animationDelay: `${index * 140}ms` }}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${item.iconClass} shadow-lg`}>
+                          <Icon className="h-5 w-5" aria-hidden="true" />
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-3xl sm:text-4xl font-black tracking-tight ${item.statClass}`}>
+                            {item.stat}
+                          </div>
+                          <div className="text-xs font-semibold text-gray-500">
+                            {item.statLabel}
+                          </div>
+                        </div>
+                      </div>
+                      <h4 className="mt-6 text-lg sm:text-xl font-semibold text-gray-900">{item.title}</h4>
+                      <p className="mt-3 text-sm sm:text-base text-gray-600">
+                        {item.description}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="mt-6 rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-blue-50 p-5 sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg">
+                    <Target className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-lg sm:text-xl font-bold text-gray-900">
+                      Our tuition is built to solve the exact reasons students stay stuck.
+                    </p>
+                    <p className="mt-2 text-sm sm:text-base text-gray-600">
+                      We focus on exam technique, answer structure, and smarter revision habits so students can turn effort into measurable grade improvement.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50/60 p-6 sm:p-8 shadow-sm">
+              <div className="max-w-4xl">
+                <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                  What we do differently
+                </span>
+                <h3 className="mt-4 text-2xl sm:text-3xl font-bold text-gray-900">
+                  Why families choose our tuition over other options
+                </h3>
+                <p className="mt-3 text-base sm:text-lg text-gray-600">
+                  We combine strong teaching, progress tracking, homework support, and clear exam preparation in one structured programme.
+                </p>
+              </div>
+
+              <div className="mt-6 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+                <img
+                  src={benefitsComparisonGraphic}
+                  alt="Comparison table showing what MySchola does differently compared with other providers and one-to-one home tutors"
+                  className="w-full h-auto object-contain"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {stats.map((stat) => (
                 <div
@@ -469,6 +640,7 @@ function Webinar() {
               Results based on historical performance. Individual outcomes vary.
             </p>
 
+            {false && (
             <div className="mt-8">
               <div className="w-full rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-100/70 p-8 md:p-10 shadow-lg">
                 <div className="flex items-center justify-between gap-4">
@@ -508,7 +680,7 @@ function Webinar() {
                     Next webinar: <span className="font-bold text-blue-900">{nextWebinarLabel}</span>
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 text-red-700">
-                    Spaces are filling up — register soon.
+                    Spaces are filling up â€” register soon.
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mt-3">
@@ -516,6 +688,7 @@ function Webinar() {
                 </p>
               </div>
             </div>
+            )}
 
             <div className="mt-8 rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/60 p-8 sm:p-10 shadow-sm">
               <div className="flex flex-col gap-3">
@@ -529,7 +702,7 @@ function Webinar() {
                   </span>
                 </h3>
                 <p className="text-lg sm:text-xl text-gray-700 max-w-2xl">
-                  Three focused steps we deliver in the webinar so families leave with a concrete action plan.
+                  Three focused steps we deliver in our lessons so families leave with a concrete action plan.
                 </p>
               </div>
               <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -565,7 +738,7 @@ function Webinar() {
                     Reserve your spot now
                   </h3>
                   <p className="text-gray-700 mt-2 max-w-2xl text-base sm:text-lg">
-                    Book in under a minute and get the private Google Meet link plus the follow-up resources.
+                    Book in under a minute and get the private Zoom link plus the follow-up resources.
                   </p>
                 </div>
                 <div className="flex items-center justify-center">
@@ -582,7 +755,7 @@ function Webinar() {
                         {recommendationPercent}%
                       </div>
                       <div className="relative text-base sm:text-lg font-semibold text-gray-800">
-                        Parents recommend this webinar
+                        of parents recommend us
                       </div>
                     </div>
                   </div>
@@ -591,7 +764,7 @@ function Webinar() {
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 {[
-                  'Live, interactive webinar with real examples',
+                  'Clear consultation with real examples',
                   'Action plan you can use immediately'
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-2 rounded-xl bg-white/80 px-4 py-3 text-sm font-semibold text-gray-700">
@@ -607,7 +780,7 @@ function Webinar() {
                   onClick={openCalendlyWidget}
                   className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-8 py-5 text-white text-xl font-bold shadow-xl hover:bg-blue-700 transition"
                 >
-                  Register for the webinar
+                  Yes, I Want to Book a Call With MySchola
                 </button>
                 <p className="text-xs text-gray-500 mt-3 text-center">
                   Secure Calendly pop-up. No card required.
@@ -830,30 +1003,6 @@ function Webinar() {
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="mt-10 rounded-2xl border border-gray-200 p-6 text-center">
-                <div className="flex items-center justify-center gap-2 text-gray-900 font-semibold">
-                  <MessageCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
-                  WhatsApp QR code
-                </div>
-                <p className="text-gray-600 mt-3">
-                  Scan to message us on WhatsApp if you have any questions.
-                </p>
-                <img
-                  src={whatsappQrUrl}
-                  alt="WhatsApp QR code for MySchola"
-                  className="mx-auto mt-4 h-44 w-44 rounded-lg border border-gray-100"
-                  loading="lazy"
-                />
-                <a
-                  href={WHATSAPP_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border border-green-200 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-50 transition"
-                >
-                  Open WhatsApp chat
-                </a>
             </div>
 
             <div className="mt-10">

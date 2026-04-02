@@ -18,6 +18,16 @@ import Courses from './pages/Courses'
 import Package from './pages/Package'
 import { trackPageView } from './utils/metaPixel'
 
+const WEBINAR_ROUTE = '/book-strategy-call'
+const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
+const LEGACY_WEBINAR_ROUTE = '/webinar'
+const LEGACY_WEBINAR_THANKS_ROUTE = '/webinar/thanks'
+
+function closeCalendlyPopup() {
+  if (typeof window === 'undefined') return
+  window.Calendly?.closePopupWidget?.()
+}
+
 function isCalendlyScheduledEvent(e) {
   return (
     e?.data?.event &&
@@ -40,12 +50,17 @@ function CalendlyPopupListener() {
   useEffect(() => {
     const handler = (e) => {
       if (isCalendlyScheduledEvent(e)) {
-        if (pathname.startsWith('/webinar')) {
+        if (
+          pathname.startsWith(WEBINAR_ROUTE) ||
+          pathname.startsWith(LEGACY_WEBINAR_ROUTE)
+        ) {
           if (typeof window !== 'undefined') {
-            window.sessionStorage.setItem('webinarRegistered', 'true')
+            window.sessionStorage.setItem('strategyCallRegistered', 'true')
           }
-          navigate('/webinar/thanks', { replace: true })
+          closeCalendlyPopup()
+          navigate(WEBINAR_THANKS_ROUTE, { replace: true })
         } else {
+          closeCalendlyPopup()
           navigate('/booking-success', { replace: true })
         }
       }
@@ -70,8 +85,10 @@ function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/share-link" element={<ShareLink />} />
         <Route path="/admin/homework-share-link" element={<HomeworkShareLink />} />
-        <Route path="/webinar" element={<Webinar />} />
-        <Route path="/webinar/thanks" element={<WebinarThanks />} />
+        <Route path={WEBINAR_ROUTE} element={<Webinar />} />
+        <Route path={WEBINAR_THANKS_ROUTE} element={<WebinarThanks />} />
+        <Route path={LEGACY_WEBINAR_ROUTE} element={<Webinar />} />
+        <Route path={LEGACY_WEBINAR_THANKS_ROUTE} element={<WebinarThanks />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/package" element={<Package />} />
         
