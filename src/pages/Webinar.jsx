@@ -510,6 +510,7 @@ function Webinar() {
                   allowFullScreen
                 />
               </div>
+
               <div className="mt-6 flex justify-center">
                 <button
                   type="button"
@@ -523,6 +524,27 @@ function Webinar() {
                     Yes, I Want to Book a Call With MySchola
                   </span>
                 </button>
+              </div>
+
+              <div className="mt-8">
+                <div className="flex items-center gap-4">
+                  <div className="h-px flex-1 bg-slate-200" />
+                  <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">Or book directly below</span>
+                  <div className="h-px flex-1 bg-slate-200" />
+                </div>
+                <div
+                  className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                  style={{ minHeight: '700px' }}
+                >
+                  <iframe
+                    src={`${CALENDLY_WEBINAR_URL}&embed_type=Inline`}
+                    className="h-full w-full"
+                    style={{ minHeight: '700px' }}
+                    title="Book your strategy call"
+                    frameBorder="0"
+                    loading="lazy"
+                  />
+                </div>
               </div>
             </div>
 
