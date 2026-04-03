@@ -41,7 +41,7 @@ const WEBINAR_TITLE = 'Join our Free Flagship Live Webinar!'
 const WEBINAR_DESCRIPTION = 'Live GCSE strategy session for Maths, English, and Science â€” leave with a clear plan to raise grades fast.'
 const WEBINAR_LOCATION = 'Zoom link shared after registration.'
 const CALENDLY_WEBINAR_URL = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
-const WEBINAR_WELCOME_VIDEO_URL = 'https://www.youtube-nocookie.com/embed/ls5ti39_nU0?rel=0'
+const WEBINAR_WELCOME_VIDEO_URL = 'https://www.youtube-nocookie.com/embed/8M0YvaSUF-Q?rel=0'
 
 function TestimonialVideo({ src, className }) {
   const videoRef = useRef(null)
