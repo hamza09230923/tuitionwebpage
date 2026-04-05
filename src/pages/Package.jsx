@@ -9,6 +9,7 @@ import {
   Check,
   Star,
   ArrowLeft,
+  Zap,
 } from 'lucide-react'
 import testimonialVideo1 from '../testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from '../testimonials/testimonial2.mp4'
@@ -160,39 +161,39 @@ function Package() {
   const getMathsScienceEnglishLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/7sY5kEgcn38Ec0b3CZcjS0d'
+        return 'https://buy.stripe.com/6oU14o8JV24Aggr6PbcjS19'
       case '10':
-        return 'https://buy.stripe.com/fZu5kE8JVaB63tFehDcjS0a'
+        return 'https://buy.stripe.com/7sY6oIf8j10we8jflHcjS1a'
       case '11':
-        return 'https://buy.stripe.com/7sY5kEgcn38Ec0b3CZcjS0d'
+        return 'https://buy.stripe.com/fZu5kE0dp6kQfcn0qNcjS1b'
       default:
-        return 'https://buy.stripe.com/7sY5kEgcn38Ec0b3CZcjS0d'
+        return 'https://buy.stripe.com/6oU14o8JV24Aggr6PbcjS19'
     }
   }
 
   const getMathsEnglishLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/28EcN61ht38E2pBa1ncjS0f'
+        return 'https://buy.stripe.com/eVq3cw6BN4cI3tF7TfcjS16'
       case '10':
-        return 'https://buy.stripe.com/cNi8wQ4tFaB60htb5rcjS0g'
+        return 'https://buy.stripe.com/5kQ5kE2lx8sY6FR3CZcjS17'
       case '11':
-        return 'https://buy.stripe.com/cNieVebW74cI3tF8XjcjS0h'
+        return 'https://buy.stripe.com/6oUaEY9NZ38Efcn4H3cjS18'
       default:
-        return 'https://buy.stripe.com/28EcN61ht38E2pBa1ncjS0f'
+        return 'https://buy.stripe.com/eVq3cw6BN4cI3tF7TfcjS16'
     }
   }
 
   const getEnglishScienceLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/dRm14obW7aB6d4f5L7cjS0i'
+        return 'https://buy.stripe.com/dRm14of8jcJec0bgpLcjS12'
       case '10':
-        return 'https://buy.stripe.com/4gMaEY9NZ6kQe8j2yVcjS0j'
+        return 'https://buy.stripe.com/14A7sM4tFeRme8j3CZcjS14'
       case '11':
-        return 'https://buy.stripe.com/5kQcN66BN24A7JV8XjcjS0k'
+        return 'https://buy.stripe.com/14A28sd0b24A4xJ0qNcjS15'
       default:
-        return 'https://buy.stripe.com/dRm14obW7aB6d4f5L7cjS0i'
+        return 'https://buy.stripe.com/dRm14of8jcJec0bgpLcjS12'
     }
   }
 
@@ -212,91 +213,91 @@ function Package() {
   const getScienceLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/00w28s3pB7oU7JVehDcjS0l'
+        return 'https://buy.stripe.com/14A3cwbW7dNi5BNb5rcjS0Z'
       case '10':
-        return 'https://buy.stripe.com/14A6oId0bbFa8NZ0qNcjS0m'
+        return 'https://buy.stripe.com/7sYfZi3pBdNi7JV3CZcjS10'
       case '11':
-        return 'https://buy.stripe.com/28EfZi7FR9x27JV1uRcjS0n'
+        return 'https://buy.stripe.com/fZucN67FRcJe5BNgpLcjS11'
       default:
-        return 'https://buy.stripe.com/00w28s3pB7oU7JVehDcjS0l'
+        return 'https://buy.stripe.com/14A3cwbW7dNi5BNb5rcjS0Z'
     }
   }
 
   const getEnglishOnlyLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/3cIfZiaS3fVqe8j2yVcjS0o'
+        return 'https://buy.stripe.com/dRm7sM2lx38EggrehDcjS0U'
       case '10':
-        return 'https://buy.stripe.com/9B63cw5xJ9x24xJ7TfcjS0p'
+        return 'https://buy.stripe.com/8x2dRagcncJe6FR2yVcjS0W'
       case '11':
-        return 'https://buy.stripe.com/aFa8wQd0b38E6FRgpLcjS0q'
+        return 'https://buy.stripe.com/aFa3cwgcnaB6ggrehDcjS0Y'
       default:
-        return 'https://buy.stripe.com/3cIfZiaS3fVqe8j2yVcjS0o'
+        return 'https://buy.stripe.com/dRm7sM2lx38EggrehDcjS0U'
     }
   }
 
   const getMathsOnlyLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/7sYeVe8JV4cI2pBgpLcjS0r'
+        return 'https://buy.stripe.com/14A00kaS3cJe6FR1uRcjS0S'
       case '10':
-        return 'https://buy.stripe.com/fZu14o5xJ10wfcnc9vcjS0s'
+        return 'https://buy.stripe.com/4gMfZid0b6kQ8NZb5rcjS0T'
       case '11':
-        return 'https://buy.stripe.com/4gM14o6BNbFa7JV0qNcjS0t'
+        return 'https://buy.stripe.com/dRm7sM2lx38EggrehDcjS0U'
       default:
-        return 'https://buy.stripe.com/7sYeVe8JV4cI2pBgpLcjS0r'
+        return 'https://buy.stripe.com/14A00kaS3cJe6FR1uRcjS0S'
     }
   }
 
   const getMathsScienceLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/3cI9AU9NZcJe5BN2yVcjS0u'
+        return 'https://buy.stripe.com/dRmaEY5xJ10w8NZ6PbcjS1c'
       case '10':
-        return 'https://buy.stripe.com/5kQ6oId0b4cI6FRb5rcjS0v'
+        return 'https://buy.stripe.com/dRm5kEbW76kQ1lx3CZcjS1d'
       case '11':
-        return 'https://buy.stripe.com/7sY4gA9NZgZue8j0qNcjS0w'
+        return 'https://buy.stripe.com/28E6oI2lxeRmd4fgpLcjS1e'
       default:
-        return 'https://buy.stripe.com/3cI9AU9NZcJe5BN2yVcjS0u'
+        return 'https://buy.stripe.com/dRmaEY5xJ10w8NZ6PbcjS1c'
     }
   }
 
   const getChemistryLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/8x25kE1ht38EfcnehDcjS0x'
+        return 'https://buy.stripe.com/fZu8wQ2lxbFa5BNflHcjS0P'
       case '10':
-        return 'https://buy.stripe.com/6oU28s3pB24A3tFb5rcjS0y'
+        return 'https://buy.stripe.com/5kQ4gAe4faB62pBc9vcjS0Q'
       case '11':
-        return 'https://buy.stripe.com/7sY6oIe4f38E3tF1uRcjS0z'
+        return 'https://buy.stripe.com/dRmcN6f8j7oU7JV7TfcjS0R'
       default:
-        return 'https://buy.stripe.com/8x25kE1ht38EfcnehDcjS0x'
+        return 'https://buy.stripe.com/fZu8wQ2lxbFa5BNflHcjS0P'
     }
   }
 
   const getPhysicsLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/4gMfZi8JV7oU5BN8XjcjS0A'
+        return 'https://buy.stripe.com/6oU00k1htaB64xJ6PbcjS0N'
       case '10':
-        return 'https://buy.stripe.com/00w9AUaS3dNi1lx7TfcjS0B'
+        return 'https://buy.stripe.com/eVq4gA4tF6kQd4fehDcjS0O'
       case '11':
-        return 'https://buy.stripe.com/9B6cN6f8j5gM2pB7TfcjS0D'
+        return 'https://buy.stripe.com/fZu4gA1hteRm9S35L7cjS0M'
       default:
-        return 'https://buy.stripe.com/4gMfZi8JV7oU5BN8XjcjS0A'
+        return 'https://buy.stripe.com/6oU00k1htaB64xJ6PbcjS0N'
     }
   }
 
   const getBiologyLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/00w14o8JVcJe6FR6PbcjS0E'
+        return 'https://buy.stripe.com/00w28sgcncJefcngpLcjS0H'
       case '10':
-        return 'https://buy.stripe.com/fZu8wQd0bgZu8NZc9vcjS0F'
+        return 'https://buy.stripe.com/7sY5kE0dp38E9S30qNcjS0I'
       case '11':
-        return 'https://buy.stripe.com/7sYbJ28JV10we8ja1ncjS0G'
+        return 'https://buy.stripe.com/4gM7sM8JV4cIc0bddzcjS0J'
       default:
-        return 'https://buy.stripe.com/00w14o8JVcJe6FR6PbcjS0E'
+        return 'https://buy.stripe.com/00w28sgcncJefcngpLcjS0H'
     }
   }
 
@@ -388,7 +389,10 @@ function Package() {
       id: 'maths-science',
       name: 'Maths + Science',
       subjects: 'Mathematics & Science',
-      price: '£120',
+      price: '£128',
+      originalPrice: '£167.98',
+      savingsPercent: '24%',
+      perLesson: '~£8 per hour',
       period: '/month',
       billing: 'Billed monthly',
       features: [
@@ -407,6 +411,9 @@ function Package() {
       name: 'Maths + Science + English',
       subjects: 'Mathematics, Science & English',
       price: '£168',
+      originalPrice: '£247.97',
+      savingsPercent: '32%',
+      perLesson: '~£7 per hour',
       period: '/month',
       billing: 'Billed monthly',
       popular: true,
@@ -426,7 +433,10 @@ function Package() {
       id: 'maths-english',
       name: 'Maths + English',
       subjects: 'Mathematics & English',
-      price: '£105',
+      price: '£96',
+      originalPrice: '£139.98',
+      savingsPercent: '31%',
+      perLesson: '~£8 per hour',
       period: '/month',
       billing: 'Billed monthly',
       features: [
@@ -444,7 +454,10 @@ function Package() {
       id: 'english-science',
       name: 'English + Science',
       subjects: 'English & Science',
-      price: '£150',
+      price: '£160',
+      originalPrice: '£187.98',
+      savingsPercent: '15%',
+      perLesson: '~£8 per hour',
       period: '/month',
       billing: 'Billed monthly',
       features: [
@@ -466,7 +479,8 @@ function Package() {
       id: 'science',
       name: 'Science',
       subjects: 'Science (Bio, Chem, Phys)',
-      price: '£89.99',
+      price: '£107.99',
+      perLesson: '~£9 per lesson',
       period: '/month',
       billing: 'Billed monthly, cancel anytime',
       features: [
@@ -483,7 +497,8 @@ function Package() {
       id: 'english-only',
       name: 'English Only',
       subjects: 'English Language & Literature',
-      price: '£89.99',
+      price: '£79.99',
+      perLesson: '~£10 per lesson',
       period: '/month',
       billing: 'Billed monthly, cancel anytime',
       features: [
@@ -501,6 +516,7 @@ function Package() {
       name: 'Maths Only',
       subjects: 'Mathematics',
       price: '£59.99',
+      perLesson: '~£15 per lesson',
       period: '/month',
       billing: 'Billed monthly, cancel anytime',
       features: [
@@ -517,6 +533,7 @@ function Package() {
       name: 'Science - Chemistry',
       subjects: 'Chemistry Only',
       price: '£59.99',
+      perLesson: '~£15 per lesson',
       period: '/month',
       billing: 'Billed monthly, cancel anytime',
       features: [
@@ -534,6 +551,7 @@ function Package() {
       name: 'Science - Physics',
       subjects: 'Physics Only',
       price: '£59.99',
+      perLesson: '~£15 per lesson',
       period: '/month',
       billing: 'Billed monthly, cancel anytime',
       features: [
@@ -551,6 +569,7 @@ function Package() {
       name: 'Science - Biology',
       subjects: 'Biology Only',
       price: '£59.99',
+      perLesson: '~£15 per lesson',
       period: '/month',
       billing: 'Billed monthly, cancel anytime',
       features: [
@@ -724,7 +743,7 @@ function Package() {
                   <p className={`text-sm mb-4 ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
                     {bundle.subjects}
                   </p>
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <span className={`text-4xl font-extrabold ${bundle.popular ? 'text-white' : 'text-gray-900'}`}>
                       {bundle.price}
                     </span>
@@ -732,10 +751,25 @@ function Package() {
                       {bundle.period}
                     </span>
                   </div>
-                  <p className={`text-sm mb-6 ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
+                  {bundle.originalPrice && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-sm line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>
+                        {bundle.originalPrice}
+                      </span>
+                      <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded">
+                        SAVE {bundle.savingsPercent}
+                      </span>
+                    </div>
+                  )}
+                  {bundle.perLesson && (
+                    <div className={`text-sm font-bold mb-2 ${bundle.popular ? 'text-green-300' : 'text-green-600'}`}>
+                      {bundle.perLesson}
+                    </div>
+                  )}
+                  <p className={`text-sm mb-4 ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
                     {bundle.billing}
                   </p>
-                  <ul className="space-y-3 mb-8 flex-grow">
+                  <ul className="space-y-3 mb-4 flex-grow">
                     {bundle.features.map((feature, fidx) => (
                       <li key={fidx} className="flex items-start gap-3">
                         <Check className={`h-5 w-5 flex-shrink-0 mt-0.5 ${bundle.popular ? 'text-green-300' : 'text-green-500'}`} />
@@ -743,14 +777,28 @@ function Package() {
                       </li>
                     ))}
                   </ul>
+                  {/* Crash Course Badge */}
+                  <div className="mt-auto mb-4 rounded-lg overflow-hidden bg-emerald-50 border border-emerald-200">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-emerald-100/50 border-b border-emerald-200">
+                      <span className="text-xs font-bold tracking-wider text-emerald-700">YEAR 11</span>
+                      <Zap className="h-3 w-3 text-emerald-600" />
+                    </div>
+                    <div className="px-3 py-3">
+                      <div className="text-lg font-black uppercase leading-tight text-emerald-900 tracking-tight">
+                        Crash Course
+                      </div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="inline-block text-xs font-bold text-emerald-700 bg-emerald-200/50 px-2 py-0.5 rounded">
+                          INTENSIVE
+                        </span>
+                        <span className="text-xs text-emerald-600">From April</span>
+                      </div>
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleBundleCheckout(bundle.id)}
-                    className={`w-full py-3 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] touch-manipulation ${
-                      bundle.popular
-                        ? 'bg-white text-blue-600 hover:bg-gray-100 focus:ring-white'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-600'
-                    }`}
+                    className="w-full py-3 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] touch-manipulation bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-600"
                   >
                     Enroll now
                   </button>
@@ -777,10 +825,15 @@ function Package() {
                 >
                   <h3 className="text-xl font-bold text-gray-900 mb-1">{item.name}</h3>
                   <p className="text-sm text-gray-500 mb-4">{item.subjects}</p>
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <span className="text-4xl font-extrabold text-gray-900">{item.price}</span>
                     <span className="text-lg text-gray-500">{item.period}</span>
                   </div>
+                  {item.perLesson && (
+                    <div className="text-sm font-bold text-green-600 mb-2">
+                      {item.perLesson}
+                    </div>
+                  )}
                   <p className="text-sm text-gray-500 mb-6">{item.billing}</p>
                   <ul className="space-y-3 mb-8 flex-grow">
                     {item.features.map((feature, fidx) => (
