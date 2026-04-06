@@ -95,11 +95,14 @@ function Package() {
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(5)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
   const [visibleTestimonialCount, setVisibleTestimonialCount] = useState(() => {
-    if (typeof window === 'undefined') return 3
-    if (window.innerWidth >= 1280) return 3
-    if (window.innerWidth >= 768) return 2
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth >= 1024) return 3
+      if (window.innerWidth >= 768) return 2
+      return 1
+    }
     return 1
   })
+  const [selectedYear, setSelectedYear] = useState(year)
   const totalTestimonialVideos = testimonialVideos.length
   const loopedTestimonialVideos = [...testimonialVideos, ...testimonialVideos, ...testimonialVideos]
   const loopStartIndex = totalTestimonialVideos
@@ -318,6 +321,9 @@ function Package() {
       case 'maths-science':
         window.location.href = getMathsScienceLink()
         break
+      case 'crash-course':
+        window.location.href = 'https://buy.stripe.com/bJe9AUbW79x25BN6PbcjS1f'
+        break
       default:
         openCalendlyPopup()
     }
@@ -472,14 +478,15 @@ function Package() {
       id: 'crash-course',
       name: 'Year 11 Crash Course',
       subjects: 'Intensive Exam Preparation',
-      price: '£189',
-      originalPrice: 'Last year was £249',
-      savingsPercent: '24%',
-      perLesson: '~£13 per hour',
+      price: '£299',
+      originalPrice: 'Last year was £455',
+      savingsPercent: '34%',
+      perLesson: '~£8 per hour',
       period: '',
-      billing: 'One-time fee',
+      billing: 'One-time payment',
       features: [
-        '15 lessons per month',
+        '36 hours teaching total',
+        'Maths, English & Science included',
         '1-1 Strategy Call',
         'Unlimited Platform Access',
         'Assessments',
@@ -739,7 +746,7 @@ function Package() {
               Bundle Packages
             </h2>
             <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {bundles.map((bundle, idx) => (
+              {bundles.filter(bundle => bundle.id !== 'crash-course' || selectedYear === '11').map((bundle, idx) => (
                 <div
                   key={idx}
                   className={`relative rounded-2xl p-6 sm:p-8 flex flex-col ${
@@ -771,7 +778,7 @@ function Package() {
                     <div className="flex items-center gap-2 mb-1">
                       {bundle.originalPrice.startsWith('Last year') ? (
                         <span className={`text-sm ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
-                          Last year was <span className={`line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>£249</span>
+                          Last year was <span className={`line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>{bundle.id === 'crash-course' ? '£455' : '£249'}</span>
                         </span>
                       ) : (
                         <span className={`text-sm line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>
@@ -799,26 +806,7 @@ function Package() {
                       </li>
                     ))}
                   </ul>
-                  {/* Crash Course Badge - only for crash-course bundle */}
-                  {bundle.id === 'crash-course' && (
-                    <div className="mt-auto mb-4 rounded-lg overflow-hidden bg-emerald-50 border border-emerald-200">
-                      <div className="flex items-center gap-2 px-3 py-2 bg-emerald-100/50 border-b border-emerald-200">
-                        <span className="text-xs font-bold tracking-wider text-emerald-700">YEAR 11</span>
-                        <Zap className="h-3 w-3 text-emerald-600" />
-                      </div>
-                      <div className="px-3 py-3">
-                        <div className="text-lg font-black uppercase leading-tight text-emerald-900 tracking-tight">
-                          Crash Course
-                        </div>
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className="inline-block text-xs font-bold text-emerald-700 bg-emerald-200/50 px-2 py-0.5 rounded">
-                            INTENSIVE
-                          </span>
-                          <span className="text-xs text-emerald-600">From April</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Crash Course Badge removed */}
                   <button
                     type="button"
                     onClick={() => handleBundleCheckout(bundle.id)}

@@ -366,6 +366,73 @@ function Timetable() {
           ))}
         </div>
 
+        {/* Crash Course Timetable Section */}
+        <section className="mt-12" aria-labelledby="crash-course-heading">
+          <div className="bg-gradient-to-br from-orange-50 via-white to-red-50 rounded-2xl p-6 sm:p-8 border-2 border-orange-200 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-orange-500 p-2 rounded-lg">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <h2 id="crash-course-heading" className="text-2xl sm:text-3xl font-bold text-slate-900">
+                Crash Course Timetable
+              </h2>
+            </div>
+            <p className="text-slate-600 mb-6">
+              Intensive Year 11 masterclasses designed for exam success. All sessions are 2 hours with focused exam preparation.
+            </p>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Saturday */}
+              <div className="bg-white rounded-xl p-5 border border-orange-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                    <span className="font-bold text-orange-700">Sat</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">Saturday</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border-l-4 border-red-400">
+                    <Clock className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-slate-900">9:00 – 11:00am</p>
+                      <p className="text-slate-700">Year 11 English Masterclass <span className="text-red-600 font-medium">(2hrs)</span></p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                    <Clock className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-slate-900">12:15 – 2:15pm</p>
+                      <p className="text-slate-700">
+                        Year 11 Maths Masterclass
+                        <span className="text-blue-600 font-medium"> (2 hrs)</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sunday */}
+              <div className="bg-white rounded-xl p-5 border border-orange-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                    <span className="font-bold text-orange-700">Sun</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">Sunday</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border-l-4 border-green-400">
+                    <Clock className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-slate-900">9:00 – 11:00am</p>
+                      <p className="text-slate-700">Year 11 Science Masterclass <span className="text-green-600 font-medium">(2 hrs)</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Human Support Section */}
         <div className="mt-8 bg-gradient-to-r from-emerald-50 via-white to-blue-50 rounded-2xl p-6 border border-emerald-200">
           <div className="flex items-start gap-4">

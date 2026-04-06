@@ -78,6 +78,11 @@
     <!-- Resource hints for common domains -->
     <link rel="dns-prefetch" href="https://www.facebook.com">
     <link rel="dns-prefetch" href="https://wa.me">
+    <!-- Stripe preconnect for payment performance -->
+    <link rel="preconnect" href="https://buy.stripe.com" crossorigin>
+    <link rel="dns-prefetch" href="https://buy.stripe.com">
+    <link rel="preconnect" href="https://js.stripe.com" crossorigin>
+    <link rel="dns-prefetch" href="https://js.stripe.com">
   </head>
   <body>
     <!-- Meta Pixel noscript (must be in body: img inside noscript in head is invalid HTML) -->

@@ -57,7 +57,7 @@
     <meta name="keywords" content="GCSE tutoring, online tutoring, Maths tutoring, English tutoring, Science tutoring, Years 9-11, Zoom tutoring, UK tutoring" />
     <link rel="canonical" href="https://myschola.uk/" />
 
-    <!-- Meta Pixel Code -->
+    <!-- Meta Pixel Code - Async loading for performance -->
     <script>
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -70,15 +70,28 @@
       fbq('init', '2772806336415328');
       fbq('track', 'PageView');
     </script>
-    <!-- End Meta Pixel Code -->
-    <script type="module" crossorigin src="/assets/index-D6eQWxvC.js"></script>
+    
+    <!-- Preconnect to Facebook for Meta Pixel -->
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+    <link rel="dns-prefetch" href="https://connect.facebook.net">
+    
+    <!-- Resource hints for common domains -->
+    <link rel="dns-prefetch" href="https://www.facebook.com">
+    <link rel="dns-prefetch" href="https://wa.me">
+    <!-- Stripe preconnect for payment performance -->
+    <link rel="preconnect" href="https://buy.stripe.com" crossorigin>
+    <link rel="dns-prefetch" href="https://buy.stripe.com">
+    <link rel="preconnect" href="https://js.stripe.com" crossorigin>
+    <link rel="dns-prefetch" href="https://js.stripe.com">
+    <script type="module" crossorigin src="/assets/index-CxCyfAwM.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-vendor-CbjYftdW.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-DsOAacP9.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-COjnHNWC.css">
   </head>
   <body>
     <!-- Meta Pixel noscript (must be in body: img inside noscript in head is invalid HTML) -->
     <noscript><img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=2772806336415328&ev=PageView&noscript=1"
+      alt=""
     /></noscript>
     <div id="root"></div>
     
