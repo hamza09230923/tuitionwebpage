@@ -336,9 +336,6 @@ function Package() {
 
   const handleIndividualCheckout = (subjectType) => {
     switch (subjectType) {
-      case 'test-package':
-        window.location.href = getTestPackageLink()
-        break
       case 'science':
         window.location.href = getScienceLink()
         break
@@ -506,22 +503,6 @@ function Package() {
   ]
 
   const individualPricing = [
-    {
-      id: 'test-package',
-      name: 'Test Package',
-      subjects: 'Test Package - £1 Trial',
-      price: '£1',
-      perLesson: 'Test package',
-      period: '/one-time',
-      billing: 'One-time payment for testing',
-      features: [
-        'Test package for Stripe testing',
-        'Full platform access',
-        'Test WhatsApp integration',
-        'Test payment flow',
-        'Test confirmation page',
-      ],
-    },
     {
       id: 'science',
       name: 'Science',

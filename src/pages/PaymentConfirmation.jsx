@@ -142,7 +142,7 @@ function PaymentConfirmation() {
                 🎉 Thank you for joining us! We're excited to help you succeed.
               </p>
               <p className="text-blue-700 text-sm">
-                Join our WhatsApp communities below to stay updated with important announcements, homework, and learning materials.
+                You will receive your student account login details via WhatsApp within 24 hours. One of our team members will contact you to set up your account and get you started.
               </p>
             </div>
           </section>
