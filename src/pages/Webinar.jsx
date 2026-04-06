@@ -77,8 +77,11 @@ function TestimonialVideo({ src, className }) {
       controls
       playsInline
       preload="metadata"
+      width={640}
+      height={360}
     >
       <source src={src} type="video/mp4" />
+      <track kind="captions" src="" label="English" srclang="en" />
       Your browser does not support the video tag.
     </video>
   )
@@ -232,17 +235,17 @@ function Webinar() {
     {
       value: '95%',
       label: 'Students improve grades',
-      className: 'bg-blue-600 text-blue-100'
+      className: 'bg-blue-700 text-white'
     },
     {
       value: '2-3',
       label: 'Grade improvement average',
-      className: 'bg-green-600 text-green-100'
+      className: 'bg-green-700 text-white'
     },
     {
       value: '300+',
       label: 'Successful students',
-      className: 'bg-purple-600 text-purple-100'
+      className: 'bg-purple-700 text-white'
     }
   ]
 
@@ -499,7 +502,7 @@ function Webinar() {
               </div>
               <div
                 className="mt-4 overflow-hidden rounded-2xl border border-slate-100 bg-black"
-                style={{ aspectRatio: '16 / 9' }}
+                style={{ aspectRatio: '16 / 9', width: '100%', maxWidth: '960px', margin: '0 auto' }}
               >
                 <iframe
                   className="h-full w-full"
@@ -508,6 +511,8 @@ function Webinar() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
+                  width={960}
+                  height={540}
                 />
               </div>
 
@@ -534,7 +539,7 @@ function Webinar() {
                 </div>
                 <div
                   className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white"
-                  style={{ minHeight: '700px' }}
+                  style={{ minHeight: '700px', width: '100%', maxWidth: '800px', margin: '0 auto' }}
                 >
                   <iframe
                     src={`${CALENDLY_WEBINAR_URL}&embed_type=Inline`}
@@ -543,6 +548,8 @@ function Webinar() {
                     title="Book your strategy call"
                     frameBorder="0"
                     loading="lazy"
+                    width={800}
+                    height={700}
                   />
                 </div>
               </div>
@@ -643,6 +650,8 @@ function Webinar() {
                   alt="Comparison table showing what MySchola does differently compared with other providers and one-to-one home tutors"
                   className="w-full h-auto object-contain"
                   loading="lazy"
+                  width={1152}
+                  height={768}
                 />
               </div>
             </div>
@@ -890,6 +899,8 @@ function Webinar() {
                           alt={uni.alt}
                           className="w-full h-full object-contain"
                           loading="lazy"
+                          width={288}
+                          height={176}
                         />
                       </div>
                     </div>
@@ -908,6 +919,8 @@ function Webinar() {
                           alt={uni.alt}
                           className="w-full h-full object-contain"
                           loading="lazy"
+                          width={288}
+                          height={176}
                         />
                       </div>
                     </div>

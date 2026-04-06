@@ -52,8 +52,11 @@ function TestimonialVideo({ src, className, showControls = true }) {
       controls={showControls}
       playsInline
       preload="metadata"
+      width={640}
+      height={360}
     >
       <source src={src} type="video/mp4" />
+      <track kind="captions" src="" label="English" srclang="en" />
       Your browser does not support the video tag.
     </video>
   )
@@ -395,6 +398,8 @@ function Home() {
               alt="Comparison table showing MySchola benefits against other providers and one-to-one home tutors"
               className="w-full max-w-6xl h-auto rounded-2xl border border-gray-200 shadow-sm object-contain"
               loading="lazy"
+              width={1152}
+              height={768}
             />
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -534,17 +539,17 @@ function Home() {
           <p className="text-center text-gray-600 mb-12">Real results from real families</p>
 {/* Results/Stats */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-blue-600 text-white p-6 rounded-lg text-center">
+            <div className="bg-blue-700 text-white p-6 rounded-lg text-center">
               <div className="text-4xl font-bold mb-2">95%</div>
-              <div className="text-blue-100">Students improve grades</div>
+              <div className="text-white">Students improve grades</div>
             </div>
-            <div className="bg-green-600 text-white p-6 rounded-lg text-center">
+            <div className="bg-green-700 text-white p-6 rounded-lg text-center">
               <div className="text-4xl font-bold mb-2">2-3</div>
-              <div className="text-green-100">Grade improvement average</div>
+              <div className="text-white">Grade improvement average</div>
             </div>
-            <div className="bg-purple-600 text-white p-6 rounded-lg text-center">
+            <div className="bg-purple-700 text-white p-6 rounded-lg text-center">
               <div className="text-4xl font-bold mb-2">300+</div>
-              <div className="text-purple-100">Successful students</div>
+              <div className="text-white">Successful students</div>
             </div>
           </div>
 
@@ -658,12 +663,14 @@ function Home() {
                 { src: warwickLogo, alt: 'University of Warwick', name: 'Warwick' }
               ].map((uni, index) => (
                 <div key={`first-${index}`} className="flex-shrink-0 mx-4 sm:mx-6 lg:mx-8">
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 lg:p-10 h-40 sm:h-48 lg:h-56 w-64 sm:w-72 lg:w-80 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 lg:p-10 h-32 sm:h-40 lg:h-44 w-56 sm:w-64 lg:w-72 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
                     <img 
                       src={uni.src} 
                       alt={uni.alt} 
                       className="w-full h-full object-contain"
                       loading="lazy"
+                      width={288}
+                      height={176}
                     />
                   </div>
                 </div>
@@ -677,12 +684,14 @@ function Home() {
                 { src: warwickLogo, alt: 'University of Warwick', name: 'Warwick' }
               ].map((uni, index) => (
                 <div key={`second-${index}`} className="flex-shrink-0 mx-4 sm:mx-6 lg:mx-8">
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 lg:p-10 h-40 sm:h-48 lg:h-56 w-64 sm:w-72 lg:w-80 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 lg:p-10 h-32 sm:h-40 lg:h-44 w-56 sm:w-64 lg:w-72 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
                     <img 
                       src={uni.src} 
                       alt={uni.alt} 
                       className="w-full h-full object-contain"
                       loading="lazy"
+                      width={288}
+                      height={176}
                     />
                   </div>
                 </div>
@@ -720,6 +729,8 @@ function Home() {
                         alt={board.alt} 
                         className="w-full h-full object-contain"
                         loading="lazy"
+                        width={320}
+                        height={240}
                       />
                     </div>
                   </div>
@@ -731,24 +742,24 @@ function Home() {
       </section>
 
       {/* Book Call Section */}
-      <section id="book-call" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600" aria-labelledby="book-call-heading">
+      <section id="book-call" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-700 to-indigo-700" aria-labelledby="book-call-heading">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 id="book-call-heading" className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 px-2">Ready to Start Your Child's GCSE Success Journey?</h2>
-          <p className="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8 px-2">
+          <p className="text-lg sm:text-xl text-white mb-6 sm:mb-8 px-2">
             Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               type="button"
               onClick={openCalendlyPopup}
-              className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-gray-100 active:bg-gray-200 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
+              className="bg-white text-blue-700 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-gray-100 active:bg-gray-200 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 min-h-[44px] touch-manipulation"
               aria-label="Book a free consultation"
             >
               Book Free Consultation
               <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
             </button>
           </div>
-          <p className="text-blue-100 text-sm mt-6">No card required • Free 15-minute consultation</p>
+          <p className="text-white text-sm mt-6">No card required • Free 15-minute consultation</p>
         </div>
       </section>
 

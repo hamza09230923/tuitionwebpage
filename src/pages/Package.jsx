@@ -390,8 +390,8 @@ function Package() {
       name: 'Maths + Science',
       subjects: 'Mathematics & Science',
       price: '£128',
-      originalPrice: '£167.98',
-      savingsPercent: '24%',
+      originalPrice: '£150',
+      savingsPercent: '15%',
       perLesson: '~£8 per hour',
       period: '/month',
       billing: 'Billed monthly',
@@ -403,7 +403,6 @@ function Package() {
         'Exam Mastermind Lessons',
         'Detailed feedback',
         'Covers Bio, Chem & Phys',
-        'Year 11 Crash Course Included',
       ],
     },
     {
@@ -411,8 +410,8 @@ function Package() {
       name: 'Maths + Science + English',
       subjects: 'Mathematics, Science & English',
       price: '£168',
-      originalPrice: '£247.97',
-      savingsPercent: '32%',
+      originalPrice: '£220',
+      savingsPercent: '24%',
       perLesson: '~£7 per hour',
       period: '/month',
       billing: 'Billed monthly',
@@ -426,7 +425,6 @@ function Package() {
         'Detailed feedback',
         'Covers Bio, Chem & Phys',
         'Covers Lit & Lang',
-        'Year 11 Crash Course Included',
       ],
     },
     {
@@ -434,8 +432,8 @@ function Package() {
       name: 'Maths + English',
       subjects: 'Mathematics & English',
       price: '£96',
-      originalPrice: '£139.98',
-      savingsPercent: '31%',
+      originalPrice: '£125',
+      savingsPercent: '23%',
       perLesson: '~£8 per hour',
       period: '/month',
       billing: 'Billed monthly',
@@ -447,7 +445,6 @@ function Package() {
         'Exam Mastermind Lessons',
         'Detailed feedback',
         'Covers Lit & Lang',
-        'Year 11 Crash Course Included',
       ],
     },
     {
@@ -455,8 +452,8 @@ function Package() {
       name: 'English + Science',
       subjects: 'English & Science',
       price: '£160',
-      originalPrice: '£187.98',
-      savingsPercent: '15%',
+      originalPrice: '£175',
+      savingsPercent: '9%',
       perLesson: '~£8 per hour',
       period: '/month',
       billing: 'Billed monthly',
@@ -469,7 +466,26 @@ function Package() {
         'Detailed feedback',
         'Covers Lit & Lang',
         'Covers Bio, Chem & Phys',
-        'Year 11 Crash Course Included',
+      ],
+    },
+    {
+      id: 'crash-course',
+      name: 'Year 11 Crash Course',
+      subjects: 'Intensive Exam Preparation',
+      price: '£189',
+      originalPrice: 'Last year was £249',
+      savingsPercent: '24%',
+      perLesson: '~£13 per hour',
+      period: '',
+      billing: 'One-time fee',
+      features: [
+        '15 lessons per month',
+        '1-1 Strategy Call',
+        'Unlimited Platform Access',
+        'Assessments',
+        'Exam Mastermind Lessons',
+        'Detailed feedback',
+        'Intensive Exam Prep',
       ],
     },
   ]
@@ -753,9 +769,15 @@ function Package() {
                   </div>
                   {bundle.originalPrice && (
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-sm line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>
-                        {bundle.originalPrice}
-                      </span>
+                      {bundle.originalPrice.startsWith('Last year') ? (
+                        <span className={`text-sm ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
+                          Last year was <span className={`line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>£249</span>
+                        </span>
+                      ) : (
+                        <span className={`text-sm line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>
+                          {bundle.originalPrice}
+                        </span>
+                      )}
                       <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded">
                         SAVE {bundle.savingsPercent}
                       </span>
@@ -777,24 +799,26 @@ function Package() {
                       </li>
                     ))}
                   </ul>
-                  {/* Crash Course Badge */}
-                  <div className="mt-auto mb-4 rounded-lg overflow-hidden bg-emerald-50 border border-emerald-200">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-emerald-100/50 border-b border-emerald-200">
-                      <span className="text-xs font-bold tracking-wider text-emerald-700">YEAR 11</span>
-                      <Zap className="h-3 w-3 text-emerald-600" />
-                    </div>
-                    <div className="px-3 py-3">
-                      <div className="text-lg font-black uppercase leading-tight text-emerald-900 tracking-tight">
-                        Crash Course
+                  {/* Crash Course Badge - only for crash-course bundle */}
+                  {bundle.id === 'crash-course' && (
+                    <div className="mt-auto mb-4 rounded-lg overflow-hidden bg-emerald-50 border border-emerald-200">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-emerald-100/50 border-b border-emerald-200">
+                        <span className="text-xs font-bold tracking-wider text-emerald-700">YEAR 11</span>
+                        <Zap className="h-3 w-3 text-emerald-600" />
                       </div>
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="inline-block text-xs font-bold text-emerald-700 bg-emerald-200/50 px-2 py-0.5 rounded">
-                          INTENSIVE
-                        </span>
-                        <span className="text-xs text-emerald-600">From April</span>
+                      <div className="px-3 py-3">
+                        <div className="text-lg font-black uppercase leading-tight text-emerald-900 tracking-tight">
+                          Crash Course
+                        </div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className="inline-block text-xs font-bold text-emerald-700 bg-emerald-200/50 px-2 py-0.5 rounded">
+                            INTENSIVE
+                          </span>
+                          <span className="text-xs text-emerald-600">From April</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleBundleCheckout(bundle.id)}

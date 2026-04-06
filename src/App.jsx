@@ -16,6 +16,7 @@ import Webinar from './pages/Webinar'
 import WebinarThanks from './pages/WebinarThanks'
 import Courses from './pages/Courses'
 import Package from './pages/Package'
+import Timetable from './pages/Timetable'
 import { trackPageView } from './utils/metaPixel'
 
 const WEBINAR_ROUTE = '/book-strategy-call'
@@ -91,6 +92,7 @@ function App() {
         <Route path={LEGACY_WEBINAR_THANKS_ROUTE} element={<WebinarThanks />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/package" element={<Package />} />
+        <Route path="/timetable" element={<Timetable />} />
         
         {/* Protected student routes */}
         <Route
