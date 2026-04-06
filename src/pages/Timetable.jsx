@@ -33,20 +33,20 @@ const scheduleData = [
   {
     day: 'Wednesday',
     status: 'active',
-    subject: 'English Language',
-    time: '7:00 PM - 8:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-red-500'
-  },
-  {
-    day: 'Thursday',
-    status: 'active',
     subject: 'Biology',
     time: '6:00 PM - 7:00 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-green-500'
+  },
+  {
+    day: 'Thursday',
+    status: 'active',
+    subject: 'English Language',
+    time: '7:00 PM - 8:00 PM',
+    board: 'AQA, Edexcel & OCR',
+    level: 'Foundation & Higher',
+    color: 'bg-red-500'
   },
   {
     day: 'Friday',
