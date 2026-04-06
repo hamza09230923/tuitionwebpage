@@ -10,6 +10,7 @@ import Admin from './pages/Admin'
 import ShareLink from './pages/ShareLink'
 import HomeworkShareLink from './pages/HomeworkShareLink'
 import PaymentSuccess from './pages/PaymentSuccess'
+import PaymentConfirmation from './pages/PaymentConfirmation'
 import BookingSuccess from './pages/BookingSuccess'
 import Booking from './pages/Booking'
 import Webinar from './pages/Webinar'
@@ -82,6 +83,7 @@ function App() {
         <Route path="/booking" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-confirmation" element={<PaymentConfirmation />} />
         <Route path="/booking-success" element={<BookingSuccess />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/share-link" element={<ShareLink />} />
