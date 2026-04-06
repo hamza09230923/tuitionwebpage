@@ -436,6 +436,7 @@ function Package() {
         'Detailed feedback',
         'Covers Bio, Chem & Phys',
         'Covers Lit & Lang',
+        'Crash Course is included',
       ],
     },
     {
@@ -771,6 +772,25 @@ function Package() {
                   <p className={`text-sm mb-4 ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
                     {bundle.subjects}
                   </p>
+                  
+                  {/* Crash Course Badge for Maths + Science + English */}
+                  {bundle.id === 'maths-science-english' && (
+                    <div className={`rounded-xl p-4 mb-4 text-center relative overflow-hidden ${bundle.popular ? 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 border-2 border-green-400/50' : 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300'}`}>
+                      <div className="relative z-10">
+                        <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${bundle.popular ? 'text-green-300' : 'text-green-700'}`}>
+                          Includes Year 11
+                        </p>
+                        <p className={`text-lg font-extrabold uppercase mb-1 ${bundle.popular ? 'text-white' : 'text-gray-900'}`}>
+                          Crash Course
+                        </p>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${bundle.popular ? 'bg-green-500 text-white' : 'bg-green-600 text-white'}`}>
+                          <Zap className="h-3 w-3" />
+                          Starts from April
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="mb-2">
                     <span className={`text-4xl font-extrabold ${bundle.popular ? 'text-white' : 'text-gray-900'}`}>
                       {bundle.price}
