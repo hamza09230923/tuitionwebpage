@@ -179,7 +179,7 @@ function HomeworkShareLink() {
         <form onSubmit={handleSave} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700 space-y-2 mb-4">
             <p>1) Open HiDrive and find the uploaded file.</p>
-            <p>2) Click Share -> Create link -> Copy link.</p>
+            <p>2) Click Share → Create link → Copy link.</p>
             <p>3) Paste the link below and click Save Homework.</p>
           </div>
 
