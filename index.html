@@ -57,18 +57,23 @@
     <meta name="keywords" content="GCSE tutoring, online tutoring, Maths tutoring, English tutoring, Science tutoring, Years 9-11, Zoom tutoring, UK tutoring" />
     <link rel="canonical" href="https://myschola.uk/" />
 
-    <!-- Meta Pixel Code - Async loading for performance -->
+    <!-- Meta Pixel Code - Deferred loading for better performance -->
     <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '2772806336415328');
-      fbq('track', 'PageView');
+      // Defer Facebook Pixel loading until after page load
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '2772806336415328');
+          fbq('track', 'PageView');
+        }, 3000); // Wait 3 seconds after load
+      });
     </script>
   </head>
   <body>
