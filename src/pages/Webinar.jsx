@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Calendar,
@@ -33,22 +33,99 @@ const WEBINAR_HOUR = 16
 const WEBINAR_MINUTE = 0
 const WEBINAR_DURATION_MINUTES = 60
 const HERO_BADGE = 'Free GCSE Strategy Call'
-const HERO_TITLE = 'Struggling to Improve Your Childâ€™s Grades? Letâ€™s Build a Plan'
+const HERO_TITLE = 'Struggling to Improve Your Child\u2019s Grades? Let\u2019s Build a Plan'
 const HERO_DESCRIPTION = 'If your child is working hard but not getting the grades they should,'
 const HERO_PROBLEM_LINE = 'the problem is usually not effort.'
 const HERO_SOLUTION_LINE = 'It is exam technique.'
 const WEBINAR_TITLE = 'Join our Free Flagship Live Webinar!'
-const WEBINAR_DESCRIPTION = 'Live GCSE strategy session for Maths, English, and Science â€” leave with a clear plan to raise grades fast.'
+const WEBINAR_DESCRIPTION = 'Live GCSE strategy session for Maths, English, and Science \u2014 leave with a clear plan to raise grades fast.'
 const WEBINAR_LOCATION = 'Zoom link shared after registration.'
 const CALENDLY_WEBINAR_URL = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
 const WEBINAR_WELCOME_VIDEO_URL = 'https://www.youtube.com/embed/nTwfvwF0juo?rel=0'
 
+// Lazy-loaded Calendly widget using Intersection Observer
+function LazyCalendly({ url, title }) {
+  const [shouldLoad, setShouldLoad] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (!containerRef.current || shouldLoad) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true)
+            // Small delay to prioritize critical content
+            const timer = setTimeout(() => {
+              setShouldLoad(true)
+            }, 100)
+            return () => clearTimeout(timer)
+          }
+        })
+      },
+      {
+        rootMargin: '200px', // Start loading 200px before it comes into view
+        threshold: 0.01
+      }
+    )
+
+    observer.observe(containerRef.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [shouldLoad])
+
+  return (
+    <div ref={containerRef} className="h-full w-full">
+      {shouldLoad ? (
+        <iframe
+          src={`${url}&embed_type=Inline`}
+          className="h-full w-full"
+          style={{ minHeight: '700px' }}
+          title={title}
+          frameBorder="0"
+          loading="lazy"
+        />
+      ) : (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-gray-50 border border-slate-200 rounded-2xl min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4" />
+          <p className="text-gray-600 font-medium">Loading calendar...</p>
+          <p className="text-gray-400 text-sm mt-2">Scroll down to view booking options</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function TestimonialVideo({ src, className }) {
   const videoRef = useRef(null)
+  const [shouldLoad, setShouldLoad] = useState(false)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (!containerRef.current || shouldLoad) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true)
+          }
+        })
+      },
+      { rootMargin: '100px', threshold: 0.1 }
+    )
+
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [shouldLoad])
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !shouldLoad) return
 
     const handleLoadedMetadata = () => {
       if (video.readyState >= 2) {
@@ -68,22 +145,30 @@ function TestimonialVideo({ src, className }) {
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
     }
-  }, [src])
+  }, [src, shouldLoad])
 
   return (
-    <video
-      ref={videoRef}
-      className={className}
-      controls
-      playsInline
-      preload="metadata"
-      width={640}
-      height={360}
-    >
-      <source src={src} type="video/mp4" />
-      <track kind="captions" src="" label="English" srclang="en" />
-      Your browser does not support the video tag.
-    </video>
+    <div ref={containerRef} className={className}>
+      {shouldLoad ? (
+        <video
+          ref={videoRef}
+          className="w-full h-auto"
+          controls
+          playsInline
+          preload="metadata"
+          width={640}
+          height={360}
+        >
+          <source src={src} type="video/mp4" />
+          <track kind="captions" src="" label="English" srclang="en" />
+          Your browser does not support the video tag.
+        </video>
+      ) : (
+        <div className="w-full aspect-video bg-gray-100 animate-pulse flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-gray-200" />
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -178,15 +263,29 @@ function Webinar() {
     window.localStorage.setItem('webinarReminder', reminderSet ? 'true' : 'false')
   }, [reminderSet])
 
+  // Debounced resize handler for carousel
+  const resizeTimeoutRef = useRef(null)
   useEffect(() => {
     const updateVisibleCount = () => {
       const nextCount = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1
       setVisibleTestimonialCount(nextCount)
     }
 
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current)
+      }
+      resizeTimeoutRef.current = setTimeout(updateVisibleCount, 150)
+    }
+
     updateVisibleCount()
-    window.addEventListener('resize', updateVisibleCount)
-    return () => window.removeEventListener('resize', updateVisibleCount)
+    window.addEventListener('resize', handleResize, { passive: true })
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -226,6 +325,11 @@ function Webinar() {
   }, [])
 
   const calendarUrl = buildGoogleCalendarUrl(webinarWindow.start, webinarWindow.end)
+
+  // Memoized carousel style to prevent forced reflows
+  const carouselTransform = useMemo(() => ({
+    transform: `translateX(calc(-${activeTestimonialIndex} * (100% / ${visibleTestimonialCount})))`,
+  }), [activeTestimonialIndex, visibleTestimonialCount])
 
   const formatImprovement = (improvedBy) => (
     improvedBy === 1 ? 'Improved by 1 grade' : `Improved by ${improvedBy} grades`
@@ -345,22 +449,26 @@ function Webinar() {
     setActiveTestimonialIndex((prev) => prev + 1)
   }
 
-  const openCalendlyWidget = () => {
+  const openCalendlyPopup = () => {
+    if (typeof window === 'undefined') return
+    
     if (window.Calendly) {
-      window.Calendly.initPopupWidget({
-        url: CALENDLY_WEBINAR_URL
-      })
+      window.Calendly.initPopupWidget({ url: CALENDLY_WEBINAR_URL })
       return
     }
-
+    
+    // Load Calendly script dynamically
+    const link = document.createElement('link')
+    link.href = 'https://assets.calendly.com/assets/external/widget.css'
+    link.rel = 'stylesheet'
+    document.head.appendChild(link)
+    
     const script = document.createElement('script')
     script.src = 'https://assets.calendly.com/assets/external/widget.js'
     script.async = true
     script.onload = () => {
       if (window.Calendly) {
-        window.Calendly.initPopupWidget({
-          url: CALENDLY_WEBINAR_URL
-        })
+        window.Calendly.initPopupWidget({ url: CALENDLY_WEBINAR_URL })
       }
     }
     document.body.appendChild(script)
@@ -461,7 +569,7 @@ function Webinar() {
                 </div>
                 <button
                   type="button"
-                  onClick={openCalendlyWidget}
+                  onClick={openCalendlyPopup}
                   className="group relative inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 px-8 sm:px-12 py-4 sm:py-5 text-white text-lg sm:text-xl font-extrabold ring-2 ring-blue-300/40 hover:shadow-2xl hover:-translate-y-0.5 transition overflow-hidden cta-button"
                 >
                   <span className="cta-shimmer" aria-hidden="true" />
@@ -511,15 +619,14 @@ function Webinar() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
-                  width={960}
-                  height={540}
+                  loading="lazy"
                 />
               </div>
 
               <div className="mt-6 flex justify-center">
                 <button
                   type="button"
-                  onClick={openCalendlyWidget}
+                  onClick={openCalendlyPopup}
                   className="group relative inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 px-12 py-6 text-white text-2xl font-extrabold ring-2 ring-blue-300/40 hover:shadow-2xl hover:-translate-y-0.5 transition overflow-hidden cta-button"
                 >
                   <span className="cta-shimmer" aria-hidden="true" />
@@ -541,15 +648,9 @@ function Webinar() {
                   className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white"
                   style={{ minHeight: '700px', width: '100%', maxWidth: '800px', margin: '0 auto' }}
                 >
-                  <iframe
-                    src={`${CALENDLY_WEBINAR_URL}&embed_type=Inline`}
-                    className="h-full w-full"
-                    style={{ minHeight: '700px' }}
+                  <LazyCalendly
+                    url={CALENDLY_WEBINAR_URL}
                     title="Book your strategy call"
-                    frameBorder="0"
-                    loading="lazy"
-                    width={800}
-                    height={700}
                   />
                 </div>
               </div>
@@ -808,7 +909,7 @@ function Webinar() {
               <div className="mt-8">
                 <button
                   type="button"
-                  onClick={openCalendlyWidget}
+                  onClick={openCalendlyPopup}
                   className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-8 py-5 text-white text-xl font-bold shadow-xl hover:bg-blue-700 transition"
                 >
                   Yes, I Want to Book a Call With MySchola
@@ -950,8 +1051,8 @@ function Webinar() {
                   </button>
                   <div className="overflow-hidden sm:col-start-2">
                     <div
-                      className={`flex ${carouselTransitionEnabled ? 'transition-transform duration-500 ease-out' : ''} will-change-transform`}
-                      style={{ transform: `translateX(-${activeTestimonialIndex * (100 / visibleTestimonialCount)}%)` }}
+                      className={`flex ${carouselTransitionEnabled ? 'transition-transform duration-500 ease-out' : ''}`}
+                      style={carouselTransform}
                     >
                       {loopedTestimonialVideos.map((video, index) => {
                         const centerOffset = Math.floor(visibleTestimonialCount / 2)
