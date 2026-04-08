@@ -216,39 +216,39 @@ function Package() {
   const getScienceLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/14A3cwbW7dNi5BNb5rcjS0Z'
+        return 'https://buy.stripe.com/bJe28sgcn6kQfcn0qNcjS1i'
       case '10':
-        return 'https://buy.stripe.com/7sYfZi3pBdNi7JV3CZcjS10'
+        return 'https://buy.stripe.com/9B65kE9NZgZu7JVb5rcjS1k'
       case '11':
-        return 'https://buy.stripe.com/fZucN67FRcJe5BNgpLcjS11'
+        return 'https://buy.stripe.com/aFabJ2gcnaB63tFehDcjS1j'
       default:
-        return 'https://buy.stripe.com/14A3cwbW7dNi5BNb5rcjS0Z'
+        return 'https://buy.stripe.com/bJe28sgcn6kQfcn0qNcjS1i'
     }
   }
 
   const getEnglishOnlyLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/dRm7sM2lx38EggrehDcjS0U'
+        return 'https://buy.stripe.com/14AcN6bW74cI9S36PbcjS1o'
       case '10':
-        return 'https://buy.stripe.com/8x2dRagcncJe6FR2yVcjS0W'
+        return 'https://buy.stripe.com/9B6aEY5xJcJe3tFddzcjS1p'
       case '11':
-        return 'https://buy.stripe.com/aFa3cwgcnaB6ggrehDcjS0Y'
+        return 'https://buy.stripe.com/fZu9AUd0b7oUe8j6PbcjS1q'
       default:
-        return 'https://buy.stripe.com/dRm7sM2lx38EggrehDcjS0U'
+        return 'https://buy.stripe.com/14AcN6bW74cI9S36PbcjS1o'
     }
   }
 
   const getMathsOnlyLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/14A00kaS3cJe6FR1uRcjS0S'
+        return 'https://buy.stripe.com/8x24gAbW7bFad4fb5rcjS1l'
       case '10':
-        return 'https://buy.stripe.com/4gMfZid0b6kQ8NZb5rcjS0T'
+        return 'https://buy.stripe.com/9B6aEY6BN9x26FR4H3cjS1m'
       case '11':
-        return 'https://buy.stripe.com/dRm7sM2lx38EggrehDcjS0U'
+        return 'https://buy.stripe.com/5kQ3cw2lx4cId4fc9vcjS1n'
       default:
-        return 'https://buy.stripe.com/14A00kaS3cJe6FR1uRcjS0S'
+        return 'https://buy.stripe.com/8x24gAbW7bFad4fb5rcjS1l'
     }
   }
 
@@ -268,39 +268,39 @@ function Package() {
   const getChemistryLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/fZu8wQ2lxbFa5BNflHcjS0P'
+        return 'https://buy.stripe.com/3cIcN67FR8sY1lx8XjcjS1x'
       case '10':
-        return 'https://buy.stripe.com/5kQ4gAe4faB62pBc9vcjS0Q'
+        return 'https://buy.stripe.com/cNi3cwgcn9x2d4f6PbcjS1y'
       case '11':
-        return 'https://buy.stripe.com/dRmcN6f8j7oU7JV7TfcjS0R'
+        return 'https://buy.stripe.com/4gM7sM3pB24Aggr1uRcjS1z'
       default:
-        return 'https://buy.stripe.com/fZu8wQ2lxbFa5BNflHcjS0P'
+        return 'https://buy.stripe.com/3cIcN67FR8sY1lx8XjcjS1x'
     }
   }
 
   const getPhysicsLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/6oU00k1htaB64xJ6PbcjS0N'
+        return 'https://buy.stripe.com/28E28s2lx9x24xJb5rcjS1u'
       case '10':
-        return 'https://buy.stripe.com/eVq4gA4tF6kQd4fehDcjS0O'
+        return 'https://buy.stripe.com/fZu7sMe4faB6aW7gpLcjS1v'
       case '11':
-        return 'https://buy.stripe.com/fZu4gA1hteRm9S35L7cjS0M'
+        return 'https://buy.stripe.com/00w9AUgcn8sYfcn7TfcjS1w'
       default:
-        return 'https://buy.stripe.com/6oU00k1htaB64xJ6PbcjS0N'
+        return 'https://buy.stripe.com/28E28s2lx9x24xJb5rcjS1u'
     }
   }
 
   const getBiologyLink = () => {
     switch (year) {
       case '9':
-        return 'https://buy.stripe.com/00w28sgcncJefcngpLcjS0H'
+        return 'https://buy.stripe.com/5kQ3cwgcn9x2e8j0qNcjS1r'
       case '10':
-        return 'https://buy.stripe.com/7sY5kE0dp38E9S30qNcjS0I'
+        return 'https://buy.stripe.com/dRm9AUbW7fVqc0b0qNcjS1s'
       case '11':
-        return 'https://buy.stripe.com/4gM7sM8JV4cIc0bddzcjS0J'
+        return 'https://buy.stripe.com/3cI3cw6BN10w2pBehDcjS1t'
       default:
-        return 'https://buy.stripe.com/00w28sgcncJefcngpLcjS0H'
+        return 'https://buy.stripe.com/5kQ3cwgcn9x2e8j0qNcjS1r'
     }
   }
 
@@ -405,7 +405,8 @@ function Package() {
       savingsPercent: '15%',
       perLesson: '~£8 per hour',
       period: '/month',
-      billing: 'Billed monthly',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '16 lessons per month',
         '1-1 Strategy Call',
@@ -425,7 +426,8 @@ function Package() {
       savingsPercent: '24%',
       perLesson: '~£7 per hour',
       period: '/month',
-      billing: 'Billed monthly',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       popular: true,
       features: [
         '24 lessons per month',
@@ -448,7 +450,8 @@ function Package() {
       savingsPercent: '23%',
       perLesson: '~£8 per hour',
       period: '/month',
-      billing: 'Billed monthly',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '12 lessons per month',
         '1-1 Strategy Call',
@@ -468,7 +471,8 @@ function Package() {
       savingsPercent: '9%',
       perLesson: '~£8 per hour',
       period: '/month',
-      billing: 'Billed monthly',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '20 lessons per month',
         '1-1 Strategy Call',
@@ -511,7 +515,8 @@ function Package() {
       price: '£107.99',
       perLesson: '~£9 per lesson',
       period: '/month',
-      billing: 'Billed monthly, cancel anytime',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '12 lessons per month',
         '1-1 Strategy Call',
@@ -529,7 +534,8 @@ function Package() {
       price: '£79.99',
       perLesson: '~£10 per lesson',
       period: '/month',
-      billing: 'Billed monthly, cancel anytime',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '8 lessons per month',
         '1-1 Strategy Call',
@@ -547,7 +553,8 @@ function Package() {
       price: '£59.99',
       perLesson: '~£15 per lesson',
       period: '/month',
-      billing: 'Billed monthly, cancel anytime',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '4 lessons per month',
         '1-1 Strategy Call',
@@ -564,7 +571,8 @@ function Package() {
       price: '£59.99',
       perLesson: '~£15 per lesson',
       period: '/month',
-      billing: 'Billed monthly, cancel anytime',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '4 lessons per month',
         '1-1 Strategy Call',
@@ -582,7 +590,8 @@ function Package() {
       price: '£59.99',
       perLesson: '~£15 per lesson',
       period: '/month',
-      billing: 'Billed monthly, cancel anytime',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '4 lessons per month',
         '1-1 Strategy Call',
@@ -600,7 +609,8 @@ function Package() {
       price: '£59.99',
       perLesson: '~£15 per lesson',
       period: '/month',
-      billing: 'Billed monthly, cancel anytime',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
         '4 lessons per month',
         '1-1 Strategy Call',
@@ -735,6 +745,9 @@ function Package() {
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Flexible pricing options tailored for Year {year} students. All packages include expert tutoring, detailed feedback, and exam preparation.
             </p>
+            <p className="text-base text-green-600 font-medium mb-8 max-w-2xl mx-auto">
+              7-day risk-free trial includes your first lesson free. Continue only if you're happy — cancel anytime before day 8.
+            </p>
             <Link
               to="/courses"
               className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition"
@@ -773,7 +786,12 @@ function Package() {
                     {bundle.subjects}
                   </p>
                   
-                  {/* Crash Course Badge for Maths + Science + English */}
+            {bundle.trialDays && (
+                    <div className={`rounded-md px-3 py-2 mb-3 text-xs ${bundle.popular ? 'bg-green-500/20 text-green-100' : 'bg-green-50 text-green-700'}`}>
+                      <span className="font-medium">7-day risk-free trial</span>
+                      <span className="opacity-75 ml-1">• First lesson free • Cancel before day 8</span>
+                    </div>
+                  )}
                   {bundle.id === 'maths-science-english' && (
                     <div className={`rounded-xl p-4 mb-4 text-center relative overflow-hidden ${bundle.popular ? 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 border-2 border-green-400/50' : 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300'}`}>
                       <div className="relative z-10">
@@ -837,7 +855,7 @@ function Package() {
                     onClick={() => handleBundleCheckout(bundle.id)}
                     className="w-full py-3 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] touch-manipulation bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-600"
                   >
-                    Enroll now
+                    {bundle.trialDays ? 'Start Free Trial' : 'Enroll now'}
                   </button>
                 </div>
               ))}
@@ -848,12 +866,9 @@ function Package() {
         {/* Individual Pricing */}
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="individual-heading">
           <div className="max-w-7xl mx-auto">
-            <h2 id="individual-heading" className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-4">
+            <h2 id="individual-heading" className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-12">
               Individual Subject Pricing
             </h2>
-            <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-              Focus on a single subject with our dedicated individual packages.
-            </p>
             <div className="grid md:grid-cols-3 gap-6">
               {individualPricing.map((item, idx) => (
                 <div
@@ -862,6 +877,14 @@ function Package() {
                 >
                   <h3 className="text-xl font-bold text-gray-900 mb-1">{item.name}</h3>
                   <p className="text-sm text-gray-500 mb-4">{item.subjects}</p>
+                  
+                  {item.trialDays && (
+                    <div className="rounded-md px-3 py-2 mb-3 text-xs bg-green-50 text-green-700">
+                      <span className="font-medium">7-day risk-free trial</span>
+                      <span className="opacity-75 ml-1">• First lesson free • Cancel before day 8</span>
+                    </div>
+                  )}
+                  
                   <div className="mb-2">
                     <span className="text-4xl font-extrabold text-gray-900">{item.price}</span>
                     <span className="text-lg text-gray-500">{item.period}</span>
@@ -885,7 +908,7 @@ function Package() {
                     onClick={() => item.id ? handleIndividualCheckout(item.id) : openCalendlyPopup}
                     className="w-full py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                   >
-                    Enroll now
+                    {item.trialDays ? 'Start Free Trial' : 'Enroll now'}
                   </button>
                 </div>
               ))}
