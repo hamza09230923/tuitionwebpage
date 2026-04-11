@@ -1,27 +1,41 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText, Clock, Download } from 'lucide-react'
-import { db } from '../firebase'
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
+import { auth, db } from '../firebase'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { getAuthorizedStudentSubject } from '../utils/studentAccess'
+import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 function Homework() {
   const { subjectId } = useParams()
+  const navigate = useNavigate()
   const [homeworks, setHomeworks] = useState([])
   const [subject, setSubject] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedHomework, setSelectedHomework] = useState(null)
+  const [error, setError] = useState('')
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Get subject name
-        const subjectDocRef = doc(db, 'subjects', subjectId)
-        const subjectDoc = await getDoc(subjectDocRef)
-        if (subjectDoc.exists()) {
-          setSubject({ id: subjectId, ...subjectDoc.data() })
+        const user = auth.currentUser
+        if (!user) {
+          navigate('/login')
+          return
         }
 
-        // Get homeworks for this subject
+        const access = await getAuthorizedStudentSubject(db, user.uid, subjectId)
+        if (!access.authorized) {
+          setAccessDenied(true)
+          setError('You are not enrolled in this subject.')
+          setLoading(false)
+          return
+        }
+
+        setAccessDenied(false)
+        setSubject(access.subject)
+
         const homeworksQuery = query(
           collection(db, 'homeworks'),
           where('subjectId', '==', subjectId)
@@ -34,18 +48,22 @@ function Homework() {
         }))
         
         setHomeworks(homeworksData)
-
+        setError('')
         setLoading(false)
       } catch (err) {
         console.error('Error loading homework:', err)
+        setError('Failed to load homework')
         setLoading(false)
       }
     }
 
     if (subjectId) {
+      setLoading(true)
+      setError('')
+      setAccessDenied(false)
       loadData()
     }
-  }, [subjectId])
+  }, [subjectId, navigate])
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'No due date'
@@ -74,6 +92,29 @@ function Homework() {
     )
   }
 
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Link
+            to="/app/dashboard"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Link>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">Access denied</h1>
+            <p className="text-sm text-gray-600">
+              You can only open homework for subjects assigned to your account.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -89,11 +130,17 @@ function Homework() {
           <div className="flex items-center gap-3 mb-2">
             <FileText className="h-6 w-6 text-green-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              Homework - {subject?.name || 'Subject'}
+              Homework - {subject ? getCanonicalSubjectName(subject) : 'Subject'}
             </h1>
           </div>
           <p className="text-gray-600">Download your homework assignments.</p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
 
         {selectedHomework ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

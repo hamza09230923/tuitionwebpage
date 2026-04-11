@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Video, Play, BookOpen } from 'lucide-react'
 import { auth, db } from '../firebase'
-import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
+import { getAuthorizedStudentSubject } from '../utils/studentAccess'
+import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 const ACCESS_STORAGE_KEY = 'subjectAccess'
 
@@ -36,6 +38,7 @@ function Recordings() {
   const [subjectPin, setSubjectPin] = useState('')
   const [accessList, setAccessList] = useState(readAccessList())
   const [reloadKey, setReloadKey] = useState(0)
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
@@ -46,20 +49,24 @@ function Recordings() {
           return
         }
 
-        const subjectDocRef = doc(db, 'subjects', subjectId)
-        const subjectDoc = await getDoc(subjectDocRef)
-        if (subjectDoc.exists()) {
-          const subjectData = { id: subjectId, ...subjectDoc.data() }
-          setSubject(subjectData)
-          const pin = getSubjectPin(subjectData)
-          setSubjectPin(pin)
+        const access = await getAuthorizedStudentSubject(db, user.uid, subjectId)
+        if (!access.authorized) {
+          setAccessDenied(true)
+          setError('You are not enrolled in this subject.')
+          setLoading(false)
+          return
+        }
 
-          const unlocked = !pin || accessList.includes(subjectId)
-          if (!unlocked) {
-            setPinRequired(true)
-            setLoading(false)
-            return
-          }
+        setAccessDenied(false)
+        setSubject(access.subject)
+        const pin = getSubjectPin(access.subject)
+        setSubjectPin(pin)
+
+        const unlocked = !pin || accessList.includes(subjectId)
+        if (!unlocked) {
+          setPinRequired(true)
+          setLoading(false)
+          return
         }
 
         let recordingsQuery
@@ -104,6 +111,7 @@ function Recordings() {
     if (subjectId) {
       setLoading(true)
       setError('')
+      setAccessDenied(false)
       loadData()
     }
   }, [subjectId, navigate, accessList, reloadKey])
@@ -233,6 +241,29 @@ function Recordings() {
     )
   }
 
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Link
+            to="/app/dashboard"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Link>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">Access denied</h1>
+            <p className="text-sm text-gray-600">
+              You can only open recordings for subjects assigned to your account.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -248,7 +279,7 @@ function Recordings() {
           <div className="flex items-center gap-3 mb-2">
             <Video className="h-6 w-6 text-blue-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              Recordings - {subject?.name || 'Subject'}
+              Recordings - {subject ? getCanonicalSubjectName(subject) : 'Subject'}
             </h1>
           </div>
           <p className="text-gray-600">Watch past lesson recordings for this subject.</p>

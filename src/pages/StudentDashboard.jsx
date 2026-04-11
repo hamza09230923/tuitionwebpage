@@ -20,6 +20,8 @@ import {
 import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
+import { getStudentSubjectIds } from '../utils/studentAccess'
+import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 // Function to get subject icon based on subject name
 const getSubjectIcon = (subjectName) => {
@@ -88,10 +90,54 @@ const writeAccessList = (list) => {
 }
 
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
+const SCIENCE_SUBJECTS = ['biology', 'chemistry', 'physics']
+
+const normalizeSubjectName = (subjectName) => String(subjectName || '').toLowerCase()
+const normalizeSubjectId = (subjectId) => String(subjectId || '').toLowerCase()
+
+const getScienceCardTitle = (key) => key.charAt(0).toUpperCase() + key.slice(1)
+
+const getScienceSubjectCard = (subjects, key) => {
+  const exactSubject = subjects.find((subject) => {
+    const id = normalizeSubjectId(subject.id)
+    const name = normalizeSubjectName(subject.name)
+    return id === `${key}_001` || id.startsWith(`${key}_`) || name.includes(key)
+  })
+  if (exactSubject) {
+    return {
+      key,
+      subject: exactSubject,
+      title: getScienceCardTitle(key),
+      sourceLabel: null
+    }
+  }
+
+  const fallbackSubject = subjects.find((subject) => {
+    const name = normalizeSubjectName(subject.name)
+    return name.includes('triple science') || name.includes('combined science')
+  })
+
+  if (fallbackSubject) {
+    return {
+      key,
+      subject: fallbackSubject,
+      title: getScienceCardTitle(key),
+      sourceLabel: fallbackSubject.name
+    }
+  }
+
+  return {
+    key,
+    subject: null,
+    title: getScienceCardTitle(key),
+    sourceLabel: null
+  }
+}
 
 function StudentDashboard() {
   const navigate = useNavigate()
   const [student, setStudent] = useState(null)
+  const [studentUid, setStudentUid] = useState('')
   const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -109,6 +155,7 @@ function StudentDashboard() {
           navigate('/login')
           return
         }
+        setStudentUid(user.uid)
 
         // Get student document
         const studentDoc = await getDoc(doc(db, 'students', user.uid))
@@ -120,15 +167,17 @@ function StudentDashboard() {
 
         const studentData = studentDoc.data()
         setStudent(studentData)
+        setDebugInfo(null)
+        const studentSubjectIds = getStudentSubjectIds(studentData)
 
         // Debug: Log student data
         console.log('Student data:', studentData)
-        console.log('Student subjects array:', studentData.subjects)
+        console.log('Student subjects array:', studentSubjectIds)
 
         // Get enrolled subjects with better error handling
-        if (studentData.subjects && studentData.subjects.length > 0) {
+        if (studentSubjectIds.length > 0) {
           const subjectDocs = await Promise.all(
-            studentData.subjects.map(async (subjectId) => {
+            studentSubjectIds.map(async (subjectId) => {
               try {
                 const subjectDoc = await getDoc(doc(db, 'subjects', subjectId))
                 if (!subjectDoc.exists()) {
@@ -147,25 +196,32 @@ function StudentDashboard() {
           const subjectsData = subjectDocs.filter(subject => subject !== null)
           
           console.log('Loaded subjects:', subjectsData)
-          console.log('Expected subjects:', studentData.subjects)
-          console.log('Missing subjects:', studentData.subjects.filter(id => 
+          console.log('Expected subjects:', studentSubjectIds)
+          console.log('Missing subjects:', studentSubjectIds.filter(id => 
             !subjectsData.some(s => s.id === id)
           ))
           
           setSubjects(subjectsData)
           
           // Set debug info for troubleshooting
-          if (subjectsData.length !== studentData.subjects.length) {
+          if (subjectsData.length !== studentSubjectIds.length) {
             setDebugInfo({
-              expected: studentData.subjects.length,
+              expected: studentSubjectIds.length,
               loaded: subjectsData.length,
-              missing: studentData.subjects.filter(id => 
+              missing: studentSubjectIds.filter(id => 
                 !subjectsData.some(s => s.id === id)
-              )
+              ),
+              mode: 'missing-subject-documents'
             })
           }
         } else {
           console.log('No subjects array found in student data')
+          setDebugInfo({
+            expected: 0,
+            loaded: 0,
+            missing: [],
+            mode: 'empty-student-subjects'
+          })
         }
 
         setLoading(false)
@@ -219,6 +275,152 @@ function StudentDashboard() {
     } catch (err) {
       console.error('Error signing out:', err)
     }
+  }
+
+  const scienceSubjectCards = SCIENCE_SUBJECTS.map((key) => getScienceSubjectCard(subjects, key))
+  const scienceSubjectIds = new Set(
+    scienceSubjectCards
+      .filter((card) => card.subject)
+      .map((card) => card.subject.id)
+  )
+  const otherSubjects = subjects.filter((subject) => !scienceSubjectIds.has(subject.id))
+
+  const renderSubjectCard = (subject, options = {}) => {
+    const displayName = options.displayName || getCanonicalSubjectName(subject)
+    const cardKey = options.cardKey || subject.id
+    const sourceLabel = options.sourceLabel || null
+    const SubjectIcon = getSubjectIcon(displayName)
+    const subjectColor = getSubjectColor(displayName)
+
+    return (
+      <article
+        key={cardKey}
+        className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2"
+        role="listitem"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`p-2 rounded-lg ${subjectColor}`}>
+            <SubjectIcon className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {displayName}
+            </h3>
+            {sourceLabel && sourceLabel !== displayName && (
+              <p className="text-sm text-gray-500">
+                Uses content from {sourceLabel}
+              </p>
+            )}
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          {isUnlocked(subject) ? (
+            <>
+              {subject.zoomLink && (
+                <a
+                  href={subject.zoomLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                  aria-label={`Join Zoom session for ${displayName}`}
+                >
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  Join Zoom
+                </a>
+              )}
+
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to={`/app/subject/${subject.id}/recordings`}
+                  className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 px-4 py-2 rounded-lg border border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                  aria-label={`View recordings for ${displayName}`}
+                >
+                  <Video className="h-4 w-4" aria-hidden="true" />
+                  Recordings
+                </Link>
+                <Link
+                  to={`/app/subject/${subject.id}/homework`}
+                  className="flex items-center justify-center gap-2 text-green-600 hover:text-green-700 px-4 py-2 border border-green-200 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition font-medium"
+                  aria-label={`View homework for ${displayName}`}
+                >
+                  <FileText className="h-4 w-4" aria-hidden="true" />
+                  Homework
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">This subject is locked. Enter the PIN to unlock.</p>
+              {unlockSubjectId === subject.id ? (
+                <div className="space-y-2">
+                  <input
+                    type="password"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Subject PIN"
+                  />
+                  {pinError && (
+                    <p className="text-sm text-red-600">{pinError}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => confirmUnlock(subject)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    >
+                      Unlock
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelUnlock}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => startUnlock(subject.id)}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Enter PIN
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </article>
+    )
+  }
+
+  const renderUnavailableScienceCard = (title) => {
+    const SubjectIcon = getSubjectIcon(title)
+    const subjectColor = getSubjectColor(title)
+
+    return (
+      <article
+        key={title}
+        className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        role="listitem"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`p-2 rounded-lg ${subjectColor}`}>
+            <SubjectIcon className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 flex-1">
+            {title}
+          </h3>
+        </div>
+
+        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center">
+          <p className="text-sm text-gray-600">This subject has not been added to this account yet.</p>
+        </div>
+      </article>
+    )
   }
 
   if (loading) {
@@ -295,7 +497,7 @@ function StudentDashboard() {
         </div>
 
         {/* Debug Info - Only show if there's a mismatch */}
-        {debugInfo && (
+        {debugInfo?.mode === 'missing-subject-documents' && (
           <div 
             className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"
             role="alert"
@@ -321,116 +523,70 @@ function StudentDashboard() {
             <h3 id="no-subjects-heading" className="text-lg font-semibold text-gray-900 mb-2">
               No Subjects Enrolled
             </h3>
-            <p className="text-gray-600 mb-2">You're not enrolled in any subjects yet.</p>
-            <p className="text-sm text-gray-500">Please contact your teacher to get enrolled.</p>
+            {debugInfo?.mode === 'missing-subject-documents' ? (
+              <>
+                <p className="text-gray-600 mb-2">
+                  This account has subject IDs assigned, but the matching subject records could not be loaded.
+                </p>
+                {debugInfo.missing.length > 0 && (
+                  <p className="text-sm text-red-600 mb-2">
+                    Missing subject IDs: {debugInfo.missing.join(', ')}
+                  </p>
+                )}
+                <p className="text-sm text-gray-500">
+                  Check that those exact document IDs exist in the Firestore `subjects` collection.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-2">You're not enrolled in any subjects yet.</p>
+                <p className="text-sm text-gray-500">
+                  Check the Firestore document at `students/{studentUid}` and make sure `subjects` is set to
+                  `["biology_001", "chemistry_001"]`.
+                </p>
+              </>
+            )}
           </div>
         ) : (
-          <div 
-            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-            role="list"
-            aria-label="Enrolled subjects"
-          >
-            {subjects.map((subject) => {
-              const SubjectIcon = getSubjectIcon(subject.name)
-              const subjectColor = getSubjectColor(subject.name)
-              
-              return (
-                <article
-                  key={subject.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2"
-                  role="listitem"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`p-2 rounded-lg ${subjectColor}`}>
-                      <SubjectIcon className="h-6 w-6" aria-hidden="true" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 flex-1">
-                      {subject.name}
-                    </h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {isUnlocked(subject) ? (
-                      <>
-                        {subject.zoomLink && (
-                          <a
-                            href={subject.zoomLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                            aria-label={`Join Zoom session for ${subject.name}`}
-                          >
-                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                            Join Zoom
-                          </a>
-                        )}
+          <div className="space-y-10">
+            <section>
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Science Subjects</h3>
+                <p className="text-sm text-gray-600">
+                  Biology, Chemistry, and Physics are shown here.
+                </p>
+              </div>
+              <div
+                className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                role="list"
+                aria-label="Science subjects"
+              >
+                {scienceSubjectCards.map((card) => (
+                  card.subject
+                    ? renderSubjectCard(card.subject, {
+                      cardKey: `${card.key}-${card.subject.id}`,
+                      displayName: card.title,
+                      sourceLabel: card.sourceLabel
+                    })
+                    : renderUnavailableScienceCard(card.title)
+                ))}
+              </div>
+            </section>
 
-                        <div className="grid grid-cols-2 gap-2">
-                          <Link
-                            to={`/app/subject/${subject.id}/recordings`}
-                            className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 px-4 py-2 rounded-lg border border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                            aria-label={`View recordings for ${subject.name}`}
-                          >
-                            <Video className="h-4 w-4" aria-hidden="true" />
-                            Recordings
-                          </Link>
-                          <Link
-                            to={`/app/subject/${subject.id}/homework`}
-                            className="flex items-center justify-center gap-2 text-green-600 hover:text-green-700 px-4 py-2 border border-green-200 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition font-medium"
-                            aria-label={`View homework for ${subject.name}`}
-                          >
-                            <FileText className="h-4 w-4" aria-hidden="true" />
-                            Homework
-                          </Link>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="space-y-3">
-                        <p className="text-sm text-gray-600">This subject is locked. Enter the PIN to unlock.</p>
-                        {unlockSubjectId === subject.id ? (
-                          <div className="space-y-2">
-                            <input
-                              type="password"
-                              value={pinInput}
-                              onChange={(e) => setPinInput(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Subject PIN"
-                            />
-                            {pinError && (
-                              <p className="text-sm text-red-600">{pinError}</p>
-                            )}
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() => confirmUnlock(subject)}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                              >
-                                Unlock
-                              </button>
-                              <button
-                                type="button"
-                                onClick={cancelUnlock}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => startUnlock(subject.id)}
-                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                          >
-                            Enter PIN
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </article>
-              )
-            })}
+            {otherSubjects.length > 0 && (
+              <section>
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Other Subjects</h3>
+                </div>
+                <div
+                  className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  role="list"
+                  aria-label="Other subjects"
+                >
+                  {otherSubjects.map((subject) => renderSubjectCard(subject))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </main>

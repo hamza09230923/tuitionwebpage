@@ -5,6 +5,7 @@ import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where } from 'firebase/firestore'
 import { createHidriveUpload } from '../api/functionsClient'
+import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 function Admin() {
   const navigate = useNavigate()
@@ -71,10 +72,12 @@ function Admin() {
     const loadSubjects = async () => {
       try {
         const subjectsSnapshot = await getDocs(collection(db, 'subjects'))
-        const subjectsData = subjectsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
+        const subjectsData = subjectsSnapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          .sort((a, b) => getCanonicalSubjectName(a).localeCompare(getCanonicalSubjectName(b)))
         setSubjects(subjectsData)
         if (subjectsData.length > 0) {
           const firstSubject = subjectsData[0]
@@ -109,7 +112,10 @@ function Admin() {
                 try {
                   const subjectDoc = await getDoc(doc(db, 'subjects', data.subjectId))
                   if (subjectDoc.exists()) {
-                    subjectName = subjectDoc.data().name
+                    subjectName = getCanonicalSubjectName({
+                      id: subjectDoc.id,
+                      ...subjectDoc.data()
+                    })
                   }
                 } catch (err) {
                   console.error('Error fetching subject:', err)
@@ -156,6 +162,7 @@ function Admin() {
     const xhr = new XMLHttpRequest()
     xhr.open(uploadConfig.method || 'PUT', uploadConfig.uploadUrl, true)
     xhr.responseType = 'json'
+    xhr.timeout = 180000
 
     if (uploadConfig.headers) {
       Object.entries(uploadConfig.headers).forEach(([key, value]) => {
@@ -189,12 +196,17 @@ function Admin() {
         }
         resolve({ response: responseData })
       } else {
-        reject(new Error(`Upload failed (${xhr.status})`))
+        const responseText = String(xhr.responseText || '').trim()
+        reject(new Error(responseText || `Upload failed (${xhr.status})`))
       }
     }
 
     xhr.onerror = () => {
       reject(new Error('Upload failed'))
+    }
+
+    xhr.ontimeout = () => {
+      reject(new Error('Upload timed out'))
     }
 
     xhr.send(file)
@@ -257,7 +269,7 @@ function Admin() {
       navigate('/admin/share-link', { state: { pendingRecording } })
     } catch (err) {
       console.error('Error adding recording:', err)
-      setMessage('Failed to upload recording')
+      setMessage(err?.message || 'Failed to upload recording')
       setUploadProgress(0)
     } finally {
       setLoading(false)
@@ -364,7 +376,7 @@ function Admin() {
       navigate('/admin/homework-share-link', { state: { pendingHomework } })
     } catch (err) {
       console.error('Error adding homework:', err)
-      setMessage('Failed to add homework')
+      setMessage(err?.message || 'Failed to add homework')
     } finally {
       setLoading(false)
     }
@@ -467,7 +479,7 @@ function Admin() {
           >
             {subjects.map(subject => (
               <option key={subject.id} value={subject.id}>
-                {subject.name}
+                {getCanonicalSubjectName(subject)}
               </option>
             ))}
           </select>

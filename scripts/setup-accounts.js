@@ -133,6 +133,24 @@ const defaultSubjects = [
     name: 'Triple Science',
     description: 'GCSE Triple Science (Biology, Chemistry, Physics)',
     zoomLink: ''
+  },
+  {
+    id: 'biology_001',
+    name: 'Biology',
+    description: 'GCSE Biology',
+    zoomLink: ''
+  },
+  {
+    id: 'chemistry_001',
+    name: 'Chemistry',
+    description: 'GCSE Chemistry',
+    zoomLink: ''
+  },
+  {
+    id: 'physics_001',
+    name: 'Physics',
+    description: 'GCSE Physics',
+    zoomLink: ''
   }
 ];
 
