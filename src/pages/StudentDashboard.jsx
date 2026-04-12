@@ -20,7 +20,7 @@ import {
 import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
-import { getStudentSubjectIds } from '../utils/studentAccess'
+import { getStudentSubjectIds, isTutorialStudent } from '../utils/studentAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 // Function to get subject icon based on subject name
@@ -91,9 +91,42 @@ const writeAccessList = (list) => {
 
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 const SCIENCE_SUBJECTS = ['biology', 'chemistry', 'physics']
+const BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK = 'https://us06web.zoom.us/s/81775136769?pwd=VxunmI72c7rCcPotVtzobCSZuuAESW.1#success'
 
 const normalizeSubjectName = (subjectName) => String(subjectName || '').toLowerCase()
 const normalizeSubjectId = (subjectId) => String(subjectId || '').toLowerCase()
+const getSubjectBaseKey = (subjectOrId) => {
+  if (typeof subjectOrId === 'string') {
+    const id = normalizeSubjectId(subjectOrId)
+
+    if (id.startsWith('biology_') || id === 'biology') {
+      return 'biology'
+    }
+    if (id.startsWith('chemistry_') || id === 'chemistry') {
+      return 'chemistry'
+    }
+    if (id.startsWith('physics_') || id === 'physics') {
+      return 'physics'
+    }
+
+    return id
+  }
+
+  const id = normalizeSubjectId(subjectOrId?.id)
+  const name = normalizeSubjectName(subjectOrId?.name)
+
+  if (id.startsWith('biology_') || name.includes('biology')) {
+    return 'biology'
+  }
+  if (id.startsWith('chemistry_') || name.includes('chemistry')) {
+    return 'chemistry'
+  }
+  if (id.startsWith('physics_') || name.includes('physics')) {
+    return 'physics'
+  }
+
+  return id || name
+}
 
 const getScienceCardTitle = (key) => key.charAt(0).toUpperCase() + key.slice(1)
 
@@ -142,6 +175,7 @@ function StudentDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [debugInfo, setDebugInfo] = useState(null)
+  const [tutorialAccess, setTutorialAccess] = useState(false)
   const [unlockedSubjects, setUnlockedSubjects] = useState(readAccessList())
   const [unlockSubjectId, setUnlockSubjectId] = useState(null)
   const [pinInput, setPinInput] = useState('')
@@ -167,6 +201,7 @@ function StudentDashboard() {
 
         const studentData = studentDoc.data()
         setStudent(studentData)
+        setTutorialAccess(isTutorialStudent(studentData))
         setDebugInfo(null)
         const studentSubjectIds = getStudentSubjectIds(studentData)
 
@@ -238,7 +273,7 @@ function StudentDashboard() {
 
   const isUnlocked = (subject) => {
     const pin = String(getSubjectPin(subject) || '').trim()
-    return !pin || unlockedSubjects.includes(subject.id)
+    return tutorialAccess || !pin || unlockedSubjects.includes(subject.id)
   }
 
   const startUnlock = (subjectId) => {
@@ -284,6 +319,16 @@ function StudentDashboard() {
       .map((card) => card.subject.id)
   )
   const otherSubjects = subjects.filter((subject) => !scienceSubjectIds.has(subject.id))
+  const assignedSubjectIds = getStudentSubjectIds(student)
+  const scienceAccessKeys = new Set(
+    assignedSubjectIds
+      .map((subjectId) => getSubjectBaseKey(subjectId))
+      .filter((key) => SCIENCE_SUBJECTS.includes(key))
+  )
+  const hasBiologyChemistryCrashCourse =
+    scienceAccessKeys.has('biology') &&
+    scienceAccessKeys.has('chemistry') &&
+    !scienceAccessKeys.has('physics')
 
   const renderSubjectCard = (subject, options = {}) => {
     const displayName = options.displayName || getCanonicalSubjectName(subject)
@@ -511,6 +556,56 @@ function StudentDashboard() {
               Please check the browser console for details.
             </p>
           </div>
+        )}
+
+        {hasBiologyChemistryCrashCourse && (
+          <section
+            className="mb-8 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-teal-50 p-6 shadow-sm"
+            aria-labelledby="crash-course-heading"
+          >
+            <div className="flex items-start gap-4">
+              <div className="rounded-xl bg-emerald-600 p-3 text-white">
+                <FlaskConical className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+                  Crash Course
+                </p>
+                <h3 id="crash-course-heading" className="text-xl font-semibold text-gray-900 mt-1">
+                  Biology and Chemistry
+                </h3>
+                <p className="text-gray-700 mt-2">
+                  Your crash course runs on <span className="font-semibold">Sunday from 5:00 PM to 7:00 PM</span>.
+                </p>
+                <a
+                  href={BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition"
+                >
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  Join Your Lesson
+                </a>
+                <p className="mt-3 text-sm text-emerald-800 break-all">
+                  Zoom link:{' '}
+                  <a
+                    href={BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium underline hover:text-emerald-900"
+                  >
+                    {BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK}
+                  </a>
+                </p>
+                <p className="mt-2 text-sm text-emerald-800">
+                  Meeting ID: <span className="font-medium">817 7513 6769</span>
+                </p>
+                <p className="mt-1 text-sm text-emerald-800">
+                  Passcode: <span className="font-medium">119761</span>
+                </p>
+              </div>
+            </div>
+          </section>
         )}
 
         {subjects.length === 0 ? (

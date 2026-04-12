@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Video, Play, BookOpen } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
-import { getAuthorizedStudentSubject } from '../utils/studentAccess'
+import { getAuthorizedStudentSubject, isTutorialStudent } from '../utils/studentAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 const ACCESS_STORAGE_KEY = 'subjectAccess'
@@ -62,7 +62,7 @@ function Recordings() {
         const pin = getSubjectPin(access.subject)
         setSubjectPin(pin)
 
-        const unlocked = !pin || accessList.includes(subjectId)
+        const unlocked = isTutorialStudent(access.student) || !pin || accessList.includes(subjectId)
         if (!unlocked) {
           setPinRequired(true)
           setLoading(false)

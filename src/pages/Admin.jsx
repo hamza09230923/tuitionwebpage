@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Video, FileText, Save, CheckCircle } from 'lucide-react'
+import { Video, FileText, Save, CheckCircle, Trash2, Download, Clock } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where } from 'firebase/firestore'
+import { collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc } from 'firebase/firestore'
 import { createHidriveUpload } from '../api/functionsClient'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 function Admin() {
   const navigate = useNavigate()
   const [authenticated, setAuthenticated] = useState(false)
+  const [userRole, setUserRole] = useState(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedSubjectData, setSelectedSubjectData] = useState(null)
-  const [activeTab, setActiveTab] = useState('recording') // 'recording', 'homework', or 'approve'
+  const [activeTab, setActiveTab] = useState('recording') // 'recording', 'homework', 'approve', 'manage', or 'manage-homework'
   
   // Recording form
   const [recordingTitle, setRecordingTitle] = useState('')
@@ -25,6 +26,10 @@ function Admin() {
   
   // Approval
   const [pendingRecordings, setPendingRecordings] = useState([])
+  const [pendingRecordingsLoading, setPendingRecordingsLoading] = useState(false)
+  const [managedRecordings, setManagedRecordings] = useState([])
+  const [managedRecordingsLoading, setManagedRecordingsLoading] = useState(false)
+  const [deletingRecordingId, setDeletingRecordingId] = useState('')
   
   // Homework form
   const [homeworkTitle, setHomeworkTitle] = useState('')
@@ -32,9 +37,13 @@ function Admin() {
   const [homeworkDueDate, setHomeworkDueDate] = useState('')
   const [homeworkFile, setHomeworkFile] = useState(null)
   const [homeworkUploadProgress, setHomeworkUploadProgress] = useState(0)
+  const [managedHomeworks, setManagedHomeworks] = useState([])
+  const [managedHomeworksLoading, setManagedHomeworksLoading] = useState(false)
+  const [deletingHomeworkId, setDeletingHomeworkId] = useState('')
   
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const isAdmin = userRole === 'admin'
 
   // Require a signed-in user with admin or teacher role document
   useEffect(() => {
@@ -52,13 +61,16 @@ function Admin() {
 
         if (adminDoc.exists() || teacherDoc?.exists()) {
           setAuthenticated(true)
+          setUserRole(adminDoc.exists() ? 'admin' : 'teacher')
         } else {
           setAuthenticated(false)
+          setUserRole(null)
           navigate('/login', { replace: true })
         }
       } catch (err) {
         console.error('Error verifying role:', err)
         setAuthenticated(false)
+        setUserRole(null)
         navigate('/login', { replace: true })
       } finally {
         setCheckingAuth(false)
@@ -97,6 +109,7 @@ function Admin() {
   useEffect(() => {
     const loadPendingRecordings = async () => {
       if (activeTab === 'approve' && authenticated) {
+        setPendingRecordingsLoading(true)
         try {
           const recordingsQuery = query(
             collection(db, 'recordings'),
@@ -104,14 +117,18 @@ function Admin() {
           )
           const recordingsSnapshot = await getDocs(recordingsQuery)
           const recordingsData = await Promise.all(
-            recordingsSnapshot.docs.map(async (doc) => {
-              const data = doc.data()
+            recordingsSnapshot.docs.map(async (recordingDoc) => {
+              const data = recordingDoc.data()
               // Get subject name
-              let subjectName = 'Unknown'
+              let subjectName = subjects.find((subject) => subject.id === data.subjectId)
+                ? getCanonicalSubjectName(subjects.find((subject) => subject.id === data.subjectId))
+                : 'Unknown'
+
               if (data.subjectId) {
                 try {
-                  const subjectDoc = await getDoc(doc(db, 'subjects', data.subjectId))
-                  if (subjectDoc.exists()) {
+                  const subjectDocRef = doc(db, 'subjects', data.subjectId)
+                  const subjectDoc = await getDoc(subjectDocRef)
+                  if (subjectDoc.exists() && subjectName === 'Unknown') {
                     subjectName = getCanonicalSubjectName({
                       id: subjectDoc.id,
                       ...subjectDoc.data()
@@ -122,20 +139,112 @@ function Admin() {
                 }
               }
               return {
-                id: doc.id,
+                id: recordingDoc.id,
                 ...data,
                 subjectName
               }
             })
           )
-          setPendingRecordings(recordingsData)
+          setPendingRecordings(
+            recordingsData.sort((a, b) => {
+              const dateA = a.date?.toDate ? a.date.toDate() : (a.date ? new Date(a.date) : new Date(0))
+              const dateB = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : new Date(0))
+              return dateB - dateA
+            })
+          )
         } catch (err) {
           console.error('Error loading pending recordings:', err)
+        } finally {
+          setPendingRecordingsLoading(false)
         }
       }
     }
     loadPendingRecordings()
-  }, [activeTab, authenticated])
+  }, [activeTab, authenticated, subjects])
+
+  useEffect(() => {
+    const loadManagedRecordings = async () => {
+      if (activeTab !== 'manage' || !authenticated || !selectedSubject) {
+        return
+      }
+
+      setManagedRecordingsLoading(true)
+      try {
+        let recordingsQuery
+        try {
+          recordingsQuery = query(
+            collection(db, 'recordings'),
+            where('subjectId', '==', selectedSubject),
+            orderBy('date', 'desc')
+          )
+        } catch (err) {
+          console.warn('Recordings orderBy failed, using simple query:', err)
+          recordingsQuery = query(
+            collection(db, 'recordings'),
+            where('subjectId', '==', selectedSubject)
+          )
+        }
+
+        const recordingsSnapshot = await getDocs(recordingsQuery)
+        const recordingsData = recordingsSnapshot.docs
+          .map((recordingDoc) => ({
+            id: recordingDoc.id,
+            ...recordingDoc.data()
+          }))
+          .sort((a, b) => {
+            const dateA = a.date?.toDate ? a.date.toDate() : (a.date ? new Date(a.date) : new Date(0))
+            const dateB = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : new Date(0))
+            return dateB - dateA
+          })
+
+        setManagedRecordings(recordingsData)
+      } catch (err) {
+        console.error('Error loading subject recordings:', err)
+        setMessage('Failed to load recordings for this subject')
+      } finally {
+        setManagedRecordingsLoading(false)
+      }
+    }
+
+    loadManagedRecordings()
+  }, [activeTab, authenticated, selectedSubject])
+
+  useEffect(() => {
+    const loadManagedHomeworks = async () => {
+      if (activeTab !== 'manage-homework' || !authenticated || !selectedSubject) {
+        return
+      }
+
+      setManagedHomeworksLoading(true)
+      try {
+        const homeworksQuery = query(
+          collection(db, 'homeworks'),
+          where('subjectId', '==', selectedSubject)
+        )
+
+        const homeworksSnapshot = await getDocs(homeworksQuery)
+        const homeworksData = homeworksSnapshot.docs
+          .map((homeworkDoc) => ({
+            id: homeworkDoc.id,
+            ...homeworkDoc.data()
+          }))
+          .sort((a, b) => {
+            const dateA = a.dueDate?.toDate ? a.dueDate.toDate() : (a.dueDate ? new Date(a.dueDate) : new Date(0))
+            const dateB = b.dueDate?.toDate ? b.dueDate.toDate() : (b.dueDate ? new Date(b.dueDate) : new Date(0))
+            return dateB - dateA
+          })
+
+        setManagedHomeworks(homeworksData)
+      } catch (err) {
+        console.error('Error loading homeworks:', err)
+        setMessage('Failed to load homework for this subject')
+      } finally {
+        setManagedHomeworksLoading(false)
+      }
+    }
+
+    loadManagedHomeworks()
+  }, [activeTab, authenticated, selectedSubject])
 
   useEffect(() => {
     // Update selected subject data when subject changes
@@ -282,7 +391,12 @@ function Admin() {
         approvalStatus: 'approved',
         approvedAt: serverTimestamp()
       })
-      setPendingRecordings(pendingRecordings.filter(r => r.id !== recordingId))
+      setPendingRecordings((current) => current.filter((recording) => recording.id !== recordingId))
+      setManagedRecordings((current) => current.map((recording) => (
+        recording.id === recordingId
+          ? { ...recording, approvalStatus: 'approved', approvedAt: new Date() }
+          : recording
+      )))
       setMessage('Recording approved successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch (err) {
@@ -297,13 +411,131 @@ function Admin() {
         approvalStatus: 'rejected',
         rejectedAt: serverTimestamp()
       })
-      setPendingRecordings(pendingRecordings.filter(r => r.id !== recordingId))
+      setPendingRecordings((current) => current.filter((recording) => recording.id !== recordingId))
+      setManagedRecordings((current) => current.map((recording) => (
+        recording.id === recordingId
+          ? { ...recording, approvalStatus: 'rejected', rejectedAt: new Date() }
+          : recording
+      )))
       setMessage('Recording rejected')
       setTimeout(() => setMessage(''), 3000)
     } catch (err) {
       console.error('Error rejecting recording:', err)
       setMessage('Failed to reject recording')
     }
+  }
+
+  const handleDeleteRecording = async (recordingId, recordingTitle) => {
+    if (!isAdmin) {
+      setMessage('Only admins can delete recordings')
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Delete "${recordingTitle}"? This removes the recording from Firestore and students will lose access immediately.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingRecordingId(recordingId)
+    try {
+      await deleteDoc(doc(db, 'recordings', recordingId))
+      setPendingRecordings((current) => current.filter((recording) => recording.id !== recordingId))
+      setManagedRecordings((current) => current.filter((recording) => recording.id !== recordingId))
+      setMessage('Recording deleted successfully!')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      console.error('Error deleting recording:', err)
+      setMessage('Failed to delete recording')
+    } finally {
+      setDeletingRecordingId('')
+    }
+  }
+
+  const handleDeleteHomework = async (homeworkId, homeworkTitle) => {
+    const confirmed = window.confirm(
+      `Delete "${homeworkTitle}"? Students will no longer be able to access this homework.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingHomeworkId(homeworkId)
+    try {
+      await deleteDoc(doc(db, 'homeworks', homeworkId))
+      setManagedHomeworks((current) => current.filter((homework) => homework.id !== homeworkId))
+      setMessage('Homework deleted successfully!')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      console.error('Error deleting homework:', err)
+      setMessage('Failed to delete homework')
+    } finally {
+      setDeletingHomeworkId('')
+    }
+  }
+
+  const formatRecordingDate = (timestamp) => {
+    if (!timestamp) {
+      return 'Date not available'
+    }
+
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+    if (Number.isNaN(date.getTime())) {
+      return 'Date not available'
+    }
+
+    return date.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const getStatusStyles = (status) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-100 text-green-700'
+      case 'rejected':
+        return 'bg-red-100 text-red-700'
+      case 'pending':
+      default:
+        return 'bg-yellow-100 text-yellow-700'
+    }
+  }
+
+  const formatHomeworkDate = (timestamp) => {
+    if (!timestamp) {
+      return 'No due date'
+    }
+
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+    if (Number.isNaN(date.getTime())) {
+      return 'No due date'
+    }
+
+    return date.toLocaleString('en-GB', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const isHomeworkOverdue = (timestamp) => {
+    if (!timestamp) {
+      return false
+    }
+
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+    if (Number.isNaN(date.getTime())) {
+      return false
+    }
+
+    return date < new Date()
   }
 
   const handleSubmitHomework = async (e) => {
@@ -455,6 +687,28 @@ function Admin() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab('manage')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              activeTab === 'manage'
+                ? 'bg-slate-800 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Video className="h-4 w-4" />
+            Manage Recordings
+          </button>
+          <button
+            onClick={() => setActiveTab('manage-homework')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              activeTab === 'manage-homework'
+                ? 'bg-emerald-700 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            Manage Homework
+          </button>
         </div>
 
         {message && (
@@ -593,7 +847,11 @@ function Admin() {
               Review and approve pending recordings. Only approved recordings will be visible to students.
             </p>
 
-            {pendingRecordings.length === 0 ? (
+            {pendingRecordingsLoading ? (
+              <div className="text-center py-8 text-gray-600">
+                Loading pending recordings...
+              </div>
+            ) : pendingRecordings.length === 0 ? (
               <div className="text-center py-8">
                 <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                 <p className="text-gray-600">No pending recordings to approve.</p>
@@ -648,10 +906,197 @@ function Admin() {
                         >
                           Reject
                         </button>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteRecording(recording.id, recording.title)}
+                            disabled={deletingRecordingId === recording.id}
+                            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-black transition flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            {deletingRecordingId === recording.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'manage' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Manage Recordings</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Review all recordings for the selected subject and remove anything that should no longer be available.
+                </p>
+              </div>
+              {!isAdmin && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-md px-3 py-2">
+                  Delete is limited to admin accounts.
+                </div>
+              )}
+            </div>
+
+            {managedRecordingsLoading ? (
+              <div className="text-center py-8 text-gray-600">
+                Loading recordings...
+              </div>
+            ) : managedRecordings.length === 0 ? (
+              <div className="text-center py-8">
+                <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No recordings found for this subject.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {managedRecordings.map((recording) => (
+                  <div
+                    key={recording.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {recording.title}
+                          </h3>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusStyles(recording.approvalStatus)}`}>
+                            {recording.approvalStatus || 'approved'}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <p><span className="font-medium">Exam Board:</span> {recording.examBoard || 'N/A'}</p>
+                          {recording.tier && (
+                            <p><span className="font-medium">Tier:</span> {recording.tier}</p>
+                          )}
+                          <p><span className="font-medium">Date:</span> {formatRecordingDate(recording.date || recording.createdAt)}</p>
+                          {recording.createdByRole && (
+                            <p><span className="font-medium">Uploaded by:</span> {recording.createdByRole}</p>
+                          )}
+                        </div>
+
+                        {recording.videoUrl && (
+                          <a
+                            href={recording.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm mt-3"
+                          >
+                            <Video className="h-4 w-4" />
+                            Preview Video
+                          </a>
+                        )}
+                      </div>
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteRecording(recording.id, recording.title)}
+                          disabled={deletingRecordingId === recording.id}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 whitespace-nowrap"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          {deletingRecordingId === recording.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'manage-homework' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Manage Homework</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Review homework for the selected subject, open the attachment, and remove work that should no longer appear to students.
+                </p>
+              </div>
+            </div>
+
+            {managedHomeworksLoading ? (
+              <div className="text-center py-8 text-gray-600">
+                Loading homework...
+              </div>
+            ) : managedHomeworks.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No homework found for this subject.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {managedHomeworks.map((homework) => {
+                  const overdue = isHomeworkOverdue(homework.dueDate)
+
+                  return (
+                    <div
+                      key={homework.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {homework.title}
+                            </h3>
+                            {overdue && (
+                              <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700">
+                                Overdue
+                              </span>
+                            )}
+                          </div>
+
+                          {homework.description && (
+                            <p className="text-sm text-gray-600 mb-3">
+                              {homework.description}
+                            </p>
+                          )}
+
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-400" />
+                              <span><span className="font-medium">Due:</span> {formatHomeworkDate(homework.dueDate)}</span>
+                            </p>
+                            {homework.attachmentName && (
+                              <p><span className="font-medium">File:</span> {homework.attachmentName}</p>
+                            )}
+                            {homework.createdByRole && (
+                              <p><span className="font-medium">Uploaded by:</span> {homework.createdByRole}</p>
+                            )}
+                          </div>
+
+                          {homework.attachmentUrl && (
+                            <a
+                              href={homework.attachmentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 text-sm mt-3"
+                            >
+                              <Download className="h-4 w-4" />
+                              Open Attachment
+                            </a>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteHomework(homework.id, homework.title)}
+                          disabled={deletingHomeworkId === homework.id}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 whitespace-nowrap"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          {deletingHomeworkId === homework.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

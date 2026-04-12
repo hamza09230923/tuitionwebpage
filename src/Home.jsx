@@ -65,6 +65,7 @@ function TestimonialVideo({ src, className, showControls = true }) {
 function Home() {
   const navigate = useNavigate()
   const location = useLocation()
+  const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
   const testimonialVideos = [
     { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
@@ -129,47 +130,61 @@ function Home() {
     setActiveTestimonialIndex((prev) => prev + 1)
   }
 
-  // Helper function to open Calendly popup (mobile-optimized)
-  const openCalendlyWidget = () => {
-    const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
-    const isMobile = window.innerWidth < 768 // Mobile breakpoint
-    
-    if (window.Calendly) {
-      // Configure popup for better mobile experience
-      window.Calendly.initPopupWidget({ 
-        url: calendlyUrl,
-        text: 'Book Free Consultation',
-        color: '#2563eb',
-        textColor: '#ffffff',
-        branding: true
-      })
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://assets.calendly.com/assets/external/widget.js'
-      script.async = true
-      script.onload = () => {
-        if (window.Calendly) {
-          window.Calendly.initPopupWidget({ 
-            url: calendlyUrl,
-            text: 'Book Free Consultation',
-            color: '#2563eb',
-            textColor: '#ffffff',
-            branding: true
-          })
-        }
-      }
-      document.body.appendChild(script)
-      setTimeout(() => {
-        if (!window.Calendly) {
-          // Fallback: open in new tab on mobile if script fails
-          if (isMobile) {
-            window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
-          } else {
-            window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
-          }
-        }
-      }, 1000)
+  const ensureCalendlyStylesheet = () => {
+    if (document.querySelector('link[data-calendly-widget-css]')) {
+      return
     }
+
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://assets.calendly.com/assets/external/widget.css'
+    link.setAttribute('data-calendly-widget-css', 'true')
+    document.head.appendChild(link)
+  }
+
+  const loadCalendlyScript = () => new Promise((resolve, reject) => {
+    if (window.Calendly) {
+      resolve(window.Calendly)
+      return
+    }
+
+    const existingScript = document.querySelector('script[data-calendly-widget-script]')
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(window.Calendly), { once: true })
+      existingScript.addEventListener('error', () => reject(new Error('Calendly script failed to load')), { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://assets.calendly.com/assets/external/widget.js'
+    script.async = true
+    script.setAttribute('data-calendly-widget-script', 'true')
+    script.onload = () => resolve(window.Calendly)
+    script.onerror = () => reject(new Error('Calendly script failed to load'))
+    document.body.appendChild(script)
+  })
+
+  // Helper function to open Calendly popup (mobile-optimized)
+  const openCalendlyWidget = async () => {
+    ensureCalendlyStylesheet()
+
+    try {
+      await loadCalendlyScript()
+      if (window.Calendly) {
+        window.Calendly.initPopupWidget({
+          url: calendlyUrl,
+          text: 'Book Free Consultation',
+          color: '#2563eb',
+          textColor: '#ffffff',
+          branding: true
+        })
+        return
+      }
+    } catch (err) {
+      console.error('Calendly popup failed to load:', err)
+    }
+
+    window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
   }
 
   const openCalendlyPopup = () => {
@@ -177,7 +192,7 @@ function Home() {
     // Change URL to /booking without navigating away
     navigate('/booking', { replace: false })
     // Open Calendly popup on the current page
-    openCalendlyWidget()
+    void openCalendlyWidget()
   }
 
   // Auto-open popup when visiting /booking directly
@@ -187,7 +202,7 @@ function Home() {
       setPopupOpened(true)
       // Small delay to ensure page is fully loaded
       const timer = setTimeout(() => {
-        openCalendlyWidget()
+        void openCalendlyWidget()
       }, 300)
       return () => clearTimeout(timer)
     } else if (location.pathname !== '/booking') {
@@ -205,7 +220,7 @@ function Home() {
 
       {/* Cohort Banner */}
       <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
-        Join our March cohort as soon as possible — spaces are running out!
+        Join our April cohort as soon as possible — spaces are running out!
       </div>
       
       {/* Navigation */}

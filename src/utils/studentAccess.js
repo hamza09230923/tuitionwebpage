@@ -1,5 +1,14 @@
 import { doc, getDoc } from 'firebase/firestore'
 
+const TUTORIAL_STUDENT_EMAILS = new Set([
+  'student@myschola.com'
+])
+
+export function isTutorialStudent(studentData) {
+  const email = String(studentData?.email || '').trim().toLowerCase()
+  return studentData?.tutorialAccess === true || TUTORIAL_STUDENT_EMAILS.has(email)
+}
+
 export function getStudentSubjectIds(studentData) {
   const directSubjects = Array.isArray(studentData?.subjects) ? studentData.subjects : []
   if (directSubjects.length > 0) {

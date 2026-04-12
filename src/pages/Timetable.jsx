@@ -378,7 +378,7 @@ function Timetable() {
               </h2>
             </div>
             <p className="text-slate-600 mb-6">
-              Intensive Year 11 masterclasses designed for exam success. All sessions are 2 hours with focused exam preparation.
+              Intensive Year 11 masterclasses designed for exam success with focused exam preparation.
             </p>
             
             <div className="grid md:grid-cols-2 gap-4">
@@ -423,8 +423,8 @@ function Timetable() {
                   <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border-l-4 border-green-400">
                     <Clock className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-slate-900">9:00 – 11:00am</p>
-                      <p className="text-slate-700">Year 11 Science Masterclass <span className="text-green-600 font-medium">(2 hrs)</span></p>
+                      <p className="font-semibold text-slate-900">4:00 – 7:00pm</p>
+                      <p className="text-slate-700">Year 11 Science Masterclass <span className="text-green-600 font-medium">(3 hrs)</span></p>
                     </div>
                   </div>
                 </div>
