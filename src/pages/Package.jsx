@@ -322,7 +322,7 @@ function Package() {
         window.location.href = getMathsScienceLink()
         break
       case 'crash-course':
-        window.location.href = 'https://buy.stripe.com/bJe9AUbW79x25BN6PbcjS1f'
+        window.location.href = 'https://buy.stripe.com/8x2dRaaS37oUaW7gpLcjS1B'
         break
       default:
         openCalendlyPopup()
@@ -488,14 +488,14 @@ function Package() {
       id: 'crash-course',
       name: 'Year 11 Crash Course',
       subjects: 'Intensive Exam Preparation',
-      price: '£299',
+      price: '£249.99',
       originalPrice: 'Last year was £455',
-      savingsPercent: '34%',
-      perLesson: '~£8 per hour',
+      savingsPercent: '45%',
+      perLesson: '3 instalments of £83.33 every 2 weeks',
       period: '',
-      billing: 'One-time payment',
+      billing: '7-day risk-free trial • First lesson free • Cancel before day 8',
       features: [
-        '36 hours teaching total',
+        '28 hours teaching total',
         'Maths, English & Science included',
         '1-1 Strategy Call',
         'Unlimited Platform Access',
