@@ -40,7 +40,11 @@ const HERO_SOLUTION_LINE = 'It is exam technique.'
 const WEBINAR_TITLE = 'Join our Free Flagship Live Webinar!'
 const WEBINAR_DESCRIPTION = 'Live GCSE strategy session for Maths, English, and Science \u2014 leave with a clear plan to raise grades fast.'
 const WEBINAR_LOCATION = 'Zoom link shared after registration.'
-const CALENDLY_WEBINAR_URL = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
+const CALENDLY_WEBINAR_URL = (() => {
+  const baseUrl = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
+  if (typeof window === 'undefined') return baseUrl
+  return `${baseUrl}&embed_domain=${encodeURIComponent(window.location.hostname)}&embed_type=Inline`
+})()
 const WEBINAR_WELCOME_VIDEO_URL = 'https://www.youtube.com/embed/nTwfvwF0juo?rel=0'
 
 // Lazy-loaded Calendly widget using Intersection Observer
@@ -82,7 +86,7 @@ function LazyCalendly({ url, title }) {
     <div ref={containerRef} className="h-full w-full">
       {shouldLoad ? (
         <iframe
-          src={`${url}&embed_type=Inline`}
+          src={url}
           className="h-full w-full"
           style={{ minHeight: '700px' }}
           title={title}
