@@ -322,7 +322,10 @@ function Package() {
         window.location.href = getMathsScienceLink()
         break
       case 'crash-course':
-        window.location.href = 'https://buy.stripe.com/8x2dRaaS37oUaW7gpLcjS1B'
+        window.location.href = 'https://buy.stripe.com/00w6oI3pB6kQe8j0qNcjS1C'
+        break
+      case 'english-science-crash':
+        window.location.href = 'https://buy.stripe.com/fZubJ27FR7oU6FR5L7cjS1C'
         break
       default:
         openCalendlyPopup()
@@ -488,15 +491,36 @@ function Package() {
       id: 'crash-course',
       name: 'Year 11 Crash Course',
       subjects: 'Intensive Exam Preparation',
-      price: '£249.99',
+      price: '£209.99',
       originalPrice: 'Last year was £455',
-      savingsPercent: '45%',
-      perLesson: '3 instalments of £83.33 every 2 weeks',
+      savingsPercent: '54%',
+      perLesson: '2 instalments of £104.99 every 2 weeks',
       period: '',
       billing: '7-day risk-free trial • First lesson free • Cancel before day 8',
       features: [
-        '28 hours teaching total',
-        'Maths, English & Science included',
+        '21 hours teaching total',
+        'Combined Science (Biology, Chemistry, Physics), Mathematics & English included',
+        '1-1 Strategy Call',
+        'Unlimited Platform Access',
+        'Assessments',
+        'Exam Mastermind Lessons',
+        'Detailed feedback',
+        'Intensive Exam Prep',
+      ],
+    },
+    {
+      id: 'english-science-crash',
+      name: 'English & Science Crash Course Year 11',
+      subjects: 'English & Science Intensive Prep',
+      price: '£119.99',
+      originalPrice: '£254',
+      savingsPercent: '53%',
+      perLesson: '2 instalments of £54.94 every 2 weeks',
+      period: '',
+      billing: '7-day risk-free trial • First lesson free • Cancel before day 8',
+      features: [
+        '12 hours teaching total',
+        'Combined Science & English Literature and Language covered',
         '1-1 Strategy Call',
         'Unlimited Platform Access',
         'Assessments',
@@ -765,7 +789,7 @@ function Package() {
               Bundle Packages
             </h2>
             <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {bundles.filter(bundle => bundle.id !== 'crash-course' || selectedYear === '11').map((bundle, idx) => (
+              {bundles.filter(bundle => (bundle.id !== 'crash-course' && bundle.id !== 'english-science-crash') || selectedYear === '11').map((bundle, idx) => (
                 <div
                   key={idx}
                   className={`relative rounded-2xl p-6 sm:p-8 flex flex-col ${
@@ -855,7 +879,7 @@ function Package() {
                     onClick={() => handleBundleCheckout(bundle.id)}
                     className="w-full py-3 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] touch-manipulation bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-600"
                   >
-                    {bundle.trialDays ? 'Start Free Trial' : 'Enroll now'}
+                    Start Free Trial
                   </button>
                 </div>
               ))}
@@ -908,7 +932,7 @@ function Package() {
                     onClick={() => item.id ? handleIndividualCheckout(item.id) : openCalendlyPopup}
                     className="w-full py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                   >
-                    {item.trialDays ? 'Start Free Trial' : 'Enroll now'}
+                    Start Free Trial
                   </button>
                 </div>
               ))}
