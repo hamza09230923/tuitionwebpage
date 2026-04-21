@@ -322,7 +322,7 @@ function Package() {
         window.location.href = getMathsScienceLink()
         break
       case 'crash-course':
-        window.location.href = 'https://buy.stripe.com/00w6oI3pB6kQe8j0qNcjS1C'
+        window.location.href = 'https://buy.stripe.com/00w6oI3pB6kQe8j0qNcjS1D'
         break
       case 'english-science-crash':
         window.location.href = 'https://buy.stripe.com/fZubJ27FR7oU6FR5L7cjS1C'
@@ -515,7 +515,7 @@ function Package() {
       price: '£119.99',
       originalPrice: '£254',
       savingsPercent: '53%',
-      perLesson: '2 instalments of £54.94 every 2 weeks',
+      perLesson: '2 instalments of £54.99 every 2 weeks',
       period: '',
       billing: '7-day risk-free trial • First lesson free • Cancel before day 8',
       features: [
