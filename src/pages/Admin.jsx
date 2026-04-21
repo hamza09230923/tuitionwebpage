@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Video, FileText, Save, CheckCircle, Trash2, Download, Clock } from 'lucide-react'
+import { Video, FileText, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder, X } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc } from 'firebase/firestore'
+import { collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, addDoc } from 'firebase/firestore'
 import { createHidriveUpload } from '../api/functionsClient'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
@@ -15,7 +15,7 @@ function Admin() {
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedSubjectData, setSelectedSubjectData] = useState(null)
-  const [activeTab, setActiveTab] = useState('recording') // 'recording', 'homework', 'approve', 'manage', or 'manage-homework'
+  const [activeTab, setActiveTab] = useState('recording') // 'recording', 'homework', 'approve', 'manage', 'manage-homework', or 'view-submissions'
   
   // Recording form
   const [recordingTitle, setRecordingTitle] = useState('')
@@ -40,6 +40,16 @@ function Admin() {
   const [managedHomeworks, setManagedHomeworks] = useState([])
   const [managedHomeworksLoading, setManagedHomeworksLoading] = useState(false)
   const [deletingHomeworkId, setDeletingHomeworkId] = useState('')
+  
+  // Student submissions
+  const [submissions, setSubmissions] = useState([])
+  const [homeworks, setHomeworks] = useState([])
+  const [enrolledStudents, setEnrolledStudents] = useState([])
+  const [submissionsLoading, setSubmissionsLoading] = useState(false)
+  const [markingSubmissionId, setMarkingSubmissionId] = useState(null)
+  const [deletingSubmissionId, setDeletingSubmissionId] = useState(null)
+  const [submissionFilter, setSubmissionFilter] = useState('all') // 'all', 'pending', 'marked'
+  const [expandedHomework, setExpandedHomework] = useState({})
   
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -244,6 +254,69 @@ function Admin() {
     }
 
     loadManagedHomeworks()
+  }, [activeTab, authenticated, selectedSubject])
+
+  useEffect(() => {
+    const loadSubmissions = async () => {
+      if (activeTab !== 'view-submissions' || !authenticated || !selectedSubject) {
+        return
+      }
+
+      setSubmissionsLoading(true)
+      try {
+        // Load homeworks for this subject
+        const homeworksQuery = query(
+          collection(db, 'homeworks'),
+          where('subjectId', '==', selectedSubject)
+        )
+        const homeworksSnapshot = await getDocs(homeworksQuery)
+        const homeworksData = homeworksSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        setHomeworks(homeworksData)
+
+        // Load enrolled students for this subject
+        const studentsQuery = query(
+          collection(db, 'students'),
+          where('subjects', 'array-contains', selectedSubject)
+        )
+        const studentsSnapshot = await getDocs(studentsQuery)
+        const studentsData = studentsSnapshot.docs.map((doc) => {
+          const data = doc.data()
+          console.log('Student data:', doc.id, data) // Debug logging
+          return {
+            id: doc.id,
+            ...data,
+            // Ensure we have a display name
+            displayName: data.name || data.displayName || data.email || data.studentName || doc.id
+          }
+        })
+        console.log('Total students loaded:', studentsData.length) // Debug logging
+        setEnrolledStudents(studentsData)
+
+        // Load submissions
+        const submissionsQuery = query(
+          collection(db, 'submissions'),
+          where('subjectId', '==', selectedSubject)
+        )
+        const submissionsSnapshot = await getDocs(submissionsQuery)
+        const submissionsData = submissionsSnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+
+        setSubmissions(submissionsData)
+      } catch (err) {
+        console.error('Error loading submissions:', err)
+        setMessage('Failed to load student submissions')
+      } finally {
+        setSubmissionsLoading(false)
+      }
+    }
+
+    loadSubmissions()
   }, [activeTab, authenticated, selectedSubject])
 
   useEffect(() => {
@@ -538,6 +611,66 @@ function Admin() {
     return date < new Date()
   }
 
+  const handleMarkSubmission = async (submissionId) => {
+    setMarkingSubmissionId(submissionId)
+    try {
+      await updateDoc(doc(db, 'submissions', submissionId), {
+        marked: true,
+        markedAt: serverTimestamp(),
+        markedBy: auth.currentUser?.uid || null
+      })
+      
+      // Refresh submissions
+      const submissionsQuery = query(
+        collection(db, 'submissions'),
+        where('subjectId', '==', selectedSubject)
+      )
+      const submissionsSnapshot = await getDocs(submissionsQuery)
+      const submissionsData = submissionsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      setSubmissions(submissionsData)
+      
+      setMessage('Submission marked successfully')
+    } catch (err) {
+      console.error('Error marking submission:', err)
+      setMessage('Failed to mark submission')
+    } finally {
+      setMarkingSubmissionId(null)
+    }
+  }
+
+  const handleDeleteSubmission = async (submissionId) => {
+    if (!window.confirm('Are you sure you want to delete this student submission? This cannot be undone.')) {
+      return
+    }
+    
+    setDeletingSubmissionId(submissionId)
+    try {
+      await deleteDoc(doc(db, 'submissions', submissionId))
+      
+      // Refresh submissions
+      const submissionsQuery = query(
+        collection(db, 'submissions'),
+        where('subjectId', '==', selectedSubject)
+      )
+      const submissionsSnapshot = await getDocs(submissionsQuery)
+      const submissionsData = submissionsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      setSubmissions(submissionsData)
+      
+      setMessage('Submission deleted successfully')
+    } catch (err) {
+      console.error('Error deleting submission:', err)
+      setMessage('Failed to delete submission')
+    } finally {
+      setDeletingSubmissionId(null)
+    }
+  }
+
   const handleSubmitHomework = async (e) => {
     e.preventDefault()
     if (!selectedSubject || !homeworkTitle) {
@@ -708,6 +841,17 @@ function Admin() {
           >
             <FileText className="h-4 w-4" />
             Manage Homework
+          </button>
+          <button
+            onClick={() => setActiveTab('view-submissions')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              activeTab === 'view-submissions'
+                ? 'bg-purple-700 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            View Submissions
           </button>
         </div>
 
@@ -1179,6 +1323,349 @@ function Admin() {
               {loading ? 'Adding...' : 'Add Homework'}
             </button>
           </form>
+        )}
+
+        {/* View Submissions */}
+        {activeTab === 'view-submissions' && (
+          <div className="space-y-6">
+            {/* Header with Stats & Filters */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Student Submissions</h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Homework folders containing student submissions. Track and mark work.
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <button 
+                  onClick={() => setSubmissionFilter('all')}
+                  className={`rounded-lg p-4 text-center transition ${
+                    submissionFilter === 'all' 
+                      ? 'bg-blue-100 border-2 border-blue-400' 
+                      : 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
+                  }`}
+                >
+                  <p className="text-2xl font-bold text-blue-600">{submissions.length}</p>
+                  <p className="text-sm text-gray-600">All Submissions</p>
+                </button>
+                <button 
+                  onClick={() => setSubmissionFilter('pending')}
+                  className={`rounded-lg p-4 text-center transition ${
+                    submissionFilter === 'pending' 
+                      ? 'bg-yellow-100 border-2 border-yellow-400' 
+                      : 'bg-yellow-50 border border-yellow-200 hover:bg-yellow-100'
+                  }`}
+                >
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {submissions.filter(s => !s.marked).length}
+                  </p>
+                  <p className="text-sm text-gray-600">Pending Review</p>
+                </button>
+                <button 
+                  onClick={() => setSubmissionFilter('marked')}
+                  className={`rounded-lg p-4 text-center transition ${
+                    submissionFilter === 'marked' 
+                      ? 'bg-green-100 border-2 border-green-400' 
+                      : 'bg-green-50 border border-green-200 hover:bg-green-100'
+                  }`}
+                >
+                  <p className="text-2xl font-bold text-green-600">
+                    {submissions.filter(s => s.marked).length}
+                  </p>
+                  <p className="text-sm text-gray-600">Marked</p>
+                </button>
+              </div>
+
+              {/* Filter indicator */}
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="font-medium">Showing:</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  submissionFilter === 'all' ? 'bg-blue-100 text-blue-700' :
+                  submissionFilter === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-green-100 text-green-700'
+                }`}>
+                  {submissionFilter === 'all' ? 'All Submissions' :
+                   submissionFilter === 'pending' ? 'Pending Review' : 'Marked'}
+                </span>
+              </div>
+            </div>
+
+            {submissionsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Loading...</p>
+              </div>
+            ) : (
+              /* Group by Homework - Show ALL homeworks with ALL enrolled students */
+              (() => {
+                // Helper to check if homework is overdue
+                const isHomeworkOverdue = (dueDate) => {
+                  if (!dueDate) return false
+                  const date = dueDate.toDate ? dueDate.toDate() : new Date(dueDate)
+                  return date < new Date()
+                }
+
+                // Helper to get submission for a student and homework
+                const getSubmission = (studentId, homeworkId) => {
+                  return submissions.find(s => s.studentId === studentId && s.homeworkId === homeworkId)
+                }
+
+                // Helper to get student status
+                const getStudentStatus = (student, homework) => {
+                  const submission = getSubmission(student.id, homework.id)
+                  const overdue = isHomeworkOverdue(homework.dueDate)
+                  
+                  if (!submission) {
+                    return { 
+                      status: overdue ? 'overdue' : 'not-submitted', 
+                      label: overdue ? 'Overdue' : 'Not Submitted',
+                      color: overdue ? 'red' : 'gray',
+                      submission: null 
+                    }
+                  }
+                  
+                  if (submission.marked) {
+                    return { 
+                      status: 'marked', 
+                      label: 'Marked', 
+                      color: 'green',
+                      submission 
+                    }
+                  }
+                  
+                  return { 
+                    status: 'submitted', 
+                    label: 'Submitted', 
+                    color: 'yellow',
+                    submission 
+                  }
+                }
+
+                // If no homeworks at all
+                if (homeworks.length === 0) {
+                  return (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                      <Folder className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">No homework assignments for this subject yet.</p>
+                    </div>
+                  )
+                }
+
+                return homeworks.map((homework) => {
+                  const hwId = homework.id
+                  const isExpanded = expandedHomework[hwId] === true
+                  const overdue = isHomeworkOverdue(homework.dueDate)
+                  
+                  // Count stats
+                  let submittedCount = 0
+                  let markedCount = 0
+                  let overdueCount = 0
+                  
+                  enrolledStudents.forEach(student => {
+                    const status = getStudentStatus(student, homework)
+                    if (status.status === 'marked') markedCount++
+                    else if (status.status === 'submitted') submittedCount++
+                    else if (status.status === 'overdue') overdueCount++
+                  })
+                  
+                  const notSubmittedCount = enrolledStudents.length - submittedCount - markedCount
+
+                  return (
+                    <div key={hwId} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      {/* Dropdown Header - Click to expand/collapse */}
+                      <button
+                        onClick={() => setExpandedHomework(prev => ({ ...prev, [hwId]: !isExpanded }))}
+                        className={`w-full p-4 transition flex items-center justify-between ${
+                          isExpanded 
+                            ? 'bg-blue-50 border-b-2 border-blue-200' 
+                            : 'bg-gray-50 border-b border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className={`p-2 rounded-lg ${isExpanded ? 'bg-blue-100' : 'bg-white'}`}>
+                            <Folder className={`h-5 w-5 ${isExpanded ? 'text-blue-700' : 'text-gray-600'}`} />
+                          </div>
+                          <div className="text-left flex-1 min-w-0">
+                            <h3 className={`font-semibold truncate ${isExpanded ? 'text-blue-900' : 'text-gray-900'}`}>
+                              {homework.title || 'Untitled Homework'}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              Due: {homework.dueDate ? new Date(homework.dueDate.toDate ? homework.dueDate.toDate() : homework.dueDate).toLocaleDateString('en-GB') : 'No due date'}
+                              {overdue && ' • Overdue'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-3">
+                          {/* Status badges */}
+                          <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700">
+                            {enrolledStudents.length} students
+                          </span>
+                          {notSubmittedCount > 0 && (
+                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600">
+                              {notSubmittedCount} not submitted
+                            </span>
+                          )}
+                          {overdueCount > 0 && (
+                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-red-100 text-red-700">
+                              {overdueCount} overdue
+                            </span>
+                          )}
+                          {submittedCount > 0 && (
+                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700">
+                              {submittedCount} pending
+                            </span>
+                          )}
+                          {markedCount > 0 && (
+                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-green-100 text-green-700">
+                              {markedCount} marked
+                            </span>
+                          )}
+                          <div className={`p-1 rounded-full transition-transform duration-200 ml-1 ${isExpanded ? 'bg-blue-200' : 'bg-gray-200'}`}>
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5 text-blue-700" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-gray-500" />
+                            )}
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Dropdown Content - All Enrolled Students */}
+                      <div 
+                        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                          isExpanded ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0'
+                        }`}
+                      >
+                        <div className="divide-y divide-gray-200">
+                          {enrolledStudents.length === 0 ? (
+                            <div className="p-4 text-center text-gray-500">
+                              No students enrolled in this subject.
+                            </div>
+                          ) : (
+                            enrolledStudents.map((student) => {
+                              const status = getStudentStatus(student, homework)
+                              const submission = status.submission
+                              
+                              const statusColors = {
+                                'marked': 'bg-green-50',
+                                'submitted': 'bg-yellow-50',
+                                'overdue': 'bg-red-50',
+                                'not-submitted': 'bg-gray-50'
+                              }
+                              
+                              const badgeColors = {
+                                'marked': 'bg-green-100 text-green-700',
+                                'submitted': 'bg-yellow-100 text-yellow-700',
+                                'overdue': 'bg-red-100 text-red-700',
+                                'not-submitted': 'bg-gray-100 text-gray-600'
+                              }
+
+                              return (
+                                <div
+                                  key={student.id}
+                                  className={`p-4 flex items-start justify-between gap-4 ${statusColors[status.status]}`}
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="text-sm text-gray-900">
+                                        <span className="font-medium">Student Name:</span>{' '}
+                                        {student.displayName}
+                                      </p>
+                                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badgeColors[status.status]}`}>
+                                        {status.status === 'marked' && <CheckCircle className="h-3 w-3 mr-1" />}
+                                        {status.label}
+                                      </span>
+                                    </div>
+                                    
+                                    {submission && (
+                                      <div className="space-y-1 text-sm text-gray-600">
+                                        <p>
+                                          <span className="font-medium text-gray-700">Submitted:</span>{' '}
+                                          {submission.submittedAt?.toDate
+                                            ? submission.submittedAt.toDate().toLocaleString('en-GB')
+                                            : 'Pending'}
+                                        </p>
+                                        {submission.markedAt && (
+                                          <p className="text-green-600">
+                                            <span className="font-medium">Marked:</span>{' '}
+                                            {submission.markedAt?.toDate
+                                              ? submission.markedAt.toDate().toLocaleString('en-GB')
+                                              : 'Yes'}
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    {submission ? (
+                                      <>
+                                        <a
+                                          href={submission.googleDocsUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap"
+                                        >
+                                          <ExternalLink className="h-4 w-4" />
+                                          Open Doc
+                                        </a>
+                                        {!submission.marked && (
+                                          <button
+                                            onClick={() => handleMarkSubmission(submission.id)}
+                                            disabled={markingSubmissionId === submission.id}
+                                            className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
+                                          >
+                                            {markingSubmissionId === submission.id ? (
+                                              <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                Marking...
+                                              </>
+                                            ) : (
+                                              <>
+                                                <CheckCircle className="h-4 w-4" />
+                                                Mark Done
+                                              </>
+                                            )}
+                                          </button>
+                                        )}
+                                        <button
+                                          onClick={() => handleDeleteSubmission(submission.id)}
+                                          disabled={deletingSubmissionId === submission.id}
+                                          className="inline-flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
+                                        >
+                                          {deletingSubmissionId === submission.id ? (
+                                            <>
+                                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                              Deleting...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Trash2 className="h-4 w-4" />
+                                              Delete
+                                            </>
+                                          )}
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <span className="text-sm text-gray-400 italic">No submission</span>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            })
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              })()
+            )}
+          </div>
         )}
       </div>
     </div>

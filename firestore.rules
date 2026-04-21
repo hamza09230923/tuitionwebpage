@@ -74,5 +74,19 @@ service cloud.firestore {
     match /webinarRegistrations/{registrationId} {
       allow read, write: if isAdmin();
     }
+
+    match /submissions/{submissionId} {
+      // Students can read only their own submissions
+      allow read: if signedIn() && resource.data.studentId == request.auth.uid;
+      // Students can create submissions for themselves only
+      allow create: if signedIn() && request.resource.data.studentId == request.auth.uid;
+      // Students can update their own submission (to change link)
+      allow update: if signedIn() && resource.data.studentId == request.auth.uid;
+      // Only staff can read all submissions
+      allow read: if isStaff();
+      // Only staff can update (mark as marked) and delete
+      allow update: if isStaff();
+      allow delete: if isStaff();
+    }
   }
 }

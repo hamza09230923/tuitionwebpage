@@ -325,7 +325,7 @@ function Package() {
         window.location.href = 'https://buy.stripe.com/00w6oI3pB6kQe8j0qNcjS1D'
         break
       case 'english-science-crash':
-        window.location.href = 'https://buy.stripe.com/fZubJ27FR7oU6FR5L7cjS1C'
+        window.location.href = 'https://buy.stripe.com/28EaEY6BN7oU9S3gpLcjS1E'
         break
       default:
         openCalendlyPopup()
@@ -512,14 +512,14 @@ function Package() {
       id: 'english-science-crash',
       name: 'English & Science Crash Course Year 11',
       subjects: 'English & Science Intensive Prep',
-      price: '£119.99',
+      price: '£149.99',
       originalPrice: '£254',
-      savingsPercent: '53%',
-      perLesson: '2 instalments of £54.99 every 2 weeks',
+      savingsPercent: '41%',
+      perLesson: '2 instalments of £74.99 every 2 weeks',
       period: '',
       billing: '7-day risk-free trial • First lesson free • Cancel before day 8',
       features: [
-        '12 hours teaching total',
+        '15 hours teaching total',
         'Combined Science & English Literature and Language covered',
         '1-1 Strategy Call',
         'Unlimited Platform Access',
