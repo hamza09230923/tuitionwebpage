@@ -134,7 +134,10 @@ const getScienceSubjectCard = (subjects, key) => {
   const exactSubject = subjects.find((subject) => {
     const id = normalizeSubjectId(subject.id)
     const name = normalizeSubjectName(subject.name)
-    return id === `${key}_001` || id.startsWith(`${key}_`) || name.includes(key)
+    // Exclude crash courses from regular science subject matching
+    const isCrashCourse = id.includes('crash') || name.includes('crash')
+    if (isCrashCourse) return false
+    return id === `${key}_001` || (id.startsWith(`${key}_`) && !id.includes('crash')) || (name.includes(key) && !name.includes('crash'))
   })
   if (exactSubject) {
     return {
@@ -313,12 +316,23 @@ function StudentDashboard() {
   }
 
   const scienceSubjectCards = SCIENCE_SUBJECTS.map((key) => getScienceSubjectCard(subjects, key))
+  // Only show science cards where student is actually enrolled (has subject)
+  const validScienceSubjectCards = scienceSubjectCards.filter((card) => card.subject)
   const scienceSubjectIds = new Set(
-    scienceSubjectCards
-      .filter((card) => card.subject)
-      .map((card) => card.subject.id)
+    validScienceSubjectCards.map((card) => card.subject.id)
   )
-  const otherSubjects = subjects.filter((subject) => !scienceSubjectIds.has(subject.id))
+  
+  // Identify crash course subjects (subjects with "crash" in the ID)
+  const crashCourseSubjects = subjects.filter((subject) => 
+    subject.id?.toLowerCase().includes('crash') || 
+    subject.name?.toLowerCase().includes('crash')
+  )
+  const crashCourseSubjectIds = new Set(crashCourseSubjects.map(s => s.id))
+  
+  const otherSubjects = subjects.filter((subject) => 
+    !scienceSubjectIds.has(subject.id) && 
+    !crashCourseSubjectIds.has(subject.id)
+  )
   const assignedSubjectIds = getStudentSubjectIds(student)
   const scienceAccessKeys = new Set(
     assignedSubjectIds
@@ -644,29 +658,49 @@ function StudentDashboard() {
           </div>
         ) : (
           <div className="space-y-10">
-            <section>
-              <div className="mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">Science Subjects</h3>
-                <p className="text-sm text-gray-600">
-                  Biology, Chemistry, and Physics are shown here.
-                </p>
-              </div>
-              <div
-                className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-                role="list"
-                aria-label="Science subjects"
-              >
-                {scienceSubjectCards.map((card) => (
-                  card.subject
-                    ? renderSubjectCard(card.subject, {
+            {validScienceSubjectCards.length > 0 && (
+              <section>
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Science Subjects</h3>
+                  <p className="text-sm text-gray-600">
+                    Biology, Chemistry, and Physics are shown here.
+                  </p>
+                </div>
+                <div
+                  className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  role="list"
+                  aria-label="Science subjects"
+                >
+                  {validScienceSubjectCards.map((card) => (
+                    renderSubjectCard(card.subject, {
                       cardKey: `${card.key}-${card.subject.id}`,
                       displayName: card.title,
                       sourceLabel: card.sourceLabel
                     })
-                    : renderUnavailableScienceCard(card.title)
-                ))}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {crashCourseSubjects.length > 0 && (
+              <section>
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Crash Courses</h3>
+                  <p className="text-sm text-gray-600">
+                    Intensive exam preparation courses
+                  </p>
+                </div>
+                <div
+                  className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  role="list"
+                  aria-label="Crash course subjects"
+                >
+                  {crashCourseSubjects.map((subject) => renderSubjectCard(subject, {
+                    displayName: subject.name || 'Crash Course'
+                  }))}
+                </div>
+              </section>
+            )}
 
             {otherSubjects.length > 0 && (
               <section>
