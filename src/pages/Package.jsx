@@ -321,12 +321,6 @@ function Package() {
       case 'maths-science':
         window.location.href = getMathsScienceLink()
         break
-      case 'crash-course':
-        window.location.href = 'https://buy.stripe.com/00w6oI3pB6kQe8j0qNcjS1D'
-        break
-      case 'english-science-crash':
-        window.location.href = 'https://buy.stripe.com/28EaEY6BN7oU9S3gpLcjS1E'
-        break
       default:
         openCalendlyPopup()
     }
@@ -412,7 +406,7 @@ function Package() {
       trialDays: 7,
       features: [
         '16 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -434,14 +428,13 @@ function Package() {
       popular: true,
       features: [
         '24 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
         'Detailed feedback',
         'Covers Bio, Chem & Phys',
         'Covers Lit & Lang',
-        'Crash Course is included',
       ],
     },
     {
@@ -457,7 +450,7 @@ function Package() {
       trialDays: 7,
       features: [
         '12 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -478,55 +471,13 @@ function Package() {
       trialDays: 7,
       features: [
         '20 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
         'Detailed feedback',
         'Covers Lit & Lang',
         'Covers Bio, Chem & Phys',
-      ],
-    },
-    {
-      id: 'crash-course',
-      name: 'Year 11 Crash Course',
-      subjects: 'Intensive Exam Preparation',
-      price: '£209.99',
-      originalPrice: 'Last year was £455',
-      savingsPercent: '54%',
-      perLesson: '2 instalments of £104.99 every 2 weeks',
-      period: '',
-      billing: '7-day risk-free trial • First lesson free • Cancel before day 8',
-      features: [
-        '21 hours teaching total',
-        'Combined Science (Biology, Chemistry, Physics), Mathematics & English included',
-        '1-1 Strategy Call',
-        'Unlimited Platform Access',
-        'Assessments',
-        'Exam Mastermind Lessons',
-        'Detailed feedback',
-        'Intensive Exam Prep',
-      ],
-    },
-    {
-      id: 'english-science-crash',
-      name: 'English & Science Crash Course Year 11',
-      subjects: 'English & Science Intensive Prep',
-      price: '£149.99',
-      originalPrice: '£254',
-      savingsPercent: '41%',
-      perLesson: '2 instalments of £74.99 every 2 weeks',
-      period: '',
-      billing: '7-day risk-free trial • First lesson free • Cancel before day 8',
-      features: [
-        '15 hours teaching total',
-        'Combined Science & English Literature and Language covered',
-        '1-1 Strategy Call',
-        'Unlimited Platform Access',
-        'Assessments',
-        'Exam Mastermind Lessons',
-        'Detailed feedback',
-        'Intensive Exam Prep',
       ],
     },
   ]
@@ -543,7 +494,7 @@ function Package() {
       trialDays: 7,
       features: [
         '12 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -562,7 +513,7 @@ function Package() {
       trialDays: 7,
       features: [
         '8 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -581,7 +532,7 @@ function Package() {
       trialDays: 7,
       features: [
         '4 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -599,7 +550,7 @@ function Package() {
       trialDays: 7,
       features: [
         '4 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -618,7 +569,7 @@ function Package() {
       trialDays: 7,
       features: [
         '4 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -637,7 +588,7 @@ function Package() {
       trialDays: 7,
       features: [
         '4 lessons per month',
-        '1-1 Strategy Call',
+        'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
         'Exam Mastermind Lessons',
@@ -789,7 +740,7 @@ function Package() {
               Bundle Packages
             </h2>
             <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {bundles.filter(bundle => (bundle.id !== 'crash-course' && bundle.id !== 'english-science-crash') || selectedYear === '11').map((bundle, idx) => (
+              {bundles.map((bundle, idx) => (
                 <div
                   key={idx}
                   className={`relative rounded-2xl p-6 sm:p-8 flex flex-col ${
@@ -816,22 +767,6 @@ function Package() {
                       <span className="opacity-75 ml-1">• First lesson free • Cancel before day 8</span>
                     </div>
                   )}
-                  {bundle.id === 'maths-science-english' && (
-                    <div className={`rounded-xl p-4 mb-4 text-center relative overflow-hidden ${bundle.popular ? 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 border-2 border-green-400/50' : 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300'}`}>
-                      <div className="relative z-10">
-                        <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${bundle.popular ? 'text-green-300' : 'text-green-700'}`}>
-                          Includes Year 11
-                        </p>
-                        <p className={`text-lg font-extrabold uppercase mb-1 ${bundle.popular ? 'text-white' : 'text-gray-900'}`}>
-                          Crash Course
-                        </p>
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${bundle.popular ? 'bg-green-500 text-white' : 'bg-green-600 text-white'}`}>
-                          <Zap className="h-3 w-3" />
-                          Starts from April
-                        </div>
-                      </div>
-                    </div>
-                  )}
                   
                   <div className="mb-2">
                     <span className={`text-4xl font-extrabold ${bundle.popular ? 'text-white' : 'text-gray-900'}`}>
@@ -843,15 +778,9 @@ function Package() {
                   </div>
                   {bundle.originalPrice && (
                     <div className="flex items-center gap-2 mb-1">
-                      {bundle.originalPrice.startsWith('Last year') ? (
-                        <span className={`text-sm ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
-                          Last year was <span className={`line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>{bundle.id === 'crash-course' ? '£455' : '£249'}</span>
-                        </span>
-                      ) : (
-                        <span className={`text-sm line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>
-                          {bundle.originalPrice}
-                        </span>
-                      )}
+                      <span className={`text-sm line-through ${bundle.popular ? 'text-blue-200' : 'text-gray-400'}`}>
+                        {bundle.originalPrice}
+                      </span>
                       <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded">
                         SAVE {bundle.savingsPercent}
                       </span>
@@ -873,7 +802,6 @@ function Package() {
                       </li>
                     ))}
                   </ul>
-                  {/* Crash Course Badge removed */}
                   <button
                     type="button"
                     onClick={() => handleBundleCheckout(bundle.id)}
