@@ -2,9 +2,38 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText, Clock, Download, ExternalLink, Send, CheckCircle, ChevronDown, ChevronUp, Folder } from 'lucide-react'
 import { auth, db } from '../firebase'
-import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, serverTimestamp, doc } from 'firebase/firestore'
+import { collection, query, where, getDocs, addDoc, updateDoc, serverTimestamp, doc } from 'firebase/firestore'
 import { getAuthorizedStudentSubject } from '../utils/studentAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
+
+const getHiddenHomeworkIds = (studentData) => {
+  const hiddenIds = Array.isArray(studentData?.hiddenHomeworkIds)
+    ? studentData.hiddenHomeworkIds
+    : []
+
+  return new Set(hiddenIds.map((id) => String(id)))
+}
+
+const getHiddenHomeworkTitleKeywords = (studentData) => {
+  const keywords = Array.isArray(studentData?.hiddenHomeworkTitleKeywords)
+    ? studentData.hiddenHomeworkTitleKeywords
+    : []
+
+  return keywords
+    .map((keyword) => String(keyword || '').trim().toLowerCase())
+    .filter(Boolean)
+}
+
+const isHomeworkHiddenForStudent = (homework, studentData) => {
+  if (getHiddenHomeworkIds(studentData).has(String(homework.id))) {
+    return true
+  }
+
+  const title = String(homework.title || '').toLowerCase()
+  return title
+    ? getHiddenHomeworkTitleKeywords(studentData).some((keyword) => title.includes(keyword))
+    : false
+}
 
 function Homework() {
   const { subjectId } = useParams()
@@ -49,18 +78,37 @@ function Homework() {
         )
         
         const homeworksSnapshot = await getDocs(homeworksQuery)
-        const homeworksData = homeworksSnapshot.docs.map(doc => ({
+        const subjectHomeworksData = homeworksSnapshot.docs.map(doc => ({
           id: doc.id,
+          sourceCollection: 'homeworks',
+          visibility: 'subject',
           ...doc.data()
         }))
+
+        let studentHomeworksData = []
+        try {
+          const studentHomeworksQuery = query(
+            collection(db, 'studentHomeworks'),
+            where('subjectId', '==', subjectId),
+            where('studentId', '==', user.uid)
+          )
+          const studentHomeworksSnapshot = await getDocs(studentHomeworksQuery)
+          studentHomeworksData = studentHomeworksSnapshot.docs.map(doc => ({
+            id: doc.id,
+            sourceCollection: 'studentHomeworks',
+            visibility: 'student',
+            ...doc.data()
+          }))
+        } catch (err) {
+          console.warn('Student-specific homework could not be loaded:', err)
+        }
+
+        const homeworksData = [...subjectHomeworksData, ...studentHomeworksData]
+          .filter((homework) => !isHomeworkHiddenForStudent(homework, access.student))
         
         setHomeworks(homeworksData)
 
-        // Load student's data for name
-        const studentDoc = await getDocs(query(collection(db, 'students'), where('__name__', '==', user.uid)))
-        if (!studentDoc.empty) {
-          setStudentName(studentDoc.docs[0].data().name || '')
-        }
+        setStudentName(access.student?.name || access.student?.displayName || '')
 
         // Load student's submissions for this subject
         const submissionsQuery = query(
@@ -359,7 +407,7 @@ function Homework() {
                 
                 return (
                   <div
-                    key={homework.id}
+                    key={`${homework.sourceCollection || 'homeworks'}-${homework.id}`}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
                   >
                     {/* Compact Header - Click to Expand */}
@@ -520,7 +568,7 @@ function Homework() {
                             /* Submit Form */
                             <div>
                               <p className="text-sm text-gray-600 mb-3">
-                                Paste your Google Docs link below. Set sharing to "Anyone with link can edit".
+                                Paste your Google Docs link below. Set sharing to <span className="font-medium">Anyone with link can edit</span>.
                               </p>
                               <form onSubmit={(e) => handleSubmitHomework(e, homework)} className="space-y-3">
                                 <input

@@ -1,11 +1,135 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Video, FileText, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder, X } from 'lucide-react'
+import { Video, FileText, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, addDoc } from 'firebase/firestore'
+import { arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc } from 'firebase/firestore'
 import { createHidriveUpload } from '../api/functionsClient'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
+
+const getStudentDisplayName = (student) => (
+  student?.displayName || student?.name || student?.studentName || student?.email || student?.id || 'Unknown student'
+)
+
+const getRecordingCollection = (recording) => recording?.sourceCollection || 'recordings'
+const getRecordingDeleteKey = (recordingId, collectionName = 'recordings') => `${collectionName}:${recordingId}`
+const getHomeworkCollection = (homework) => homework?.sourceCollection || 'homeworks'
+const getHomeworkDeleteKey = (homeworkId, collectionName = 'homeworks') => `${collectionName}:${homeworkId}`
+const getSubjectOptionLabel = (subject) => `${getCanonicalSubjectName(subject)} (${subject.id})`
+const getRecordingAccessKey = (recordingId, studentId, action) => `${action}:${recordingId}:${studentId}`
+const getHomeworkAccessKey = (homeworkId, studentId, action) => `${action}:${homeworkId}:${studentId}`
+const DEFAULT_UPLOAD_TIMEOUT_MS = 3 * 60 * 1000
+const RECORDING_UPLOAD_TIMEOUT_MS = 20 * 60 * 1000
+
+const getHiddenRecordingIds = (student) => {
+  const hiddenIds = Array.isArray(student?.hiddenRecordingIds) ? student.hiddenRecordingIds : []
+  return new Set(hiddenIds.map((id) => String(id)))
+}
+
+const getHiddenRecordingTitleKeywords = (student) => {
+  const keywords = Array.isArray(student?.hiddenRecordingTitleKeywords)
+    ? student.hiddenRecordingTitleKeywords
+    : []
+
+  return keywords
+    .map((keyword) => String(keyword || '').trim().toLowerCase())
+    .filter(Boolean)
+}
+
+const isRecordingHiddenByTitleKeyword = (recording, student) => {
+  const title = String(recording.title || '').toLowerCase()
+  return title
+    ? getHiddenRecordingTitleKeywords(student).some((keyword) => title.includes(keyword))
+    : false
+}
+
+const isRecordingHiddenForStudent = (recording, student) => {
+  if (!student?.id) {
+    return false
+  }
+
+  if (getHiddenRecordingIds(student).has(String(recording.id))) {
+    return true
+  }
+
+  return isRecordingHiddenByTitleKeyword(recording, student)
+}
+
+const getRecordingTargetStudents = (recording, students) => {
+  if (recording.visibility !== 'student') {
+    return students
+  }
+
+  const targetStudent = students.find((student) => student.id === recording.studentId)
+  if (targetStudent) {
+    return [targetStudent]
+  }
+
+  if (!recording.studentId) {
+    return []
+  }
+
+  return [{
+    id: recording.studentId,
+    displayName: recording.studentName || recording.studentEmail || recording.studentId,
+    email: recording.studentEmail || ''
+  }]
+}
+
+const getHiddenHomeworkIds = (student) => {
+  const hiddenIds = Array.isArray(student?.hiddenHomeworkIds) ? student.hiddenHomeworkIds : []
+  return new Set(hiddenIds.map((id) => String(id)))
+}
+
+const getHiddenHomeworkTitleKeywords = (student) => {
+  const keywords = Array.isArray(student?.hiddenHomeworkTitleKeywords)
+    ? student.hiddenHomeworkTitleKeywords
+    : []
+
+  return keywords
+    .map((keyword) => String(keyword || '').trim().toLowerCase())
+    .filter(Boolean)
+}
+
+const isHomeworkHiddenByTitleKeyword = (homework, student) => {
+  const title = String(homework.title || '').toLowerCase()
+  return title
+    ? getHiddenHomeworkTitleKeywords(student).some((keyword) => title.includes(keyword))
+    : false
+}
+
+const isHomeworkHiddenForStudent = (homework, student) => {
+  if (!student?.id) {
+    return false
+  }
+
+  if (getHiddenHomeworkIds(student).has(String(homework.id))) {
+    return true
+  }
+
+  return isHomeworkHiddenByTitleKeyword(homework, student)
+}
+
+const getHomeworkTargetStudents = (homework, students) => {
+  if (homework.visibility !== 'student') {
+    return students
+  }
+
+  const targetStudent = students.find((student) => student.id === homework.studentId)
+  if (targetStudent) {
+    return [targetStudent]
+  }
+
+  if (!homework.studentId) {
+    return []
+  }
+
+  return [{
+    id: homework.studentId,
+    displayName: homework.studentName || homework.studentEmail || homework.studentId,
+    email: homework.studentEmail || ''
+  }]
+}
 
 function Admin() {
   const navigate = useNavigate()
@@ -23,6 +147,8 @@ function Admin() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [examBoard, setExamBoard] = useState('')
   const [tier, setTier] = useState('')
+  const [recordingAudience, setRecordingAudience] = useState('subject')
+  const [selectedRecordingStudentId, setSelectedRecordingStudentId] = useState('')
   
   // Approval
   const [pendingRecordings, setPendingRecordings] = useState([])
@@ -30,6 +156,7 @@ function Admin() {
   const [managedRecordings, setManagedRecordings] = useState([])
   const [managedRecordingsLoading, setManagedRecordingsLoading] = useState(false)
   const [deletingRecordingId, setDeletingRecordingId] = useState('')
+  const [updatingRecordingAccessKey, setUpdatingRecordingAccessKey] = useState('')
   
   // Homework form
   const [homeworkTitle, setHomeworkTitle] = useState('')
@@ -37,14 +164,18 @@ function Admin() {
   const [homeworkDueDate, setHomeworkDueDate] = useState('')
   const [homeworkFile, setHomeworkFile] = useState(null)
   const [homeworkUploadProgress, setHomeworkUploadProgress] = useState(0)
+  const [homeworkAudience, setHomeworkAudience] = useState('subject')
+  const [selectedHomeworkStudentId, setSelectedHomeworkStudentId] = useState('')
   const [managedHomeworks, setManagedHomeworks] = useState([])
   const [managedHomeworksLoading, setManagedHomeworksLoading] = useState(false)
   const [deletingHomeworkId, setDeletingHomeworkId] = useState('')
+  const [updatingHomeworkAccessKey, setUpdatingHomeworkAccessKey] = useState('')
   
   // Student submissions
   const [submissions, setSubmissions] = useState([])
   const [homeworks, setHomeworks] = useState([])
   const [enrolledStudents, setEnrolledStudents] = useState([])
+  const [subjectStudentsLoading, setSubjectStudentsLoading] = useState(false)
   const [submissionsLoading, setSubmissionsLoading] = useState(false)
   const [markingSubmissionId, setMarkingSubmissionId] = useState(null)
   const [deletingSubmissionId, setDeletingSubmissionId] = useState(null)
@@ -99,7 +230,10 @@ function Admin() {
             id: doc.id,
             ...doc.data()
           }))
-          .sort((a, b) => getCanonicalSubjectName(a).localeCompare(getCanonicalSubjectName(b)))
+          .sort((a, b) => {
+            const nameSort = getCanonicalSubjectName(a).localeCompare(getCanonicalSubjectName(b))
+            return nameSort || a.id.localeCompare(b.id)
+          })
         setSubjects(subjectsData)
         if (subjectsData.length > 0) {
           const firstSubject = subjectsData[0]
@@ -196,11 +330,34 @@ function Admin() {
         }
 
         const recordingsSnapshot = await getDocs(recordingsQuery)
-        const recordingsData = recordingsSnapshot.docs
+
+        const subjectRecordingsData = recordingsSnapshot.docs
           .map((recordingDoc) => ({
             id: recordingDoc.id,
+            sourceCollection: 'recordings',
+            visibility: 'subject',
             ...recordingDoc.data()
           }))
+
+        let studentRecordingsData = []
+        try {
+          const studentRecordingsQuery = query(
+            collection(db, 'studentRecordings'),
+            where('subjectId', '==', selectedSubject)
+          )
+          const studentRecordingsSnapshot = await getDocs(studentRecordingsQuery)
+          studentRecordingsData = studentRecordingsSnapshot.docs
+            .map((recordingDoc) => ({
+              id: recordingDoc.id,
+              sourceCollection: 'studentRecordings',
+              visibility: 'student',
+              ...recordingDoc.data()
+            }))
+        } catch (err) {
+          console.warn('Student-specific recordings could not be loaded:', err)
+        }
+
+        const recordingsData = [...subjectRecordingsData, ...studentRecordingsData]
           .sort((a, b) => {
             const dateA = a.date?.toDate ? a.date.toDate() : (a.date ? new Date(a.date) : new Date(0))
             const dateB = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : new Date(0))
@@ -220,6 +377,44 @@ function Admin() {
   }, [activeTab, authenticated, selectedSubject])
 
   useEffect(() => {
+    const shouldLoadStudents = ['recording', 'homework', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
+    if (!authenticated || !selectedSubject || !shouldLoadStudents) {
+      return
+    }
+
+    const loadSubjectStudents = async () => {
+      setSubjectStudentsLoading(true)
+      setEnrolledStudents([])
+      try {
+        const studentsQuery = query(
+          collection(db, 'students'),
+          where('subjects', 'array-contains', selectedSubject)
+        )
+        const studentsSnapshot = await getDocs(studentsQuery)
+        const studentsData = studentsSnapshot.docs
+          .map((studentDoc) => {
+            const data = studentDoc.data()
+            return {
+              id: studentDoc.id,
+              ...data,
+              displayName: data.name || data.displayName || data.email || data.studentName || studentDoc.id
+            }
+          })
+          .sort((a, b) => getStudentDisplayName(a).localeCompare(getStudentDisplayName(b)))
+
+        setEnrolledStudents(studentsData)
+      } catch (err) {
+        console.error('Error loading students for subject:', err)
+        setMessage('Failed to load students for this subject')
+      } finally {
+        setSubjectStudentsLoading(false)
+      }
+    }
+
+    loadSubjectStudents()
+  }, [activeTab, authenticated, selectedSubject])
+
+  useEffect(() => {
     const loadManagedHomeworks = async () => {
       if (activeTab !== 'manage-homework' || !authenticated || !selectedSubject) {
         return
@@ -233,11 +428,33 @@ function Admin() {
         )
 
         const homeworksSnapshot = await getDocs(homeworksQuery)
-        const homeworksData = homeworksSnapshot.docs
+        const subjectHomeworksData = homeworksSnapshot.docs
           .map((homeworkDoc) => ({
             id: homeworkDoc.id,
+            sourceCollection: 'homeworks',
+            visibility: 'subject',
             ...homeworkDoc.data()
           }))
+
+        let studentHomeworksData = []
+        try {
+          const studentHomeworksQuery = query(
+            collection(db, 'studentHomeworks'),
+            where('subjectId', '==', selectedSubject)
+          )
+          const studentHomeworksSnapshot = await getDocs(studentHomeworksQuery)
+          studentHomeworksData = studentHomeworksSnapshot.docs
+            .map((homeworkDoc) => ({
+              id: homeworkDoc.id,
+              sourceCollection: 'studentHomeworks',
+              visibility: 'student',
+              ...homeworkDoc.data()
+            }))
+        } catch (err) {
+          console.warn('Student-specific homework could not be loaded:', err)
+        }
+
+        const homeworksData = [...subjectHomeworksData, ...studentHomeworksData]
           .sort((a, b) => {
             const dateA = a.dueDate?.toDate ? a.dueDate.toDate() : (a.dueDate ? new Date(a.dueDate) : new Date(0))
             const dateB = b.dueDate?.toDate ? b.dueDate.toDate() : (b.dueDate ? new Date(b.dueDate) : new Date(0))
@@ -270,10 +487,29 @@ function Admin() {
           where('subjectId', '==', selectedSubject)
         )
         const homeworksSnapshot = await getDocs(homeworksQuery)
-        const homeworksData = homeworksSnapshot.docs.map((doc) => ({
+        const subjectHomeworksData = homeworksSnapshot.docs.map((doc) => ({
           id: doc.id,
+          sourceCollection: 'homeworks',
+          visibility: 'subject',
           ...doc.data()
         }))
+        let studentHomeworksData = []
+        try {
+          const studentHomeworksQuery = query(
+            collection(db, 'studentHomeworks'),
+            where('subjectId', '==', selectedSubject)
+          )
+          const studentHomeworksSnapshot = await getDocs(studentHomeworksQuery)
+          studentHomeworksData = studentHomeworksSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            sourceCollection: 'studentHomeworks',
+            visibility: 'student',
+            ...doc.data()
+          }))
+        } catch (err) {
+          console.warn('Student-specific homework could not be loaded for submissions:', err)
+        }
+        const homeworksData = [...subjectHomeworksData, ...studentHomeworksData]
         setHomeworks(homeworksData)
 
         // Load enrolled students for this subject
@@ -326,6 +562,8 @@ function Admin() {
     // Reset form fields when subject changes
     setExamBoard('')
     setTier('')
+    setSelectedRecordingStudentId('')
+    setSelectedHomeworkStudentId('')
   }, [selectedSubject, subjects])
 
   // Check if subject is English (no tier needed)
@@ -335,7 +573,12 @@ function Admin() {
     return name.includes('english')
   }
 
-  const uploadFileWithProgress = (file, uploadConfig, onProgress) => new Promise((resolve, reject) => {
+  const uploadFileWithProgress = (
+    file,
+    uploadConfig,
+    onProgress,
+    timeoutMs = DEFAULT_UPLOAD_TIMEOUT_MS
+  ) => new Promise((resolve, reject) => {
     if (!uploadConfig?.uploadUrl) {
       reject(new Error('Upload URL is missing'))
       return
@@ -344,7 +587,7 @@ function Admin() {
     const xhr = new XMLHttpRequest()
     xhr.open(uploadConfig.method || 'PUT', uploadConfig.uploadUrl, true)
     xhr.responseType = 'json'
-    xhr.timeout = 180000
+    xhr.timeout = timeoutMs
 
     if (uploadConfig.headers) {
       Object.entries(uploadConfig.headers).forEach(([key, value]) => {
@@ -411,9 +654,15 @@ function Admin() {
       return
     }
 
+    if (recordingAudience === 'student' && !selectedRecordingStudentId) {
+      setMessage('Please select the student who should receive this recording')
+      return
+    }
+
     setLoading(true)
     setMessage('')
     try {
+      const selectedRecordingStudent = enrolledStudents.find((student) => student.id === selectedRecordingStudentId)
       setUploadProgress(0)
       const uploadConfig = await createHidriveUpload({
         subjectId: selectedSubject,
@@ -422,7 +671,12 @@ function Admin() {
         uploadType: 'recording'
       })
 
-      const uploadResult = await uploadFileWithProgress(recordingFile, uploadConfig, setUploadProgress)
+      const uploadResult = await uploadFileWithProgress(
+        recordingFile,
+        uploadConfig,
+        setUploadProgress,
+        RECORDING_UPLOAD_TIMEOUT_MS
+      )
       const uploadResponse = uploadResult?.response
       const hidriveFileId =
         uploadResponse?.id ||
@@ -437,7 +691,11 @@ function Admin() {
         tier: isEnglishSubject() ? null : tier,
         hidrivePath: uploadConfig.hidrivePath,
         hidriveFileId,
-        fileName: recordingFile.name
+        fileName: recordingFile.name,
+        visibility: recordingAudience,
+        studentId: recordingAudience === 'student' ? selectedRecordingStudentId : null,
+        studentName: recordingAudience === 'student' ? getStudentDisplayName(selectedRecordingStudent) : null,
+        studentEmail: recordingAudience === 'student' ? selectedRecordingStudent?.email || null : null
       }
 
       sessionStorage.setItem('pendingRecording', JSON.stringify(pendingRecording))
@@ -447,6 +705,8 @@ function Admin() {
       setUploadProgress(0)
       setExamBoard('')
       setTier('')
+      setRecordingAudience('subject')
+      setSelectedRecordingStudentId('')
 
       navigate('/admin/share-link', { state: { pendingRecording } })
     } catch (err) {
@@ -498,25 +758,29 @@ function Admin() {
     }
   }
 
-  const handleDeleteRecording = async (recordingId, recordingTitle) => {
+  const handleDeleteRecording = async (recordingId, recordingTitle, collectionName = 'recordings') => {
     if (!isAdmin) {
       setMessage('Only admins can delete recordings')
       return
     }
 
+    const isStudentRecording = collectionName === 'studentRecordings'
     const confirmed = window.confirm(
-      `Delete "${recordingTitle}"? This removes the recording from Firestore and students will lose access immediately.`
+      `Delete "${recordingTitle}"? This removes the ${isStudentRecording ? 'student-specific ' : ''}recording from Firestore and students will lose access immediately.`
     )
 
     if (!confirmed) {
       return
     }
 
-    setDeletingRecordingId(recordingId)
+    const deleteKey = getRecordingDeleteKey(recordingId, collectionName)
+    setDeletingRecordingId(deleteKey)
     try {
-      await deleteDoc(doc(db, 'recordings', recordingId))
+      await deleteDoc(doc(db, collectionName, recordingId))
       setPendingRecordings((current) => current.filter((recording) => recording.id !== recordingId))
-      setManagedRecordings((current) => current.filter((recording) => recording.id !== recordingId))
+      setManagedRecordings((current) => current.filter((recording) => (
+        recording.id !== recordingId || getRecordingCollection(recording) !== collectionName
+      )))
       setMessage('Recording deleted successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch (err) {
@@ -527,19 +791,97 @@ function Admin() {
     }
   }
 
-  const handleDeleteHomework = async (homeworkId, homeworkTitle) => {
+  const updateLocalStudentRecordingAccess = (studentId, recordingId, shouldHide) => {
+    setEnrolledStudents((current) => current.map((student) => {
+      if (student.id !== studentId) {
+        return student
+      }
+
+      const existingIds = Array.isArray(student.hiddenRecordingIds) ? student.hiddenRecordingIds : []
+      const nextIds = shouldHide
+        ? Array.from(new Set([...existingIds.map(String), String(recordingId)]))
+        : existingIds.filter((id) => String(id) !== String(recordingId))
+
+      return {
+        ...student,
+        hiddenRecordingIds: nextIds
+      }
+    }))
+  }
+
+  const handleRemoveRecordingAccess = async (recording, student) => {
+    if (!isAdmin) {
+      setMessage('Only admins can remove recording access')
+      return
+    }
+
     const confirmed = window.confirm(
-      `Delete "${homeworkTitle}"? Students will no longer be able to access this homework.`
+      `Remove ${getStudentDisplayName(student)}'s access to "${recording.title}"?`
     )
 
     if (!confirmed) {
       return
     }
 
-    setDeletingHomeworkId(homeworkId)
+    const updateKey = getRecordingAccessKey(recording.id, student.id, 'remove')
+    setUpdatingRecordingAccessKey(updateKey)
     try {
-      await deleteDoc(doc(db, 'homeworks', homeworkId))
-      setManagedHomeworks((current) => current.filter((homework) => homework.id !== homeworkId))
+      await updateDoc(doc(db, 'students', student.id), {
+        hiddenRecordingIds: arrayUnion(recording.id),
+        updatedAt: serverTimestamp()
+      })
+      updateLocalStudentRecordingAccess(student.id, recording.id, true)
+      setMessage('Recording access removed successfully!')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      console.error('Error removing recording access:', err)
+      setMessage('Failed to remove recording access')
+    } finally {
+      setUpdatingRecordingAccessKey('')
+    }
+  }
+
+  const handleRestoreRecordingAccess = async (recording, student) => {
+    if (!isAdmin) {
+      setMessage('Only admins can restore recording access')
+      return
+    }
+
+    const updateKey = getRecordingAccessKey(recording.id, student.id, 'restore')
+    setUpdatingRecordingAccessKey(updateKey)
+    try {
+      await updateDoc(doc(db, 'students', student.id), {
+        hiddenRecordingIds: arrayRemove(recording.id),
+        updatedAt: serverTimestamp()
+      })
+      updateLocalStudentRecordingAccess(student.id, recording.id, false)
+      setMessage('Recording access restored successfully!')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      console.error('Error restoring recording access:', err)
+      setMessage('Failed to restore recording access')
+    } finally {
+      setUpdatingRecordingAccessKey('')
+    }
+  }
+
+  const handleDeleteHomework = async (homeworkId, homeworkTitle, collectionName = 'homeworks') => {
+    const isStudentHomework = collectionName === 'studentHomeworks'
+    const confirmed = window.confirm(
+      `Delete "${homeworkTitle}"? Students will no longer be able to access this ${isStudentHomework ? 'student-specific ' : ''}homework.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    const deleteKey = getHomeworkDeleteKey(homeworkId, collectionName)
+    setDeletingHomeworkId(deleteKey)
+    try {
+      await deleteDoc(doc(db, collectionName, homeworkId))
+      setManagedHomeworks((current) => current.filter((homework) => (
+        homework.id !== homeworkId || getHomeworkCollection(homework) !== collectionName
+      )))
       setMessage('Homework deleted successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch (err) {
@@ -547,6 +889,80 @@ function Admin() {
       setMessage('Failed to delete homework')
     } finally {
       setDeletingHomeworkId('')
+    }
+  }
+
+  const updateLocalStudentHomeworkAccess = (studentId, homeworkId, shouldHide) => {
+    setEnrolledStudents((current) => current.map((student) => {
+      if (student.id !== studentId) {
+        return student
+      }
+
+      const existingIds = Array.isArray(student.hiddenHomeworkIds) ? student.hiddenHomeworkIds : []
+      const nextIds = shouldHide
+        ? Array.from(new Set([...existingIds.map(String), String(homeworkId)]))
+        : existingIds.filter((id) => String(id) !== String(homeworkId))
+
+      return {
+        ...student,
+        hiddenHomeworkIds: nextIds
+      }
+    }))
+  }
+
+  const handleRemoveHomeworkAccess = async (homework, student) => {
+    if (!isAdmin) {
+      setMessage('Only admins can remove homework access')
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Remove ${getStudentDisplayName(student)}'s access to "${homework.title}"?`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    const updateKey = getHomeworkAccessKey(homework.id, student.id, 'remove')
+    setUpdatingHomeworkAccessKey(updateKey)
+    try {
+      await updateDoc(doc(db, 'students', student.id), {
+        hiddenHomeworkIds: arrayUnion(homework.id),
+        updatedAt: serverTimestamp()
+      })
+      updateLocalStudentHomeworkAccess(student.id, homework.id, true)
+      setMessage('Homework access removed successfully!')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      console.error('Error removing homework access:', err)
+      setMessage('Failed to remove homework access')
+    } finally {
+      setUpdatingHomeworkAccessKey('')
+    }
+  }
+
+  const handleRestoreHomeworkAccess = async (homework, student) => {
+    if (!isAdmin) {
+      setMessage('Only admins can restore homework access')
+      return
+    }
+
+    const updateKey = getHomeworkAccessKey(homework.id, student.id, 'restore')
+    setUpdatingHomeworkAccessKey(updateKey)
+    try {
+      await updateDoc(doc(db, 'students', student.id), {
+        hiddenHomeworkIds: arrayRemove(homework.id),
+        updatedAt: serverTimestamp()
+      })
+      updateLocalStudentHomeworkAccess(student.id, homework.id, false)
+      setMessage('Homework access restored successfully!')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      console.error('Error restoring homework access:', err)
+      setMessage('Failed to restore homework access')
+    } finally {
+      setUpdatingHomeworkAccessKey('')
     }
   }
 
@@ -683,9 +1099,15 @@ function Admin() {
       return
     }
 
+    if (homeworkAudience === 'student' && !selectedHomeworkStudentId) {
+      setMessage('Please select the student who should receive this homework')
+      return
+    }
+
     setLoading(true)
     setMessage('')
     try {
+      const selectedHomeworkStudent = enrolledStudents.find((student) => student.id === selectedHomeworkStudentId)
       let hidrivePath = null
       let hidriveFileId = null
       let attachmentName = null
@@ -729,7 +1151,11 @@ function Admin() {
         attachmentSize,
         hidrivePath,
         hidriveFileId,
-        fileName: homeworkFile.name
+        fileName: homeworkFile.name,
+        visibility: homeworkAudience,
+        studentId: homeworkAudience === 'student' ? selectedHomeworkStudentId : null,
+        studentName: homeworkAudience === 'student' ? getStudentDisplayName(selectedHomeworkStudent) : null,
+        studentEmail: homeworkAudience === 'student' ? selectedHomeworkStudent?.email || null : null
       }
 
       sessionStorage.setItem('pendingHomework', JSON.stringify(pendingHomework))
@@ -738,6 +1164,8 @@ function Admin() {
       setHomeworkDueDate('')
       setHomeworkFile(null)
       setHomeworkUploadProgress(0)
+      setHomeworkAudience('subject')
+      setSelectedHomeworkStudentId('')
       navigate('/admin/homework-share-link', { state: { pendingHomework } })
     } catch (err) {
       console.error('Error adding homework:', err)
@@ -877,10 +1305,15 @@ function Admin() {
           >
             {subjects.map(subject => (
               <option key={subject.id} value={subject.id}>
-                {getCanonicalSubjectName(subject)}
+                {getSubjectOptionLabel(subject)}
               </option>
             ))}
           </select>
+          {selectedSubject && (
+            <p className="mt-2 text-xs text-gray-500">
+              Selected subject ID: <code>{selectedSubject}</code>
+            </p>
+          )}
         </div>
 
         {/* Recording Form */}
@@ -945,6 +1378,58 @@ function Admin() {
                   <p className="text-sm text-blue-800">
                     English subjects do not have Foundation/Higher tiers.
                   </p>
+                </div>
+              )}
+
+              {isAdmin && (
+                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Who can see this recording?
+                    </label>
+                    <select
+                      value={recordingAudience}
+                      onChange={(e) => {
+                        setRecordingAudience(e.target.value)
+                        if (e.target.value === 'subject') {
+                          setSelectedRecordingStudentId('')
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      <option value="subject">All students enrolled in this subject</option>
+                      <option value="student">One specific student only</option>
+                    </select>
+                  </div>
+
+                  {recordingAudience === 'student' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Student *
+                      </label>
+                      <select
+                        value={selectedRecordingStudentId}
+                        onChange={(e) => setSelectedRecordingStudentId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        required
+                        disabled={subjectStudentsLoading}
+                      >
+                        <option value="">
+                          {subjectStudentsLoading ? 'Loading students...' : 'Select student'}
+                        </option>
+                        {enrolledStudents.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {getStudentDisplayName(student)}{student.email ? ` (${student.email})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {!subjectStudentsLoading && enrolledStudents.length === 0 && (
+                        <p className="mt-2 text-sm text-red-600">
+                          No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -1018,6 +1503,12 @@ function Admin() {
                           {recording.tier && (
                             <p><span className="font-medium">Tier:</span> {recording.tier}</p>
                           )}
+                          {recording.visibility === 'student' && (
+                            <p>
+                              <span className="font-medium">Student:</span>{' '}
+                              {recording.studentName || recording.studentEmail || recording.studentId || 'Specific student'}
+                            </p>
+                          )}
                           {recording.date && (
                             <p><span className="font-medium">Date:</span> {
                               recording.date.toDate ? 
@@ -1053,11 +1544,11 @@ function Admin() {
                         {isAdmin && (
                           <button
                             onClick={() => handleDeleteRecording(recording.id, recording.title)}
-                            disabled={deletingRecordingId === recording.id}
+                            disabled={deletingRecordingId === getRecordingDeleteKey(recording.id)}
                             className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-black transition flex items-center gap-2 disabled:opacity-50"
                           >
                             <Trash2 className="h-4 w-4" />
-                            {deletingRecordingId === recording.id ? 'Deleting...' : 'Delete'}
+                            {deletingRecordingId === getRecordingDeleteKey(recording.id) ? 'Deleting...' : 'Delete'}
                           </button>
                         )}
                       </div>
@@ -1075,7 +1566,7 @@ function Admin() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Manage Recordings</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Review all recordings for the selected subject and remove anything that should no longer be available.
+                  Review subject-wide and student-specific recordings for the selected subject.
                 </p>
               </div>
               {!isAdmin && (
@@ -1096,59 +1587,144 @@ function Admin() {
               </div>
             ) : (
               <div className="space-y-4">
-                {managedRecordings.map((recording) => (
-                  <div
-                    key={recording.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {recording.title}
-                          </h3>
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusStyles(recording.approvalStatus)}`}>
-                            {recording.approvalStatus || 'approved'}
-                          </span>
+                {managedRecordings.map((recording) => {
+                  const targetStudents = getRecordingTargetStudents(recording, enrolledStudents)
+                  const accessStudents = targetStudents.filter((student) => !isRecordingHiddenForStudent(recording, student))
+                  const removedStudents = targetStudents.filter((student) => isRecordingHiddenForStudent(recording, student))
+
+                  return (
+                    <div
+                      key={`${getRecordingCollection(recording)}-${recording.id}`}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {recording.title}
+                            </h3>
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusStyles(recording.approvalStatus)}`}>
+                              {recording.approvalStatus || 'approved'}
+                            </span>
+                            {recording.visibility === 'student' && (
+                              <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                Specific student
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p>
+                              <span className="font-medium">Access:</span>{' '}
+                              {recording.visibility === 'student'
+                                ? recording.studentName || recording.studentEmail || recording.studentId || 'Specific student'
+                                : `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`}
+                              {removedStudents.length > 0 && (
+                                <span className="text-red-600">, {removedStudents.length} removed</span>
+                              )}
+                            </p>
+                            <p><span className="font-medium">Exam Board:</span> {recording.examBoard || 'N/A'}</p>
+                            {recording.tier && (
+                              <p><span className="font-medium">Tier:</span> {recording.tier}</p>
+                            )}
+                            <p><span className="font-medium">Date:</span> {formatRecordingDate(recording.date || recording.createdAt)}</p>
+                            {recording.createdByRole && (
+                              <p><span className="font-medium">Uploaded by:</span> {recording.createdByRole}</p>
+                            )}
+                          </div>
+
+                          {recording.videoUrl && (
+                            <a
+                              href={recording.videoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm mt-3"
+                            >
+                              <Video className="h-4 w-4" />
+                              Preview Video
+                            </a>
+                          )}
+
+                          <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                              <h4 className="text-sm font-semibold text-gray-900">Student Access</h4>
+                              <span className="text-xs text-gray-500">
+                                {accessStudents.length} active / {targetStudents.length} total
+                              </span>
+                            </div>
+
+                            {subjectStudentsLoading ? (
+                              <p className="text-sm text-gray-600">Loading students...</p>
+                            ) : targetStudents.length === 0 ? (
+                              <p className="text-sm text-gray-600">No matching students found for this recording.</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {targetStudents.map((student) => {
+                                  const isHidden = isRecordingHiddenForStudent(recording, student)
+                                  const hiddenByKeyword = isRecordingHiddenByTitleKeyword(recording, student)
+                                  const removeKey = getRecordingAccessKey(recording.id, student.id, 'remove')
+                                  const restoreKey = getRecordingAccessKey(recording.id, student.id, 'restore')
+
+                                  return (
+                                    <div key={student.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-white px-3 py-2 border border-gray-200">
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium text-gray-900">{getStudentDisplayName(student)}</p>
+                                        {student.email && (
+                                          <p className="text-xs text-gray-500">{student.email}</p>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                                          isHidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                        }`}>
+                                          {isHidden ? 'Access removed' : 'Can access'}
+                                        </span>
+                                        {isAdmin && !isHidden && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveRecordingAccess(recording, student)}
+                                            disabled={updatingRecordingAccessKey === removeKey}
+                                            className="text-xs font-medium text-red-700 hover:text-red-800 disabled:opacity-50"
+                                          >
+                                            {updatingRecordingAccessKey === removeKey ? 'Removing...' : 'Remove access'}
+                                          </button>
+                                        )}
+                                        {isAdmin && isHidden && !hiddenByKeyword && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRestoreRecordingAccess(recording, student)}
+                                            disabled={updatingRecordingAccessKey === restoreKey}
+                                            className="text-xs font-medium text-blue-700 hover:text-blue-800 disabled:opacity-50"
+                                          >
+                                            {updatingRecordingAccessKey === restoreKey ? 'Restoring...' : 'Restore access'}
+                                          </button>
+                                        )}
+                                        {isAdmin && isHidden && hiddenByKeyword && (
+                                          <span className="text-xs text-gray-500">Hidden by title keyword</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p><span className="font-medium">Exam Board:</span> {recording.examBoard || 'N/A'}</p>
-                          {recording.tier && (
-                            <p><span className="font-medium">Tier:</span> {recording.tier}</p>
-                          )}
-                          <p><span className="font-medium">Date:</span> {formatRecordingDate(recording.date || recording.createdAt)}</p>
-                          {recording.createdByRole && (
-                            <p><span className="font-medium">Uploaded by:</span> {recording.createdByRole}</p>
-                          )}
-                        </div>
-
-                        {recording.videoUrl && (
-                          <a
-                            href={recording.videoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm mt-3"
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteRecording(recording.id, recording.title, getRecordingCollection(recording))}
+                            disabled={deletingRecordingId === getRecordingDeleteKey(recording.id, getRecordingCollection(recording))}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 whitespace-nowrap"
                           >
-                            <Video className="h-4 w-4" />
-                            Preview Video
-                          </a>
+                            <Trash2 className="h-4 w-4" />
+                            {deletingRecordingId === getRecordingDeleteKey(recording.id, getRecordingCollection(recording)) ? 'Deleting...' : 'Delete'}
+                          </button>
                         )}
                       </div>
-
-                      {isAdmin && (
-                        <button
-                          onClick={() => handleDeleteRecording(recording.id, recording.title)}
-                          disabled={deletingRecordingId === recording.id}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 whitespace-nowrap"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          {deletingRecordingId === recording.id ? 'Deleting...' : 'Delete'}
-                        </button>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -1178,10 +1754,13 @@ function Admin() {
               <div className="space-y-4">
                 {managedHomeworks.map((homework) => {
                   const overdue = isHomeworkOverdue(homework.dueDate)
+                  const targetStudents = getHomeworkTargetStudents(homework, enrolledStudents)
+                  const accessStudents = targetStudents.filter((student) => !isHomeworkHiddenForStudent(homework, student))
+                  const removedStudents = targetStudents.filter((student) => isHomeworkHiddenForStudent(homework, student))
 
                   return (
                     <div
-                      key={homework.id}
+                      key={`${getHomeworkCollection(homework)}-${homework.id}`}
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -1195,6 +1774,11 @@ function Admin() {
                                 Overdue
                               </span>
                             )}
+                            {homework.visibility === 'student' && (
+                              <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                Specific student
+                              </span>
+                            )}
                           </div>
 
                           {homework.description && (
@@ -1204,6 +1788,15 @@ function Admin() {
                           )}
 
                           <div className="space-y-1 text-sm text-gray-600">
+                            <p>
+                              <span className="font-medium">Access:</span>{' '}
+                              {homework.visibility === 'student'
+                                ? homework.studentName || homework.studentEmail || homework.studentId || 'Specific student'
+                                : `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`}
+                              {removedStudents.length > 0 && (
+                                <span className="text-red-600">, {removedStudents.length} removed</span>
+                              )}
+                            </p>
                             <p className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-400" />
                               <span><span className="font-medium">Due:</span> {formatHomeworkDate(homework.dueDate)}</span>
@@ -1227,15 +1820,80 @@ function Admin() {
                               Open Attachment
                             </a>
                           )}
+
+                          <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                              <h4 className="text-sm font-semibold text-gray-900">Student Access</h4>
+                              <span className="text-xs text-gray-500">
+                                {accessStudents.length} active / {targetStudents.length} total
+                              </span>
+                            </div>
+
+                            {subjectStudentsLoading ? (
+                              <p className="text-sm text-gray-600">Loading students...</p>
+                            ) : targetStudents.length === 0 ? (
+                              <p className="text-sm text-gray-600">No matching students found for this homework.</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {targetStudents.map((student) => {
+                                  const isHidden = isHomeworkHiddenForStudent(homework, student)
+                                  const hiddenByKeyword = isHomeworkHiddenByTitleKeyword(homework, student)
+                                  const removeKey = getHomeworkAccessKey(homework.id, student.id, 'remove')
+                                  const restoreKey = getHomeworkAccessKey(homework.id, student.id, 'restore')
+
+                                  return (
+                                    <div key={student.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-white px-3 py-2 border border-gray-200">
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium text-gray-900">{getStudentDisplayName(student)}</p>
+                                        {student.email && (
+                                          <p className="text-xs text-gray-500">{student.email}</p>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                                          isHidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                        }`}>
+                                          {isHidden ? 'Access removed' : 'Can access'}
+                                        </span>
+                                        {isAdmin && !isHidden && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveHomeworkAccess(homework, student)}
+                                            disabled={updatingHomeworkAccessKey === removeKey}
+                                            className="text-xs font-medium text-red-700 hover:text-red-800 disabled:opacity-50"
+                                          >
+                                            {updatingHomeworkAccessKey === removeKey ? 'Removing...' : 'Remove access'}
+                                          </button>
+                                        )}
+                                        {isAdmin && isHidden && !hiddenByKeyword && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRestoreHomeworkAccess(homework, student)}
+                                            disabled={updatingHomeworkAccessKey === restoreKey}
+                                            className="text-xs font-medium text-blue-700 hover:text-blue-800 disabled:opacity-50"
+                                          >
+                                            {updatingHomeworkAccessKey === restoreKey ? 'Restoring...' : 'Restore access'}
+                                          </button>
+                                        )}
+                                        {isAdmin && isHidden && hiddenByKeyword && (
+                                          <span className="text-xs text-gray-500">Hidden by title keyword</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <button
-                          onClick={() => handleDeleteHomework(homework.id, homework.title)}
-                          disabled={deletingHomeworkId === homework.id}
+                          onClick={() => handleDeleteHomework(homework.id, homework.title, getHomeworkCollection(homework))}
+                          disabled={deletingHomeworkId === getHomeworkDeleteKey(homework.id, getHomeworkCollection(homework))}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 whitespace-nowrap"
                         >
                           <Trash2 className="h-4 w-4" />
-                          {deletingHomeworkId === homework.id ? 'Deleting...' : 'Delete'}
+                          {deletingHomeworkId === getHomeworkDeleteKey(homework.id, getHomeworkCollection(homework)) ? 'Deleting...' : 'Delete'}
                         </button>
                       </div>
                     </div>
@@ -1288,6 +1946,58 @@ function Admin() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
+
+              {isAdmin && (
+                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Who can see this homework?
+                    </label>
+                    <select
+                      value={homeworkAudience}
+                      onChange={(e) => {
+                        setHomeworkAudience(e.target.value)
+                        if (e.target.value === 'subject') {
+                          setSelectedHomeworkStudentId('')
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                    >
+                      <option value="subject">All students enrolled in this subject</option>
+                      <option value="student">One specific student only</option>
+                    </select>
+                  </div>
+
+                  {homeworkAudience === 'student' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Student *
+                      </label>
+                      <select
+                        value={selectedHomeworkStudentId}
+                        onChange={(e) => setSelectedHomeworkStudentId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        required
+                        disabled={subjectStudentsLoading}
+                      >
+                        <option value="">
+                          {subjectStudentsLoading ? 'Loading students...' : 'Select student'}
+                        </option>
+                        {enrolledStudents.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {getStudentDisplayName(student)}{student.email ? ` (${student.email})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {!subjectStudentsLoading && enrolledStudents.length === 0 && (
+                        <p className="mt-2 text-sm text-red-600">
+                          No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1456,23 +2166,25 @@ function Admin() {
                 }
 
                 return homeworks.map((homework) => {
-                  const hwId = homework.id
+                  const hwId = `${getHomeworkCollection(homework)}-${homework.id}`
                   const isExpanded = expandedHomework[hwId] === true
                   const overdue = isHomeworkOverdue(homework.dueDate)
+                  const homeworkStudents = getHomeworkTargetStudents(homework, enrolledStudents)
+                    .filter((student) => !isHomeworkHiddenForStudent(homework, student))
                   
                   // Count stats
                   let submittedCount = 0
                   let markedCount = 0
                   let overdueCount = 0
                   
-                  enrolledStudents.forEach(student => {
+                  homeworkStudents.forEach(student => {
                     const status = getStudentStatus(student, homework)
                     if (status.status === 'marked') markedCount++
                     else if (status.status === 'submitted') submittedCount++
                     else if (status.status === 'overdue') overdueCount++
                   })
                   
-                  const notSubmittedCount = enrolledStudents.length - submittedCount - markedCount
+                  const notSubmittedCount = homeworkStudents.length - submittedCount - markedCount
 
                   return (
                     <div key={hwId} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -1502,7 +2214,7 @@ function Admin() {
                         <div className="flex items-center gap-2 ml-3">
                           {/* Status badges */}
                           <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700">
-                            {enrolledStudents.length} students
+                            {homeworkStudents.length} students
                           </span>
                           {notSubmittedCount > 0 && (
                             <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600">
@@ -1541,12 +2253,12 @@ function Admin() {
                         }`}
                       >
                         <div className="divide-y divide-gray-200">
-                          {enrolledStudents.length === 0 ? (
+                          {homeworkStudents.length === 0 ? (
                             <div className="p-4 text-center text-gray-500">
-                              No students enrolled in this subject.
+                              No students currently have access to this homework.
                             </div>
                           ) : (
-                            enrolledStudents.map((student) => {
+                            homeworkStudents.map((student) => {
                               const status = getStudentStatus(student, homework)
                               const submission = status.submission
                               

@@ -63,12 +63,37 @@ service cloud.firestore {
           resource.data.approvalStatus == 'approved'
         )
       );
-      allow create, update, delete: if isStaff();
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    match /studentRecordings/{recordingId} {
+      allow read: if isStaff() || (
+        signedIn() &&
+        resource.data.studentId == request.auth.uid &&
+        isEnrolledIn(resource.data.subjectId) &&
+        (
+          !('approvalStatus' in resource.data) ||
+          resource.data.approvalStatus == 'approved'
+        )
+      );
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
     }
 
     match /homeworks/{homeworkId} {
       allow read: if isStaff() || isEnrolledIn(resource.data.subjectId);
       allow create, update, delete: if isStaff();
+    }
+
+    match /studentHomeworks/{homeworkId} {
+      allow read: if isStaff() || (
+        signedIn() &&
+        resource.data.studentId == request.auth.uid &&
+        isEnrolledIn(resource.data.subjectId)
+      );
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
     }
 
     match /webinarRegistrations/{registrationId} {

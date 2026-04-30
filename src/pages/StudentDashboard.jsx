@@ -95,6 +95,24 @@ const BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK = 'https://us06web.zoom.us/s/8177
 
 const normalizeSubjectName = (subjectName) => String(subjectName || '').toLowerCase()
 const normalizeSubjectId = (subjectId) => String(subjectId || '').toLowerCase()
+const isCrashCourseSubject = (subject) => {
+  const id = normalizeSubjectId(subject?.id)
+  const name = normalizeSubjectName(subject?.name)
+  return id.includes('crash') || name.includes('crash')
+}
+
+const isStandaloneScienceSubject = (subject) => {
+  const id = normalizeSubjectId(subject?.id)
+  const name = normalizeSubjectName(subject?.name)
+
+  return (
+    id.startsWith('combined_science_') ||
+    id.startsWith('triple_science_') ||
+    name.includes('combined science') ||
+    name.includes('triple science')
+  ) && !isCrashCourseSubject(subject)
+}
+
 const getSubjectBaseKey = (subjectOrId) => {
   if (typeof subjectOrId === 'string') {
     const id = normalizeSubjectId(subjectOrId)
@@ -134,9 +152,7 @@ const getScienceSubjectCard = (subjects, key) => {
   const exactSubject = subjects.find((subject) => {
     const id = normalizeSubjectId(subject.id)
     const name = normalizeSubjectName(subject.name)
-    // Exclude crash courses from regular science subject matching
-    const isCrashCourse = id.includes('crash') || name.includes('crash')
-    if (isCrashCourse) return false
+    if (isCrashCourseSubject(subject)) return false
     return id === `${key}_001` || (id.startsWith(`${key}_`) && !id.includes('crash')) || (name.includes(key) && !name.includes('crash'))
   })
   if (exactSubject) {
@@ -145,20 +161,6 @@ const getScienceSubjectCard = (subjects, key) => {
       subject: exactSubject,
       title: getScienceCardTitle(key),
       sourceLabel: null
-    }
-  }
-
-  const fallbackSubject = subjects.find((subject) => {
-    const name = normalizeSubjectName(subject.name)
-    return name.includes('triple science') || name.includes('combined science')
-  })
-
-  if (fallbackSubject) {
-    return {
-      key,
-      subject: fallbackSubject,
-      title: getScienceCardTitle(key),
-      sourceLabel: fallbackSubject.name
     }
   }
 
@@ -318,15 +320,16 @@ function StudentDashboard() {
   const scienceSubjectCards = SCIENCE_SUBJECTS.map((key) => getScienceSubjectCard(subjects, key))
   // Only show science cards where student is actually enrolled (has subject)
   const validScienceSubjectCards = scienceSubjectCards.filter((card) => card.subject)
+  const standaloneScienceSubjects = subjects.filter((subject) => isStandaloneScienceSubject(subject))
   const scienceSubjectIds = new Set(
-    validScienceSubjectCards.map((card) => card.subject.id)
+    [
+      ...validScienceSubjectCards.map((card) => card.subject.id),
+      ...standaloneScienceSubjects.map((subject) => subject.id)
+    ]
   )
   
   // Identify crash course subjects (subjects with "crash" in the ID)
-  const crashCourseSubjects = subjects.filter((subject) => 
-    subject.id?.toLowerCase().includes('crash') || 
-    subject.name?.toLowerCase().includes('crash')
-  )
+  const crashCourseSubjects = subjects.filter((subject) => isCrashCourseSubject(subject))
   const crashCourseSubjectIds = new Set(crashCourseSubjects.map(s => s.id))
   
   const otherSubjects = subjects.filter((subject) => 
@@ -451,32 +454,6 @@ function StudentDashboard() {
               )}
             </div>
           )}
-        </div>
-      </article>
-    )
-  }
-
-  const renderUnavailableScienceCard = (title) => {
-    const SubjectIcon = getSubjectIcon(title)
-    const subjectColor = getSubjectColor(title)
-
-    return (
-      <article
-        key={title}
-        className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-        role="listitem"
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`p-2 rounded-lg ${subjectColor}`}>
-            <SubjectIcon className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 flex-1">
-            {title}
-          </h3>
-        </div>
-
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center">
-          <p className="text-sm text-gray-600">This subject has not been added to this account yet.</p>
         </div>
       </article>
     )
@@ -648,22 +625,22 @@ function StudentDashboard() {
               </>
             ) : (
               <>
-                <p className="text-gray-600 mb-2">You're not enrolled in any subjects yet.</p>
+                <p className="text-gray-600 mb-2">You are not enrolled in any subjects yet.</p>
                 <p className="text-sm text-gray-500">
-                  Check the Firestore document at `students/{studentUid}` and make sure `subjects` is set to
-                  `["biology_001", "chemistry_001"]`.
+                  Check the Firestore document at <code>students/{studentUid}</code> and make sure <code>subjects</code> is set to{' '}
+                  <code>{'["biology_001", "chemistry_001"]'}</code>.
                 </p>
               </>
             )}
           </div>
         ) : (
           <div className="space-y-10">
-            {validScienceSubjectCards.length > 0 && (
+            {(standaloneScienceSubjects.length > 0 || validScienceSubjectCards.length > 0) && (
               <section>
                 <div className="mb-4">
                   <h3 className="text-xl font-semibold text-gray-900">Science Subjects</h3>
                   <p className="text-sm text-gray-600">
-                    Biology, Chemistry, and Physics are shown here.
+                    Science folders assigned to your account.
                   </p>
                 </div>
                 <div
@@ -671,6 +648,7 @@ function StudentDashboard() {
                   role="list"
                   aria-label="Science subjects"
                 >
+                  {standaloneScienceSubjects.map((subject) => renderSubjectCard(subject))}
                   {validScienceSubjectCards.map((card) => (
                     renderSubjectCard(card.subject, {
                       cardKey: `${card.key}-${card.subject.id}`,

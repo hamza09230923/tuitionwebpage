@@ -108,7 +108,11 @@ function HomeworkShareLink() {
         attachmentContentType: pending.attachmentContentType || null,
         attachmentSize: pending.attachmentSize || null,
         hidrivePath: pending.hidrivePath,
-        hidriveFileId: pending.hidriveFileId
+        hidriveFileId: pending.hidriveFileId,
+        visibility: pending.visibility || 'subject',
+        studentId: pending.studentId || null,
+        studentName: pending.studentName || null,
+        studentEmail: pending.studentEmail || null
       })
 
       sessionStorage.removeItem(STORAGE_KEY)
@@ -170,6 +174,12 @@ function HomeworkShareLink() {
             {pending.dueDate && (
               <p><span className="font-medium">Due:</span> {new Date(pending.dueDate).toLocaleString('en-GB')}</p>
             )}
+            <p>
+              <span className="font-medium">Access:</span>{' '}
+              {pending.visibility === 'student'
+                ? pending.studentName || pending.studentEmail || pending.studentId || 'Specific student'
+                : 'All students enrolled in this subject'}
+            </p>
             {pending.fileName && (
               <p><span className="font-medium">File:</span> {pending.fileName}</p>
             )}

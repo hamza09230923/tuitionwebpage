@@ -24,10 +24,41 @@ const writeAccessList = (list) => {
 
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 
+const getHiddenRecordingIds = (studentData) => {
+  const hiddenIds = Array.isArray(studentData?.hiddenRecordingIds)
+    ? studentData.hiddenRecordingIds
+    : []
+
+  return new Set(hiddenIds.map((id) => String(id)))
+}
+
+const getHiddenRecordingTitleKeywords = (studentData) => {
+  const keywords = Array.isArray(studentData?.hiddenRecordingTitleKeywords)
+    ? studentData.hiddenRecordingTitleKeywords
+    : []
+
+  return keywords
+    .map((keyword) => String(keyword || '').trim().toLowerCase())
+    .filter(Boolean)
+}
+
+const isRecordingHiddenForStudent = (recording, studentData) => {
+  const hiddenIds = getHiddenRecordingIds(studentData)
+  if (hiddenIds.has(String(recording.id))) {
+    return true
+  }
+
+  const title = String(recording.title || '').toLowerCase()
+  if (!title) {
+    return false
+  }
+
+  return getHiddenRecordingTitleKeywords(studentData).some((keyword) => title.includes(keyword))
+}
+
 function Recordings() {
   const { subjectId } = useParams()
   const navigate = useNavigate()
-  const [recordings, setRecordings] = useState([])
   const [filteredRecordings, setFilteredRecordings] = useState([])
   const [subject, setSubject] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -85,11 +116,34 @@ function Recordings() {
         }
 
         const recordingsSnapshot = await getDocs(recordingsQuery)
-        const recordingsData = recordingsSnapshot.docs
+        const subjectRecordingsData = recordingsSnapshot.docs
           .map(doc => ({
             id: doc.id,
+            sourceCollection: 'recordings',
+            visibility: 'subject',
             ...doc.data()
           }))
+
+        let studentRecordingsData = []
+        try {
+          const studentRecordingsQuery = query(
+            collection(db, 'studentRecordings'),
+            where('subjectId', '==', subjectId),
+            where('studentId', '==', user.uid)
+          )
+          const studentRecordingsSnapshot = await getDocs(studentRecordingsQuery)
+          studentRecordingsData = studentRecordingsSnapshot.docs
+            .map(doc => ({
+              id: doc.id,
+              sourceCollection: 'studentRecordings',
+              visibility: 'student',
+              ...doc.data()
+            }))
+        } catch (err) {
+          console.warn('Student-specific recordings could not be loaded:', err)
+        }
+
+        const recordingsData = [...subjectRecordingsData, ...studentRecordingsData]
           .filter(recording => recording.approvalStatus === 'approved' || !recording.approvalStatus)
           .sort((a, b) => {
             const dateA = a.date?.toDate ? a.date.toDate() : (a.date ? new Date(a.date) : new Date(0))
@@ -97,8 +151,11 @@ function Recordings() {
             return dateB - dateA
           })
 
-        setRecordings(recordingsData)
-        setFilteredRecordings(recordingsData)
+        const visibleRecordings = recordingsData.filter(
+          (recording) => !isRecordingHiddenForStudent(recording, access.student)
+        )
+
+        setFilteredRecordings(visibleRecordings)
         setPinRequired(false)
         setLoading(false)
       } catch (err) {
@@ -323,7 +380,7 @@ function Recordings() {
                 <div className="p-6 space-y-4">
                   {group.recordings.map((recording) => (
                     <div
-                      key={recording.id}
+                      key={`${recording.sourceCollection || 'recordings'}-${recording.id}`}
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
                     >
                       <div className="flex items-start justify-between">

@@ -520,7 +520,11 @@ exports.createRecording = functions.https.onRequest(async (req, res) => {
       tier = null,
       videoUrl,
       hidrivePath,
-      hidriveFileId
+      hidriveFileId,
+      visibility = 'subject',
+      studentId = null,
+      studentName = null,
+      studentEmail = null
     } = req.body || {}
 
     if (!subjectId || !title || !examBoard) {
@@ -529,6 +533,26 @@ exports.createRecording = functions.https.onRequest(async (req, res) => {
 
     if (!videoUrl && !hidrivePath) {
       return jsonError(res, 400, 'videoUrl or hidrivePath is required')
+    }
+
+    const recordingVisibility = visibility === 'student' && studentId ? 'student' : 'subject'
+    let targetStudent = null
+
+    if (recordingVisibility === 'student') {
+      if (role !== 'admin') {
+        return jsonError(res, 403, 'Only admins can create student-specific recordings')
+      }
+
+      const studentSnapshot = await db.doc(`students/${studentId}`).get()
+      if (!studentSnapshot.exists) {
+        return jsonError(res, 400, 'Student profile was not found')
+      }
+
+      targetStudent = studentSnapshot.data() || {}
+      const subjectIds = Array.isArray(targetStudent.subjects) ? targetStudent.subjects : []
+      if (!subjectIds.includes(subjectId)) {
+        return jsonError(res, 400, 'Student is not enrolled in this subject')
+      }
     }
 
     let finalVideoUrl = videoUrl || null
@@ -547,13 +571,21 @@ exports.createRecording = functions.https.onRequest(async (req, res) => {
     }
 
     const approvalStatus = role === 'admin' ? 'approved' : 'pending'
-
-    const docRef = await db.collection('recordings').add({
+    const collectionName = recordingVisibility === 'student' ? 'studentRecordings' : 'recordings'
+    const docRef = await db.collection(collectionName).add({
       subjectId,
       title,
       videoUrl: finalVideoUrl,
       examBoard,
       tier,
+      visibility: recordingVisibility,
+      studentId: recordingVisibility === 'student' ? studentId : null,
+      studentName: recordingVisibility === 'student'
+        ? studentName || targetStudent.name || targetStudent.displayName || targetStudent.studentName || null
+        : null,
+      studentEmail: recordingVisibility === 'student'
+        ? studentEmail || targetStudent.email || null
+        : null,
       approvalStatus,
       date: admin.firestore.FieldValue.serverTimestamp(),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -567,6 +599,7 @@ exports.createRecording = functions.https.onRequest(async (req, res) => {
 
     res.status(200).json({
       id: docRef.id,
+      collection: collectionName,
       approvalStatus,
       videoUrl: finalVideoUrl
     })
@@ -604,11 +637,35 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
       attachmentContentType,
       attachmentSize,
       hidrivePath,
-      hidriveFileId
+      hidriveFileId,
+      visibility = 'subject',
+      studentId = null,
+      studentName = null,
+      studentEmail = null
     } = req.body || {}
 
     if (!subjectId || !title) {
       return jsonError(res, 400, 'subjectId and title are required')
+    }
+
+    const homeworkVisibility = visibility === 'student' && studentId ? 'student' : 'subject'
+    let targetStudent = null
+
+    if (homeworkVisibility === 'student') {
+      if (role !== 'admin') {
+        return jsonError(res, 403, 'Only admins can create student-specific homework')
+      }
+
+      const studentSnapshot = await db.doc(`students/${studentId}`).get()
+      if (!studentSnapshot.exists) {
+        return jsonError(res, 400, 'Student profile was not found')
+      }
+
+      targetStudent = studentSnapshot.data() || {}
+      const subjectIds = Array.isArray(targetStudent.subjects) ? targetStudent.subjects : []
+      if (!subjectIds.includes(subjectId)) {
+        return jsonError(res, 400, 'Student is not enrolled in this subject')
+      }
     }
 
     const sanitizedQuestions = Array.isArray(questions)
@@ -644,12 +701,21 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
       storageProvider = hidrivePath ? 'hidrive' : 'external'
     }
 
-    const docRef = await db.collection('homeworks').add({
+    const collectionName = homeworkVisibility === 'student' ? 'studentHomeworks' : 'homeworks'
+    const docRef = await db.collection(collectionName).add({
       subjectId,
       title,
       description: description || '',
       dueDate: normalizeDueDate(dueDate),
       questions: sanitizedQuestions,
+      visibility: homeworkVisibility,
+      studentId: homeworkVisibility === 'student' ? studentId : null,
+      studentName: homeworkVisibility === 'student'
+        ? studentName || targetStudent.name || targetStudent.displayName || targetStudent.studentName || null
+        : null,
+      studentEmail: homeworkVisibility === 'student'
+        ? studentEmail || targetStudent.email || null
+        : null,
       attachmentUrl: finalAttachmentUrl,
       attachmentName: attachmentName || null,
       attachmentContentType: attachmentContentType || null,
@@ -664,6 +730,7 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
 
     res.status(200).json({
       id: docRef.id,
+      collection: collectionName,
       attachmentUrl: finalAttachmentUrl
     })
   } catch (err) {
