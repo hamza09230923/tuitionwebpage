@@ -1,1 +1,0 @@
-const s="/assets/nottingham-university-logo-Bvc07xhs.png",o="/assets/King's_College_London_logo-XbRZheqd.svg",g="/assets/cambridge-64gH2uf-.jpg",a="/assets/Imperial-College-Logo-CiZ74UPN.png",e="/assets/warwick-DzXBUNN5.svg";export{g as c,a as i,o as k,s as n,e as w};
