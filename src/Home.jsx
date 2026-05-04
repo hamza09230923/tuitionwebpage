@@ -220,7 +220,7 @@ function Home() {
 
       {/* Cohort Banner */}
       <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
-        Join our April cohort as soon as possible — spaces are running out!
+        Join our May cohort as soon as possible — spaces are running out!
       </div>
       
       {/* Navigation */}
