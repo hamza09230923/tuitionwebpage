@@ -437,6 +437,21 @@ function Webinar() {
           </div>
         </section>
 
+        <section id="booking" className="mx-auto mt-10 max-w-5xl rounded-2xl border border-white/10 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
+          <div className="mb-4 text-center">
+            <h2 className="text-2xl font-black text-slate-900">Choose your strategy call time</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-600">
+              Select a slot below and Calendly will send the confirmation.
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-slate-100">
+            <LazyCalendly
+              url={CALENDLY_WEBINAR_URL}
+              title="Book your GCSE strategy call"
+            />
+          </div>
+        </section>
+
         <section className="mx-auto mt-12 max-w-5xl" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 500px' }}>
           <div className="text-center">
             <h2 className="text-2xl font-black text-white sm:text-3xl">
@@ -519,21 +534,6 @@ function Webinar() {
                 <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-          </div>
-        </section>
-
-        <section id="booking" className="mx-auto mt-10 max-w-5xl rounded-2xl border border-white/10 bg-white p-4 text-slate-900 shadow-2xl sm:p-5" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 700px' }}>
-          <div className="mb-4 text-center">
-            <h2 className="text-2xl font-black text-slate-900">Choose your strategy call time</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-600">
-              Select a slot below and Calendly will send the confirmation.
-            </p>
-          </div>
-          <div className="overflow-hidden rounded-xl border border-slate-100">
-            <LazyCalendly
-              url={CALENDLY_WEBINAR_URL}
-              title="Book your GCSE strategy call"
-            />
           </div>
         </section>
       </main>
