@@ -14,16 +14,12 @@
     <meta name="description" content="MySchola: #1 GCSE Tutoring Platform for Years 9-11. Expert one-to-one online tutoring in Maths, English & Science via Zoom. Improve grades by 2-3 levels with personalised lessons." />
     <title>MySchola - #1 GCSE Tutoring Platform for Years 9-11 | Maths, English & Science</title>
     
-    <!-- Performance: Preconnect to critical external domains -->
-    <link rel="preconnect" href="https://i.ytimg.com" crossorigin>
-    <link rel="dns-prefetch" href="https://www.youtube.com">
-    <link rel="dns-prefetch" href="https://calendly.com">
-    <link rel="dns-prefetch" href="https://connect.facebook.net">
-
+    <!-- Performance: Preconnect to only critical external domains (max 4) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    
     <!-- Preload critical resources -->
     <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml">
-    <!-- Preload LCP image for /book-strategy-call so browser fetches it during HTML parse, not after JS runs -->
-    <link rel="preload" href="https://i.ytimg.com/vi/t8R7tYIlOf4/sddefault.jpg" as="image" fetchpriority="high">
     
     <!-- Open Graph / Facebook - Required for link previews and search results -->
     <meta property="og:type" content="website" />
@@ -61,25 +57,22 @@
     <meta name="keywords" content="GCSE tutoring, online tutoring, Maths tutoring, English tutoring, Science tutoring, Years 9-11, Zoom tutoring, UK tutoring" />
     <link rel="canonical" href="https://myschola.uk/" />
 
-    <!-- Meta Pixel Code - stub initialised synchronously so fbq() calls queue correctly,
-         fbevents.js deferred until after load to remove render-blocking -->
+    <!-- Meta Pixel Code - Async loading for performance -->
     <script>
-      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){
-      n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window,document);
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', '2772806336415328');
       fbq('track', 'PageView');
-      window.addEventListener('load', function() {
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://connect.facebook.net/en_US/fbevents.js';
-        document.head.appendChild(s);
-      });
     </script>
-    <script type="module" crossorigin src="/assets/index-CylVJ2kC.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/react-vendor-BQYH7YVU.js">
-    <link rel="modulepreload" crossorigin href="/assets/icons-R0S0JZyI.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BnuxwqmI.css">
+    <script type="module" crossorigin src="/assets/index-BigwfC5w.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-vendor-CM6YM4zk.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-BrlKXSyo.css">
   </head>
   <body>
     <!-- Meta Pixel noscript (must be in body: img inside noscript in head is invalid HTML) -->
