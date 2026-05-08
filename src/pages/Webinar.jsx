@@ -353,9 +353,19 @@ function Webinar() {
     <div className="min-h-screen bg-slate-950 text-white">
       <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <section className="mx-auto max-w-5xl text-center">
-          <h1 className="mx-auto mb-5 max-w-4xl text-3xl font-black tracking-tight text-white sm:text-5xl">
-            Every test they take without fixing this costs them marks - watch this now.
+          <div className="mb-4 inline-block rounded-lg bg-red-600 px-4 py-2 text-sm font-black uppercase tracking-widest text-white sm:text-base">
+            ATTENTION PARENTS OF YEAR 9 10 & 11
+          </div>
+          <h1 className="mx-auto mb-3 max-w-4xl text-3xl font-black tracking-tight text-white sm:text-5xl">
+            <span className="block">Help your child work towards <strong className="text-blue-400">GCSE grades 7–9</strong> in just <strong className="text-blue-400">12 weeks</strong></span>
+            <span className="block text-blue-400 underline decoration-2 underline-offset-4">GUARANTEED</span>
+            <span className="block text-2xl sm:text-4xl mt-2">OR..</span>
+            <span className="block text-xl sm:text-3xl mt-1">we&apos;ll continue working with you for <strong className="text-blue-400">free</strong> until we do.</span>
           </h1>
+
+          <p className="text-xl sm:text-2xl font-black text-white mb-3">
+            👇🏼 <span className="text-blue-400">Watch this now.</span>
+          </p>
 
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
             <div className="aspect-video w-full">
@@ -383,6 +393,9 @@ function Webinar() {
               <Calendar className="h-5 w-5" aria-hidden="true" />
               Book Free Strategy Call for More Information
             </a>
+            <p className="mx-auto mt-6 max-w-2xl rounded-full border border-amber-300/25 bg-amber-400/10 px-4 py-2 text-sm font-bold text-amber-100">
+              We planned to take on <strong className="text-white line-through decoration-2">10 students</strong> this month. <strong className="text-white">Only 4 spots remain.</strong>
+            </p>
             <div className="mx-auto mt-7 grid max-w-5xl gap-5 rounded-2xl bg-black/25 px-4 py-5 sm:grid-cols-3">
               {proofStats.map((stat) => {
                 const Icon = stat.icon
@@ -402,9 +415,6 @@ function Webinar() {
                 )
               })}
             </div>
-            <p className="mx-auto mt-4 max-w-2xl rounded-full border border-amber-300/25 bg-amber-400/10 px-4 py-2 text-sm font-bold text-amber-100">
-              We only have a limited number of students we are taking on this month.
-            </p>
           </div>
         </section>
 
@@ -439,6 +449,9 @@ function Webinar() {
 
         <section id="booking" className="mx-auto mt-10 max-w-5xl rounded-2xl border border-white/10 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
           <div className="mb-4 text-center">
+            <div className="mb-3 inline-block rounded-lg bg-red-600 px-4 py-2 text-sm font-black uppercase tracking-widest text-white sm:text-base">
+              ATTENTION PARENTS OF YEAR 9 10 & 11
+            </div>
             <h2 className="text-2xl font-black text-slate-900">Choose your strategy call time</h2>
             <p className="mt-1 text-sm font-semibold text-slate-600">
               Select a slot below and Calendly will send the confirmation.
