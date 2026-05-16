@@ -20,7 +20,7 @@ import imperialLogo from '../university/Imperial-College-Logo.png'
 import warwickLogo from '../university/warwick.svg'
 
 const HERO_BADGE = 'Free GCSE Strategy Call'
-const YOUTUBE_VIDEO_ID = 't8R7tYIlOf4'
+const YOUTUBE_VIDEO_ID = 'fSvTYTwv9ac'
 const COUNT_UP_DURATION_MS = 1500
 const CALENDLY_WEBINAR_URL = (() => {
   const baseUrl = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'

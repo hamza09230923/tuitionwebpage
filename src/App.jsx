@@ -18,6 +18,8 @@ import WebinarThanks from './pages/WebinarThanks'
 import Courses from './pages/Courses'
 import Package from './pages/Package'
 import Timetable from './pages/Timetable'
+import Resources from './pages/Resources'
+import ResourceShareLink from './pages/ResourceShareLink'
 import { trackPageView } from './utils/metaPixel'
 
 const WEBINAR_ROUTE = '/book-strategy-call'
@@ -88,6 +90,7 @@ function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/share-link" element={<ShareLink />} />
         <Route path="/admin/homework-share-link" element={<HomeworkShareLink />} />
+        <Route path="/admin/resource-share-link" element={<ResourceShareLink />} />
         <Route path={WEBINAR_ROUTE} element={<Webinar />} />
         <Route path={WEBINAR_THANKS_ROUTE} element={<WebinarThanks />} />
         <Route path={LEGACY_WEBINAR_ROUTE} element={<Webinar />} />
@@ -118,6 +121,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Homework />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/subject/:subjectId/resources"
+          element={
+            <ProtectedRoute>
+              <Resources />
             </ProtectedRoute>
           }
         />

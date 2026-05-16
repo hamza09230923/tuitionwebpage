@@ -37,6 +37,12 @@ const resolveUploadRoot = (uploadType) => {
       '/users/myschola/recordings'
     )
   }
+  if (type === 'resource') {
+    return normalizeRoot(
+      process.env.HIDRIVE_RESOURCES_ROOT || process.env.HIDRIVE_UPLOAD_ROOT,
+      '/users/myschola/resources'
+    )
+  }
   return normalizeRoot(process.env.HIDRIVE_UPLOAD_ROOT, '/users/myschola/recordings')
 }
 
@@ -368,80 +374,70 @@ const extractShareLink = (data) => {
   const preferredField = process.env.HIDRIVE_SHARE_LINK_FIELD
   return (
     (preferredField && data[preferredField]) ||
+    data.uri ||
     data.url ||
     data.share_url ||
     data.link
   )
 }
 
-const createShareLink = async (token, hidrivePath, fileId = null) => {
+const getParentDir = (filePath) => {
+  const lastSlash = filePath.lastIndexOf('/')
+  if (lastSlash <= 0) return '/'
+  return filePath.slice(0, lastSlash)
+}
+
+const getExistingShareLink = async (token, dirPath) => {
+  const apiBase = process.env.HIDRIVE_API_BASE
+  if (!apiBase) return null
+
+  const url = `${apiBase}/share?path=${encodeURIComponent(dirPath)}&fields=uri`
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
+  if (!response.ok) return null
+
+  const data = await response.json()
+  const shares = Array.isArray(data) ? data : (data.shares || [data])
+  const share = shares.find((s) => s && (s.uri || s.url || s.link))
+  return share ? (share.uri || share.url || share.link) : null
+}
+
+const createShareLink = async (token, hidrivePath) => {
   const shareUrl = process.env.HIDRIVE_SHARE_URL
   if (!shareUrl) {
     throw new Error('HIDRIVE_SHARE_URL is not configured')
   }
 
-  if (fileId) {
-    const pidShareResponse = await requestShareLink(
-      token,
-      buildShareUrlWithPid(shareUrl, fileId),
-      { bodyMode: 'none' }
-    )
+  const parentDir = getParentDir(hidrivePath)
 
-    if (!pidShareResponse.ok) {
-      throw new Error(`HiDrive share link failed: ${pidShareResponse.text}`)
-    }
+  const shareResponse = await requestShareLink(token, shareUrl, {
+    path: parentDir
+  })
 
-    const pidShareLink = extractShareLink(pidShareResponse.data)
-    if (!pidShareLink) {
-      throw new Error('HiDrive share link missing in response')
-    }
-
-    return pidShareLink
+  console.log('HiDrive share response ok:', shareResponse.ok)
+  if (shareResponse.ok) {
+    console.log('HiDrive share response data:', JSON.stringify(shareResponse.data))
+  } else {
+    console.log('HiDrive share response error:', shareResponse.text)
   }
 
-  const forcePid =
-    process.env.HIDRIVE_SHARE_USE_PID === 'true' ||
-    process.env.HIDRIVE_SHARE_USE_PID === '1'
-
-  if (!forcePid) {
-    const shareResponse = await requestShareLink(token, buildShareUrl(shareUrl, hidrivePath), {
-      path: hidrivePath
-    })
-    if (shareResponse.ok) {
-      const shareLink = extractShareLink(shareResponse.data)
-      if (!shareLink) {
-        throw new Error('HiDrive share link missing in response')
-      }
-      return shareLink
-    }
-
-    if (!shareResponse.text.includes('not a directory')) {
-      throw new Error(`HiDrive share link failed: ${shareResponse.text}`)
-    }
+  let shareLink
+  if (shareResponse.ok) {
+    shareLink = extractShareLink(shareResponse.data)
+  } else if (shareResponse.text && (shareResponse.text.includes('already exists') || shareResponse.text.includes('409'))) {
+    shareLink = await getExistingShareLink(token, parentDir)
+    console.log('Existing share link:', shareLink)
   }
 
-  const fileInfo = await fetchFileInfo(token, hidrivePath)
-  const pid = fileInfo && (fileInfo.id || fileInfo.pid)
-  if (!pid) {
-    throw new Error('HiDrive file id missing for share')
+  if (!shareLink) {
+    const errText = shareResponse.ok ? 'share link missing in response' : shareResponse.text
+    throw new Error(`HiDrive share link failed: ${errText}`)
   }
 
-  const pidShareResponse = await requestShareLink(
-    token,
-    buildShareUrlWithPid(shareUrl, pid),
-    { bodyMode: 'none' }
-  )
-
-  if (!pidShareResponse.ok) {
-    throw new Error(`HiDrive share link failed: ${pidShareResponse.text}`)
-  }
-
-  const pidShareLink = extractShareLink(pidShareResponse.data)
-  if (!pidShareLink) {
-    throw new Error('HiDrive share link missing in response')
-  }
-
-  return pidShareLink
+  return shareLink
 }
 
 exports.createHidriveUpload = functions.https.onRequest(async (req, res) => {
@@ -736,6 +732,122 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
   } catch (err) {
     console.error('createHomework error:', err)
     jsonError(res, 500, err.message || 'Failed to create homework')
+  }
+})
+
+exports.createResource = functions.https.onRequest(async (req, res) => {
+  if (handleOptions(req, res)) {
+    return
+  }
+  applyCors(req, res)
+
+  if (req.method !== 'POST') {
+    return jsonError(res, 405, 'Method not allowed')
+  }
+
+  try {
+    const decoded = await getAuthToken(req)
+    const role = await getUserRole(decoded.uid)
+    if (!role) {
+      return jsonError(res, 403, 'Not authorized')
+    }
+
+    const {
+      subjectId,
+      title,
+      description,
+      fileUrl,
+      fileName,
+      fileContentType,
+      fileSize,
+      hidrivePath,
+      hidriveFileId,
+      visibility = 'subject',
+      studentId = null,
+      studentName = null,
+      studentEmail = null
+    } = req.body || {}
+
+    if (!subjectId || !title) {
+      return jsonError(res, 400, 'subjectId and title are required')
+    }
+
+    if (!fileUrl && !hidrivePath) {
+      return jsonError(res, 400, 'fileUrl or hidrivePath is required')
+    }
+
+    const resourceVisibility = visibility === 'student' && studentId ? 'student' : 'subject'
+    let targetStudent = null
+
+    if (resourceVisibility === 'student') {
+      if (role !== 'admin') {
+        return jsonError(res, 403, 'Only admins can create student-specific resources')
+      }
+
+      const studentSnapshot = await db.doc(`students/${studentId}`).get()
+      if (!studentSnapshot.exists) {
+        return jsonError(res, 400, 'Student profile was not found')
+      }
+
+      targetStudent = studentSnapshot.data() || {}
+      const subjectIds = Array.isArray(targetStudent.subjects) ? targetStudent.subjects : []
+      if (!subjectIds.includes(subjectId)) {
+        return jsonError(res, 400, 'Student is not enrolled in this subject')
+      }
+    }
+
+    let finalFileUrl = fileUrl || null
+    let storageProvider = null
+
+    if (!finalFileUrl && hidrivePath) {
+      const tokenData = await getHidriveToken()
+      if (!tokenData.access_token) {
+        return jsonError(res, 500, 'Missing HiDrive access token')
+      }
+      finalFileUrl = await createShareLink(tokenData.access_token, hidrivePath, hidriveFileId)
+    }
+
+    if (finalFileUrl) {
+      storageProvider = hidrivePath ? 'hidrive' : 'external'
+    }
+
+    const approvalStatus = role === 'admin' ? 'approved' : 'pending'
+    const collectionName = resourceVisibility === 'student' ? 'studentResources' : 'resources'
+    const docRef = await db.collection(collectionName).add({
+      subjectId,
+      title,
+      description: description || '',
+      fileUrl: finalFileUrl,
+      fileName: fileName || null,
+      fileContentType: fileContentType || null,
+      fileSize: Number.isFinite(fileSize) ? fileSize : null,
+      visibility: resourceVisibility,
+      studentId: resourceVisibility === 'student' ? studentId : null,
+      studentName: resourceVisibility === 'student'
+        ? studentName || targetStudent.name || targetStudent.displayName || targetStudent.studentName || null
+        : null,
+      studentEmail: resourceVisibility === 'student'
+        ? studentEmail || targetStudent.email || null
+        : null,
+      approvalStatus,
+      storageProvider,
+      hidrivePath: hidrivePath || null,
+      hidriveFileId: hidriveFileId || null,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdBy: decoded.uid,
+      createdByRole: role,
+      approvedAt: role === 'admin' ? admin.firestore.FieldValue.serverTimestamp() : null
+    })
+
+    res.status(200).json({
+      id: docRef.id,
+      collection: collectionName,
+      approvalStatus,
+      fileUrl: finalFileUrl
+    })
+  } catch (err) {
+    console.error('createResource error:', err)
+    jsonError(res, 500, err.message || 'Failed to create resource')
   }
 })
 

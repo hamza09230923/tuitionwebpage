@@ -410,6 +410,17 @@ function StudentDashboard() {
                   Homework
                 </Link>
               </div>
+
+              <div className="pt-2 border-t border-gray-100">
+                <Link
+                  to={`/app/subject/${subject.id}/resources`}
+                  className="flex items-center justify-center gap-2 text-purple-600 hover:text-purple-700 px-4 py-2 rounded-lg border border-purple-200 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition font-medium w-full"
+                  aria-label={`View revision resources for ${displayName}`}
+                >
+                  <BookOpen className="h-4 w-4" aria-hidden="true" />
+                  Revision Resources
+                </Link>
+              </div>
             </>
           ) : (
             <div className="space-y-3">

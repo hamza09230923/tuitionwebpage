@@ -68,5 +68,8 @@ export const createRecording = (payload) =>
 export const createHomework = (payload) =>
   callFunction('createHomework', payload)
 
+export const createResource = (payload) =>
+  callFunction('createResource', payload)
+
 export const registerWebinar = (payload) =>
   callPublicFunction('registerWebinar', payload)

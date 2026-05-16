@@ -18,6 +18,53 @@ import warwickLogo from './university/warwick.svg'
 import aqaLogo from './university/aqa.jpg'
 import edexcelLogo from './university/edexcel-vector-logo.png'
 
+const CALENDLY_HOME_URL = (() => {
+  const baseUrl = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
+  if (typeof window === 'undefined') return baseUrl
+  return `${baseUrl}&embed_domain=${encodeURIComponent(window.location.hostname)}&embed_type=Inline`
+})()
+
+function LazyCalendly({ url, title }) {
+  const [shouldLoad, setShouldLoad] = useState(false)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (!containerRef.current || shouldLoad) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setShouldLoad(true)
+        })
+      },
+      { rootMargin: '50px', threshold: 0.01 }
+    )
+
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [shouldLoad])
+
+  return (
+    <div ref={containerRef} className="h-full w-full">
+      {shouldLoad ? (
+        <iframe
+          src={url}
+          className="h-full w-full"
+          style={{ minHeight: '690px' }}
+          title={title}
+          frameBorder="0"
+          loading="lazy"
+        />
+      ) : (
+        <div className="flex min-h-[420px] w-full flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="mb-4 h-11 w-11 animate-spin rounded-full border-b-2 border-blue-600" />
+          <p className="text-sm font-semibold text-slate-600">Loading booking times...</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function TestimonialVideo({ src, className, showControls = true }) {
   const videoRef = useRef(null)
 
@@ -65,7 +112,7 @@ function TestimonialVideo({ src, className, showControls = true }) {
 function Home() {
   const navigate = useNavigate()
   const location = useLocation()
-  const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
+  const calendlyUrl = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
   const testimonialVideos = [
     { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
@@ -758,23 +805,20 @@ function Home() {
 
       {/* Book Call Section */}
       <section id="book-call" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-700 to-indigo-700" aria-labelledby="book-call-heading">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 id="book-call-heading" className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 px-2">Ready to Start Your Child's GCSE Success Journey?</h2>
-          <p className="text-lg sm:text-xl text-white mb-6 sm:mb-8 px-2">
-            Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              type="button"
-              onClick={openCalendlyPopup}
-              className="bg-white text-blue-700 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-gray-100 active:bg-gray-200 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 min-h-[44px] touch-manipulation"
-              aria-label="Book a free consultation"
-            >
-              Book Free Consultation
-              <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
-            </button>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center text-white mb-8">
+            <h2 id="book-call-heading" className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 px-2">Ready to Start Your Child's GCSE Success Journey?</h2>
+            <p className="text-lg sm:text-xl text-white mb-2 px-2">
+              Book a free consultation to discuss your child's needs and see how we can help them achieve their goals.
+            </p>
+            <p className="text-white text-sm">No card required • Free 15-minute consultation</p>
           </div>
-          <p className="text-white text-sm mt-6">No card required • Free 15-minute consultation</p>
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-white">
+            <LazyCalendly
+              url={CALENDLY_HOME_URL}
+              title="Book your free GCSE consultation"
+            />
+          </div>
         </div>
       </section>
 

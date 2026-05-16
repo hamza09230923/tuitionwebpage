@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Video, FileText, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder } from 'lucide-react'
+import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc } from 'firebase/firestore'
@@ -171,6 +171,14 @@ function Admin() {
   const [deletingHomeworkId, setDeletingHomeworkId] = useState('')
   const [updatingHomeworkAccessKey, setUpdatingHomeworkAccessKey] = useState('')
   
+  // Resource form
+  const [resourceTitle, setResourceTitle] = useState('')
+  const [resourceDescription, setResourceDescription] = useState('')
+  const [resourceFile, setResourceFile] = useState(null)
+  const [resourceUploadProgress, setResourceUploadProgress] = useState(0)
+  const [resourceAudience, setResourceAudience] = useState('subject')
+  const [selectedResourceStudentId, setSelectedResourceStudentId] = useState('')
+
   // Student submissions
   const [submissions, setSubmissions] = useState([])
   const [homeworks, setHomeworks] = useState([])
@@ -377,7 +385,7 @@ function Admin() {
   }, [activeTab, authenticated, selectedSubject])
 
   useEffect(() => {
-    const shouldLoadStudents = ['recording', 'homework', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
+    const shouldLoadStudents = ['recording', 'homework', 'resource', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
     if (!authenticated || !selectedSubject || !shouldLoadStudents) {
       return
     }
@@ -564,6 +572,7 @@ function Admin() {
     setTier('')
     setSelectedRecordingStudentId('')
     setSelectedHomeworkStudentId('')
+    setSelectedResourceStudentId('')
   }, [selectedSubject, subjects])
 
   // Check if subject is English (no tier needed)
@@ -1175,6 +1184,78 @@ function Admin() {
     }
   }
 
+  const handleSubmitResource = async (e) => {
+    e.preventDefault()
+    if (!selectedSubject || !resourceTitle) {
+      setMessage('Please fill in all required fields')
+      return
+    }
+
+    if (!resourceFile) {
+      setMessage('Please upload a resource file')
+      return
+    }
+
+    if (resourceAudience === 'student' && !selectedResourceStudentId) {
+      setMessage('Please select the student who should receive this resource')
+      return
+    }
+
+    setLoading(true)
+    setMessage('')
+    try {
+      const selectedResourceStudent = enrolledStudents.find((student) => student.id === selectedResourceStudentId)
+      setResourceUploadProgress(0)
+      const uploadConfig = await createHidriveUpload({
+        subjectId: selectedSubject,
+        fileName: resourceFile.name,
+        contentType: resourceFile.type,
+        uploadType: 'resource'
+      })
+
+      const uploadResult = await uploadFileWithProgress(
+        resourceFile,
+        uploadConfig,
+        setResourceUploadProgress
+      )
+      const uploadResponse = uploadResult?.response
+      const hidriveFileId =
+        uploadResponse?.id ||
+        uploadResponse?.pid ||
+        uploadResponse?.file_id ||
+        null
+
+      const pendingResource = {
+        subjectId: selectedSubject,
+        title: resourceTitle,
+        description: resourceDescription,
+        fileName: resourceFile.name,
+        fileContentType: resourceFile.type,
+        fileSize: resourceFile.size,
+        hidrivePath: uploadConfig.hidrivePath,
+        hidriveFileId,
+        visibility: resourceAudience,
+        studentId: resourceAudience === 'student' ? selectedResourceStudentId : null,
+        studentName: resourceAudience === 'student' ? getStudentDisplayName(selectedResourceStudent) : null,
+        studentEmail: resourceAudience === 'student' ? selectedResourceStudent?.email || null : null
+      }
+
+      sessionStorage.setItem('pendingResource', JSON.stringify(pendingResource))
+      setResourceTitle('')
+      setResourceDescription('')
+      setResourceFile(null)
+      setResourceUploadProgress(0)
+      setResourceAudience('subject')
+      setSelectedResourceStudentId('')
+      navigate('/admin/resource-share-link', { state: { pendingResource } })
+    } catch (err) {
+      console.error('Error adding resource:', err)
+      setMessage(err?.message || 'Failed to add resource')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -1231,6 +1312,17 @@ function Admin() {
           >
             <FileText className="h-4 w-4" />
             Add Homework
+          </button>
+          <button
+            onClick={() => setActiveTab('resource')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              activeTab === 'resource'
+                ? 'bg-amber-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            Add Resource
           </button>
           <button
             onClick={() => setActiveTab('approve')}
@@ -2031,6 +2123,130 @@ function Admin() {
             >
               <Save className="h-4 w-4" />
               {loading ? 'Adding...' : 'Add Homework'}
+            </button>
+          </form>
+        )}
+
+        {/* Resource Form */}
+        {activeTab === 'resource' && (
+          <form onSubmit={handleSubmitResource} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Revision Resource</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Upload PDFs or Word documents for students to download.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={resourceTitle}
+                  onChange={(e) => setResourceTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="e.g., Topic 3 Revision Notes"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={resourceDescription}
+                  onChange={(e) => setResourceDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  rows="3"
+                  placeholder="Optional description for students"
+                />
+              </div>
+
+              {isAdmin && (
+                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Who can see this resource?
+                    </label>
+                    <select
+                      value={resourceAudience}
+                      onChange={(e) => {
+                        setResourceAudience(e.target.value)
+                        if (e.target.value === 'subject') {
+                          setSelectedResourceStudentId('')
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                    >
+                      <option value="subject">All students enrolled in this subject</option>
+                      <option value="student">One specific student only</option>
+                    </select>
+                  </div>
+
+                  {resourceAudience === 'student' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Student *
+                      </label>
+                      <select
+                        value={selectedResourceStudentId}
+                        onChange={(e) => setSelectedResourceStudentId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                        required
+                        disabled={subjectStudentsLoading}
+                      >
+                        <option value="">
+                          {subjectStudentsLoading ? 'Loading students...' : 'Select student'}
+                        </option>
+                        {enrolledStudents.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {getStudentDisplayName(student)}{student.email ? ` (${student.email})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {!subjectStudentsLoading && enrolledStudents.length === 0 && (
+                        <p className="mt-2 text-sm text-red-600">
+                          No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Resource File * (PDF, Word, etc.)
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                  required
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null
+                    setResourceFile(file)
+                    setResourceUploadProgress(0)
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                {resourceUploadProgress > 0 && resourceUploadProgress < 100 && (
+                  <p className="text-sm text-gray-600 mt-2">Uploading... {resourceUploadProgress}%</p>
+                )}
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
+                After upload, you will be taken to a new page to paste the HiDrive share link.
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-6 w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              {loading ? 'Adding...' : 'Add Resource'}
             </button>
           </form>
         )}

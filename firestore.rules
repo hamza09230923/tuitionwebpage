@@ -96,6 +96,32 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /resources/{resourceId} {
+      allow read: if isStaff() || (
+        isEnrolledIn(resource.data.subjectId) &&
+        (
+          !('approvalStatus' in resource.data) ||
+          resource.data.approvalStatus == 'approved'
+        )
+      );
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    match /studentResources/{resourceId} {
+      allow read: if isStaff() || (
+        signedIn() &&
+        resource.data.studentId == request.auth.uid &&
+        isEnrolledIn(resource.data.subjectId) &&
+        (
+          !('approvalStatus' in resource.data) ||
+          resource.data.approvalStatus == 'approved'
+        )
+      );
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
     match /webinarRegistrations/{registrationId} {
       allow read, write: if isAdmin();
     }
