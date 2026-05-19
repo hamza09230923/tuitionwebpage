@@ -162,42 +162,15 @@ function Package() {
   }
 
   const getMathsScienceEnglishLink = () => {
-    switch (year) {
-      case '9':
-        return 'https://buy.stripe.com/6oU14o8JV24Aggr6PbcjS19'
-      case '10':
-        return 'https://buy.stripe.com/7sY6oIf8j10we8jflHcjS1a'
-      case '11':
-        return 'https://buy.stripe.com/fZu5kE0dp6kQfcn0qNcjS1b'
-      default:
-        return 'https://buy.stripe.com/6oU14o8JV24Aggr6PbcjS19'
-    }
+    return 'https://buy.stripe.com/9B600k4tF4cI5BN6PbcjS1P'
   }
 
   const getMathsEnglishLink = () => {
-    switch (year) {
-      case '9':
-        return 'https://buy.stripe.com/eVq3cw6BN4cI3tF7TfcjS16'
-      case '10':
-        return 'https://buy.stripe.com/5kQ5kE2lx8sY6FR3CZcjS17'
-      case '11':
-        return 'https://buy.stripe.com/6oUaEY9NZ38Efcn4H3cjS18'
-      default:
-        return 'https://buy.stripe.com/eVq3cw6BN4cI3tF7TfcjS16'
-    }
+    return 'https://buy.stripe.com/7sY6oI9NZfVq7JVb5rcjS1Q'
   }
 
   const getEnglishScienceLink = () => {
-    switch (year) {
-      case '9':
-        return 'https://buy.stripe.com/dRm14of8jcJec0bgpLcjS12'
-      case '10':
-        return 'https://buy.stripe.com/14A7sM4tFeRme8j3CZcjS14'
-      case '11':
-        return 'https://buy.stripe.com/14A28sd0b24A4xJ0qNcjS15'
-      default:
-        return 'https://buy.stripe.com/dRm14of8jcJec0bgpLcjS12'
-    }
+    return 'https://buy.stripe.com/bJeaEY4tFbFafcn4H3cjS1O'
   }
 
   const getScienceMathsLink = () => {
@@ -214,55 +187,27 @@ function Package() {
   }
 
   const getScienceLink = () => {
-    switch (year) {
-      case '9':
-        return 'https://buy.stripe.com/bJe28sgcn6kQfcn0qNcjS1i'
-      case '10':
-        return 'https://buy.stripe.com/9B65kE9NZgZu7JVb5rcjS1k'
-      case '11':
-        return 'https://buy.stripe.com/aFabJ2gcnaB63tFehDcjS1j'
-      default:
-        return 'https://buy.stripe.com/bJe28sgcn6kQfcn0qNcjS1i'
-    }
+    return 'https://buy.stripe.com/6oU9AUf8j4cI1lxgpLcjS1N'
   }
 
   const getEnglishOnlyLink = () => {
-    switch (year) {
-      case '9':
-        return 'https://buy.stripe.com/14AcN6bW74cI9S36PbcjS1o'
-      case '10':
-        return 'https://buy.stripe.com/9B6aEY5xJcJe3tFddzcjS1p'
-      case '11':
-        return 'https://buy.stripe.com/fZu9AUd0b7oUe8j6PbcjS1q'
-      default:
-        return 'https://buy.stripe.com/14AcN6bW74cI9S36PbcjS1o'
-    }
+    return 'https://buy.stripe.com/3cIeVegcn38Ed4f4H3cjS1M'
   }
 
   const getMathsOnlyLink = () => {
-    switch (year) {
-      case '9':
-        return 'https://buy.stripe.com/8x24gAbW7bFad4fb5rcjS1l'
-      case '10':
-        return 'https://buy.stripe.com/9B6aEY6BN9x26FR4H3cjS1m'
-      case '11':
-        return 'https://buy.stripe.com/5kQ3cw2lx4cId4fc9vcjS1n'
-      default:
-        return 'https://buy.stripe.com/8x24gAbW7bFad4fb5rcjS1l'
-    }
+    return 'https://buy.stripe.com/aFa4gAbW77oUaW73CZcjS1L'
+  }
+
+  const getSingleScienceLink = () => {
+    return 'https://buy.stripe.com/aFa14o4tFeRm3tFa1ncjS1J'
+  }
+
+  const getSingleEnglishLink = () => {
+    return 'https://buy.stripe.com/aFa7sM6BN24Ad4fb5rcjS1K'
   }
 
   const getMathsScienceLink = () => {
-    switch (year) {
-      case '9':
-        return 'https://buy.stripe.com/dRmaEY5xJ10w8NZ6PbcjS1c'
-      case '10':
-        return 'https://buy.stripe.com/dRm5kEbW76kQ1lx3CZcjS1d'
-      case '11':
-        return 'https://buy.stripe.com/28E6oI2lxeRmd4fgpLcjS1e'
-      default:
-        return 'https://buy.stripe.com/dRmaEY5xJ10w8NZ6PbcjS1c'
-    }
+    return 'https://buy.stripe.com/28E4gA5xJdNiaW7flHcjS1S'
   }
 
   const getChemistryLink = () => {
@@ -342,6 +287,12 @@ function Package() {
       case 'maths-only':
         window.location.href = getMathsOnlyLink()
         break
+      case 'single-science':
+        window.location.href = getSingleScienceLink()
+        break
+      case 'single-english':
+        window.location.href = getSingleEnglishLink()
+        break
       case 'chemistry':
         window.location.href = getChemistryLink()
         break
@@ -394,34 +345,11 @@ function Package() {
 
   const bundles = [
     {
-      id: 'maths-science',
-      name: 'Maths + Science',
-      subjects: 'Mathematics & Science',
-      price: '£128',
-      originalPrice: '£150',
-      savingsPercent: '15%',
-      perLesson: '~£8 per hour',
-      period: '/month',
-      billing: 'Billed monthly after 7-day free trial',
-      trialDays: 7,
-      features: [
-        '16 lessons per month',
-        'Exam Technique Focused',
-        'Unlimited Platform Access',
-        'Assessments',
-        'Exam Mastermind Lessons',
-        'Detailed feedback',
-        'Covers Bio, Chem & Phys',
-      ],
-    },
-    {
       id: 'maths-science-english',
-      name: 'Maths + Science + English',
-      subjects: 'Mathematics, Science & English',
-      price: '£168',
-      originalPrice: '£220',
-      savingsPercent: '24%',
-      perLesson: '~£7 per hour',
+      name: '24 Lesson Bundle',
+      subjects: 'English, Maths & Science',
+      price: '£216',
+      perLesson: '£9.00 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -439,12 +367,10 @@ function Package() {
     },
     {
       id: 'maths-english',
-      name: 'Maths + English',
-      subjects: 'Mathematics & English',
-      price: '£96',
-      originalPrice: '£125',
-      savingsPercent: '23%',
-      perLesson: '~£8 per hour',
+      name: '12 Lesson Bundle',
+      subjects: 'Maths & English',
+      price: '£140',
+      perLesson: '£11.66 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -459,13 +385,30 @@ function Package() {
       ],
     },
     {
+      id: 'maths-science',
+      name: '16 Lesson Bundle',
+      subjects: 'Maths & Science',
+      price: '£165',
+      perLesson: '£10.31 per lesson',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
+      features: [
+        '16 lessons per month',
+        'Exam Technique Focused',
+        'Unlimited Platform Access',
+        'Assessments',
+        'Exam Mastermind Lessons',
+        'Detailed feedback',
+        'Covers Bio, Chem & Phys',
+      ],
+    },
+    {
       id: 'english-science',
-      name: 'English + Science',
+      name: '20 Lesson Bundle',
       subjects: 'English & Science',
-      price: '£160',
-      originalPrice: '£175',
-      savingsPercent: '9%',
-      perLesson: '~£8 per hour',
+      price: '£195',
+      perLesson: '£9.75 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -485,10 +428,10 @@ function Package() {
   const individualPricing = [
     {
       id: 'science',
-      name: 'Science',
-      subjects: 'Science (Bio, Chem, Phys)',
-      price: '£107.99',
-      perLesson: '~£9 per lesson',
+      name: '12 Science Lessons',
+      subjects: 'Biology, Chemistry & Physics',
+      price: '£132',
+      perLesson: '£11.00 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -504,10 +447,10 @@ function Package() {
     },
     {
       id: 'english-only',
-      name: 'English Only',
-      subjects: 'English Language & Literature',
-      price: '£79.99',
-      perLesson: '~£10 per lesson',
+      name: '8 English Lessons',
+      subjects: 'Literature & Language',
+      price: '£104',
+      perLesson: '£13.00 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -523,10 +466,10 @@ function Package() {
     },
     {
       id: 'maths-only',
-      name: 'Maths Only',
-      subjects: 'Mathematics',
+      name: '4 Maths Lessons',
+      subjects: 'Maths only',
       price: '£59.99',
-      perLesson: '~£15 per lesson',
+      perLesson: '£15.00 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -540,11 +483,11 @@ function Package() {
       ],
     },
     {
-      id: 'chemistry',
-      name: 'Science - Chemistry',
-      subjects: 'Chemistry Only',
+      id: 'single-science',
+      name: 'Single Science Package',
+      subjects: 'Focuses on one science only',
       price: '£59.99',
-      perLesson: '~£15 per lesson',
+      perLesson: '£15.00 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -555,15 +498,15 @@ function Package() {
         'Assessments',
         'Exam Mastermind Lessons',
         'Detailed feedback',
-        'Covers only Chemistry',
+        'Focuses on one science only',
       ],
     },
     {
-      id: 'physics',
-      name: 'Science - Physics',
-      subjects: 'Physics Only',
+      id: 'single-english',
+      name: 'Single English Package',
+      subjects: 'Focuses on either Literature or Language',
       price: '£59.99',
-      perLesson: '~£15 per lesson',
+      perLesson: '£15.00 per lesson',
       period: '/month',
       billing: 'Billed monthly after 7-day free trial',
       trialDays: 7,
@@ -574,26 +517,7 @@ function Package() {
         'Assessments',
         'Exam Mastermind Lessons',
         'Detailed feedback',
-        'Covers only Physics',
-      ],
-    },
-    {
-      id: 'biology',
-      name: 'Science - Biology',
-      subjects: 'Biology Only',
-      price: '£59.99',
-      perLesson: '~£15 per lesson',
-      period: '/month',
-      billing: 'Billed monthly after 7-day free trial',
-      trialDays: 7,
-      features: [
-        '4 lessons per month',
-        'Exam Technique Focused',
-        'Unlimited Platform Access',
-        'Assessments',
-        'Exam Mastermind Lessons',
-        'Detailed feedback',
-        'Covers only Biology',
+        'Focuses on either Literature or Language',
       ],
     },
   ]
@@ -720,9 +644,6 @@ function Package() {
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Flexible pricing options tailored for Year {year} students. All packages include expert tutoring, detailed feedback, and exam preparation.
             </p>
-            <p className="text-base text-green-600 font-medium mb-8 max-w-2xl mx-auto">
-              7-day risk-free trial includes your first lesson free. Continue only if you're happy — cancel anytime before day 8.
-            </p>
             <Link
               to="/courses"
               className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition"
@@ -760,14 +681,6 @@ function Package() {
                   <p className={`text-sm mb-4 ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
                     {bundle.subjects}
                   </p>
-                  
-            {bundle.trialDays && (
-                    <div className={`rounded-md px-3 py-2 mb-3 text-xs ${bundle.popular ? 'bg-green-500/20 text-green-100' : 'bg-green-50 text-green-700'}`}>
-                      <span className="font-medium">7-day risk-free trial</span>
-                      <span className="opacity-75 ml-1">• First lesson free • Cancel before day 8</span>
-                    </div>
-                  )}
-                  
                   <div className="mb-2">
                     <span className={`text-4xl font-extrabold ${bundle.popular ? 'text-white' : 'text-gray-900'}`}>
                       {bundle.price}
@@ -829,14 +742,6 @@ function Package() {
                 >
                   <h3 className="text-xl font-bold text-gray-900 mb-1">{item.name}</h3>
                   <p className="text-sm text-gray-500 mb-4">{item.subjects}</p>
-                  
-                  {item.trialDays && (
-                    <div className="rounded-md px-3 py-2 mb-3 text-xs bg-green-50 text-green-700">
-                      <span className="font-medium">7-day risk-free trial</span>
-                      <span className="opacity-75 ml-1">• First lesson free • Cancel before day 8</span>
-                    </div>
-                  )}
-                  
                   <div className="mb-2">
                     <span className="text-4xl font-extrabold text-gray-900">{item.price}</span>
                     <span className="text-lg text-gray-500">{item.period}</span>

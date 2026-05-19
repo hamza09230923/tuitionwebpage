@@ -84,7 +84,7 @@ const summerScheduleData = [
     day: 'Monday',
     status: 'active',
     subject: 'Maths',
-    time: '5:00 PM - 6:00 PM',
+    time: '6:00 PM - 7:00 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-blue-500'
@@ -99,18 +99,9 @@ const summerScheduleData = [
   {
     day: 'Wednesday',
     status: 'active',
-    subject: 'English Language (Edexcel)',
-    time: '5:00 PM - 6:00 PM',
-    board: 'Edexcel',
-    level: 'Foundation & Higher',
-    color: 'bg-red-500'
-  },
-  {
-    day: 'Wednesday',
-    status: 'active',
-    subject: 'English Language (AQA)',
-    time: '6:00 PM - 7:00 PM',
-    board: 'AQA',
+    subject: 'English Language',
+    time: '6:00 PM - 8:00 PM',
+    board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
   },
@@ -133,18 +124,9 @@ const summerScheduleData = [
   {
     day: 'Saturday',
     status: 'active',
-    subject: 'English Literature (Edexcel)',
-    time: '10:00 AM - 11:00 AM',
-    board: 'Edexcel',
-    level: 'Foundation & Higher',
-    color: 'bg-red-500'
-  },
-  {
-    day: 'Saturday',
-    status: 'active',
-    subject: 'English Literature (AQA)',
-    time: '11:00 AM - 12:00 PM',
-    board: 'AQA',
+    subject: 'English Literature',
+    time: '10:00 AM - 12:00 PM',
+    board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
   },
