@@ -400,7 +400,7 @@ function Webinar() {
               className="mt-7 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 px-8 py-4 text-lg font-black text-white shadow-[0_18px_45px_rgba(59,130,246,0.45)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/50"
             >
               <Calendar className="h-5 w-5" aria-hidden="true" />
-              Book Free Strategy Call for More Information
+              Book Free Trial Lesson
             </a>
             <p className="mx-auto mt-6 max-w-2xl rounded-full border border-amber-300/25 bg-amber-400/10 px-4 py-2 text-sm font-bold text-amber-100">
               We planned to take on <strong className="text-white line-through decoration-2">10 students</strong> this month. <strong className="text-white">Only 4 spots remain.</strong>

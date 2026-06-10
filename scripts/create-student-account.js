@@ -37,6 +37,11 @@ const DEFAULT_SUBJECT_IDS = [
 ]
 
 const SUBJECTS = {
+  maths_001: {
+    name: 'Maths',
+    description: 'GCSE Mathematics',
+    zoomLink: ''
+  },
   combined_science_001: {
     name: 'Combined Science',
     description: 'GCSE Combined Science',
