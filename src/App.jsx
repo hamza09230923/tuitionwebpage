@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import Home from './Home'
 import Login from './Login'
@@ -27,19 +27,6 @@ const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
 const LEGACY_WEBINAR_ROUTE = '/webinar'
 const LEGACY_WEBINAR_THANKS_ROUTE = '/webinar/thanks'
 
-function closeCalendlyPopup() {
-  if (typeof window === 'undefined') return
-  window.Calendly?.closePopupWidget?.()
-}
-
-function isCalendlyScheduledEvent(e) {
-  return (
-    e?.data?.event &&
-    e.data.event.indexOf('calendly') === 0 &&
-    e.data.event === 'calendly.event_scheduled'
-  )
-}
-
 function RouteTracker() {
   const { pathname } = useLocation()
   useEffect(() => {
@@ -48,41 +35,13 @@ function RouteTracker() {
   return null
 }
 
-function CalendlyPopupListener() {
-  const navigate = useNavigate()
-  const { pathname } = useLocation()
-  useEffect(() => {
-    const handler = (e) => {
-      if (isCalendlyScheduledEvent(e)) {
-        if (
-          pathname.startsWith(WEBINAR_ROUTE) ||
-          pathname.startsWith(LEGACY_WEBINAR_ROUTE)
-        ) {
-          if (typeof window !== 'undefined') {
-            window.sessionStorage.setItem('strategyCallRegistered', 'true')
-          }
-          closeCalendlyPopup()
-          navigate(WEBINAR_THANKS_ROUTE, { replace: true })
-        } else {
-          closeCalendlyPopup()
-          navigate('/booking-success', { replace: true })
-        }
-      }
-    }
-    window.addEventListener('message', handler)
-    return () => window.removeEventListener('message', handler)
-  }, [navigate, pathname])
-  return null
-}
-
 function App() {
   return (
     <Router>
       <RouteTracker />
-      <CalendlyPopupListener />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/booking" element={<Home />} />
+        <Route path="/booking" element={<Booking />} />
         <Route path="/login" element={<Login />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-confirmation" element={<PaymentConfirmation />} />

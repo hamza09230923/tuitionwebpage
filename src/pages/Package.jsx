@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { trackLeadConsultation } from '../utils/metaPixel'
 import {
   GraduationCap,
   Menu,
@@ -25,17 +26,6 @@ function trackLeadWhatsApp() {
   }
   if (window.fbq) {
     window.fbq('track', 'Lead', { content_name: 'WhatsApp Contact' })
-  }
-}
-
-function trackLeadConsultation() {
-  if (window.gtag) {
-    window.gtag('event', 'conversion', {
-      send_to: 'AW-11111111111/lead_consultation_RRR',
-    })
-  }
-  if (window.fbq) {
-    window.fbq('track', 'Lead', { content_name: 'Book Consultation' })
   }
 }
 
@@ -267,7 +257,7 @@ function Package() {
         window.location.href = getMathsScienceLink()
         break
       default:
-        openCalendlyPopup()
+        goToBooking()
     }
   }
 
@@ -303,44 +293,13 @@ function Package() {
         window.location.href = getBiologyLink()
         break
       default:
-        openCalendlyPopup()
+        goToBooking()
     }
   }
 
-  const openCalendlyWidget = () => {
-    const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
-
-    if (window.Calendly) {
-      window.Calendly.initPopupWidget({
-        url: calendlyUrl,
-        text: 'Book Free Consultation',
-        color: '#2563eb',
-        textColor: '#ffffff',
-        branding: true
-      })
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://assets.calendly.com/assets/external/widget.js'
-      script.async = true
-      script.onload = () => {
-        if (window.Calendly) {
-          window.Calendly.initPopupWidget({
-            url: calendlyUrl,
-            text: 'Book Free Consultation',
-            color: '#2563eb',
-            textColor: '#ffffff',
-            branding: true
-          })
-        }
-      }
-      document.body.appendChild(script)
-    }
-  }
-
-  const openCalendlyPopup = () => {
+  const goToBooking = () => {
     trackLeadConsultation()
     navigate('/booking')
-    openCalendlyWidget()
   }
 
   const bundles = [
@@ -762,7 +721,7 @@ function Package() {
                   </ul>
                   <button
                     type="button"
-                    onClick={() => item.id ? handleIndividualCheckout(item.id) : openCalendlyPopup}
+                    onClick={() => item.id ? handleIndividualCheckout(item.id) : goToBooking}
                     className="w-full py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                   >
                     Start Free Trial
@@ -906,7 +865,7 @@ function Package() {
                 <li>
                   <button
                     type="button"
-                    onClick={openCalendlyPopup}
+                    onClick={goToBooking}
                     className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition inline-block mt-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation text-sm sm:text-base"
                     aria-label="Book a consultation"
                   >

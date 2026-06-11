@@ -1,6 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, CheckCircle, Mail, MessageCircle, Video } from 'lucide-react'
+import BookingDetailsCard from '../components/BookingDetailsCard'
+import { getStrategyCallBooking } from '../utils/bookingStorage'
+import { trackStrategyCallBooked } from '../utils/metaPixel'
 
 const SUPPORT_EMAIL = 'myscholauk@gmail.com'
 const WHATSAPP_NUMBER = '447344193804'
@@ -8,18 +11,21 @@ const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`
 
 function WebinarThanks() {
   const location = useLocation()
-  const stateFlag = location.state && location.state.fromRegistration
-  const sessionFlag = typeof window !== 'undefined' &&
-    window.sessionStorage.getItem('strategyCallRegistered') === 'true'
-  const isRegistered = Boolean(stateFlag || sessionFlag)
+  const trackedRef = useRef(false)
+  const booking = location.state?.booking || getStrategyCallBooking()
+  const isRegistered = Boolean(
+    location.state?.fromRegistration ||
+    (typeof window !== 'undefined' && window.sessionStorage.getItem('strategyCallRegistered') === 'true')
+  )
   const whatsappQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
     WHATSAPP_LINK
   )}`
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    window.Calendly?.closePopupWidget?.()
-  }, [])
+    if (!booking || trackedRef.current) return
+    trackedRef.current = true
+    trackStrategyCallBooked(booking)
+  }, [booking])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -31,17 +37,26 @@ function WebinarThanks() {
               Booking confirmed
             </div>
             <h1 className="mt-4 text-3xl font-bold sm:text-4xl">
-              Your MySchola strategy call is booked.
+              {booking?.attendeeName
+                ? `Thanks, ${booking.attendeeName.split(' ')[0]}. Your strategy call is booked.`
+                : 'Your MySchola strategy call is booked.'}
             </h1>
             <p className="mt-3 max-w-3xl text-base text-white/90 sm:text-lg">
-              Check the email you used to book. Your confirmation contains your scheduled time,
-              your private Zoom link, and your reschedule options.
+              {booking?.attendeeEmail
+                ? `We sent a confirmation to ${booking.attendeeEmail} with your Zoom link and reschedule options.`
+                : 'Check the email you used to book for your scheduled time, Zoom link, and reschedule options.'}
             </p>
           </div>
 
           <div className="px-8 py-8 sm:px-10 sm:py-10">
             {isRegistered ? (
               <>
+                {booking ? (
+                  <div className="mb-8">
+                    <BookingDetailsCard booking={booking} />
+                  </div>
+                ) : null}
+
                 <div className="grid gap-4 lg:grid-cols-3">
                   <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
                     <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
@@ -52,7 +67,7 @@ function WebinarThanks() {
                       Check your inbox first
                     </p>
                     <p className="mt-2 text-sm text-gray-600">
-                      Search for your booking confirmation from MySchola or Calendly if it has not
+                      Search for your booking confirmation from MySchola or Cal.com if it has not
                       appeared yet.
                     </p>
                   </div>

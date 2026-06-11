@@ -1,6 +1,9 @@
 import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import CalInlineEmbed from './components/CalInlineEmbed'
+import { normalizeCalBooking, saveConsultationBooking } from './utils/bookingStorage'
+import { scrollToBookingSection } from './utils/scrollToBooking'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from './testimonials/testimonial2.mp4'
 import testimonialVideo3 from './testimonials/testmonial3.mp4'
@@ -17,53 +20,6 @@ import warwickLogo from './university/warwick.svg'
 // Exam board logos
 import aqaLogo from './university/aqa.jpg'
 import edexcelLogo from './university/edexcel-vector-logo.png'
-
-const CALENDLY_HOME_URL = (() => {
-  const baseUrl = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
-  if (typeof window === 'undefined') return baseUrl
-  return `${baseUrl}&embed_domain=${encodeURIComponent(window.location.hostname)}&embed_type=Inline`
-})()
-
-function LazyCalendly({ url, title }) {
-  const [shouldLoad, setShouldLoad] = useState(false)
-  const containerRef = useRef(null)
-
-  useEffect(() => {
-    if (!containerRef.current || shouldLoad) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setShouldLoad(true)
-        })
-      },
-      { rootMargin: '50px', threshold: 0.01 }
-    )
-
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [shouldLoad])
-
-  return (
-    <div ref={containerRef} className="h-full w-full">
-      {shouldLoad ? (
-        <iframe
-          src={url}
-          className="h-full w-full"
-          style={{ minHeight: '690px' }}
-          title={title}
-          frameBorder="0"
-          loading="lazy"
-        />
-      ) : (
-        <div className="flex min-h-[420px] w-full flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
-          <div className="mb-4 h-11 w-11 animate-spin rounded-full border-b-2 border-blue-600" />
-          <p className="text-sm font-semibold text-slate-600">Loading booking times...</p>
-        </div>
-      )}
-    </div>
-  )
-}
 
 function TestimonialVideo({ src, className, showControls = true }) {
   const videoRef = useRef(null)
@@ -111,8 +67,6 @@ function TestimonialVideo({ src, className, showControls = true }) {
 
 function Home() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const calendlyUrl = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
   const testimonialVideos = [
     { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
@@ -126,7 +80,6 @@ function Home() {
   const loopEndIndex = totalTestimonialVideos * 2
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFAQ, setOpenFAQ] = useState(null)
-  const [popupOpened, setPopupOpened] = useState(false)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(loopStartIndex)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
   const [visibleTestimonialCount, setVisibleTestimonialCount] = useState(() => {
@@ -177,86 +130,16 @@ function Home() {
     setActiveTestimonialIndex((prev) => prev + 1)
   }
 
-  const ensureCalendlyStylesheet = () => {
-    if (document.querySelector('link[data-calendly-widget-css]')) {
-      return
-    }
+  const handleBookingSuccess = useCallback((bookingData, v2Data) => {
+    const booking = saveConsultationBooking(bookingData, v2Data) || normalizeCalBooking(bookingData, v2Data)
+    navigate('/booking-success', { replace: true, state: { booking } })
+  }, [navigate])
 
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://assets.calendly.com/assets/external/widget.css'
-    link.setAttribute('data-calendly-widget-css', 'true')
-    document.head.appendChild(link)
-  }
-
-  const loadCalendlyScript = () => new Promise((resolve, reject) => {
-    if (window.Calendly) {
-      resolve(window.Calendly)
-      return
-    }
-
-    const existingScript = document.querySelector('script[data-calendly-widget-script]')
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(window.Calendly), { once: true })
-      existingScript.addEventListener('error', () => reject(new Error('Calendly script failed to load')), { once: true })
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://assets.calendly.com/assets/external/widget.js'
-    script.async = true
-    script.setAttribute('data-calendly-widget-script', 'true')
-    script.onload = () => resolve(window.Calendly)
-    script.onerror = () => reject(new Error('Calendly script failed to load'))
-    document.body.appendChild(script)
-  })
-
-  // Helper function to open Calendly popup (mobile-optimized)
-  const openCalendlyWidget = async () => {
-    ensureCalendlyStylesheet()
-
-    try {
-      await loadCalendlyScript()
-      if (window.Calendly) {
-        window.Calendly.initPopupWidget({
-          url: calendlyUrl,
-          text: 'Book Free Consultation',
-          color: '#2563eb',
-          textColor: '#ffffff',
-          branding: true
-        })
-        return
-      }
-    } catch (err) {
-      console.error('Calendly popup failed to load:', err)
-    }
-
-    window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
-  }
-
-  const openCalendlyPopup = () => {
+  const goToBooking = () => {
     trackLeadConsultation()
-    // Change URL to /booking without navigating away
     navigate('/booking', { replace: false })
-    // Open Calendly popup on the current page
-    void openCalendlyWidget()
+    scrollToBookingSection()
   }
-
-  // Auto-open popup when visiting /booking directly
-  useEffect(() => {
-    if (location.pathname === '/booking' && !popupOpened) {
-      trackLeadConsultation()
-      setPopupOpened(true)
-      // Small delay to ensure page is fully loaded
-      const timer = setTimeout(() => {
-        void openCalendlyWidget()
-      }, 300)
-      return () => clearTimeout(timer)
-    } else if (location.pathname !== '/booking') {
-      // Reset popup state when navigating away from /booking
-      setPopupOpened(false)
-    }
-  }, [location.pathname])
 
   return (
     <div className="min-h-screen bg-white">
@@ -381,7 +264,7 @@ function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 type="button"
-                onClick={openCalendlyPopup}
+                onClick={goToBooking}
                 className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-blue-700 active:bg-blue-800 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                 aria-label="Book a free consultation"
               >
@@ -813,10 +696,11 @@ function Home() {
             </p>
             <p className="text-white text-sm">No card required • Free 15-minute consultation</p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-white/10 bg-white">
-            <LazyCalendly
-              url={CALENDLY_HOME_URL}
-              title="Book your free GCSE consultation"
+          <div className="overflow-hidden rounded-xl border border-white/20 bg-slate-950 shadow-2xl">
+            <CalInlineEmbed
+              theme="dark"
+              elementId="my-cal-inline-parentconsultation-home"
+              onBookingSuccess={handleBookingSuccess}
             />
           </div>
         </div>
@@ -1104,7 +988,7 @@ function Home() {
                 <li>
                   <button
                     type="button"
-                    onClick={openCalendlyPopup}
+                    onClick={goToBooking}
                     className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition inline-block mt-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation text-sm sm:text-base"
                     aria-label="Book a consultation"
                   >

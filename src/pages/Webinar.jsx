@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import CalInlineEmbed from '../components/CalInlineEmbed'
+import { normalizeCalBooking, saveStrategyCallBooking } from '../utils/bookingStorage'
 import {
   ArrowLeft,
   ArrowRight,
@@ -22,56 +25,6 @@ import warwickLogo from '../university/warwick.svg'
 const HERO_BADGE = 'Free GCSE Strategy Call'
 const YOUTUBE_VIDEO_ID = 'fSvTYTwv9ac'
 const COUNT_UP_DURATION_MS = 1500
-const CALENDLY_WEBINAR_URL = (() => {
-  const baseUrl = 'https://calendly.com/myscholaukwebinar/new-meeting?month=2026-03'
-  if (typeof window === 'undefined') return baseUrl
-  return `${baseUrl}&embed_domain=${encodeURIComponent(window.location.hostname)}&embed_type=Inline`
-})()
-
-// eslint-disable-next-line react/prop-types
-function LazyCalendly({ url, title }) {
-  const [shouldLoad, setShouldLoad] = useState(false)
-  const containerRef = useRef(null)
-
-  useEffect(() => {
-    if (!containerRef.current || shouldLoad) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setShouldLoad(true)
-          }
-        })
-      },
-      { rootMargin: '50px', threshold: 0.01 }
-    )
-
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [shouldLoad])
-
-  return (
-    <div ref={containerRef} className="h-full w-full">
-      {shouldLoad ? (
-        <iframe
-          src={url}
-          className="h-full w-full"
-          style={{ minHeight: '690px' }}
-          title={title}
-          frameBorder="0"
-          loading="lazy"
-        />
-      ) : (
-        <div className="flex min-h-[420px] w-full flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
-          <div className="mb-4 h-11 w-11 animate-spin rounded-full border-b-2 border-blue-600" />
-          <p className="text-sm font-semibold text-slate-600">Loading booking times...</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // eslint-disable-next-line react/prop-types
 function TestimonialVideo({ src, className }) {
   const videoRef = useRef(null)
@@ -264,6 +217,16 @@ function YouTubeFacade({ videoId, title }) {
 }
 
 function Webinar() {
+  const navigate = useNavigate()
+
+  const handleBookingSuccess = useCallback((bookingData, v2Data) => {
+    const booking = saveStrategyCallBooking(bookingData, v2Data) || normalizeCalBooking(bookingData, v2Data)
+    navigate('/book-strategy-call/thanks', {
+      replace: true,
+      state: { fromRegistration: true, booking },
+    })
+  }, [navigate])
+
   const testimonialVideos = [
     { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
@@ -456,22 +419,17 @@ function Webinar() {
           </div>
         </section>
 
-        <section id="booking" className="mx-auto mt-10 max-w-5xl rounded-2xl border border-white/10 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
-          <div className="mb-4 text-center">
+        <section id="booking" className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+          <div className="px-4 pb-2 pt-5 text-center sm:px-5">
             <div className="animate-attention mb-3 inline-block rounded-lg bg-red-600 px-4 py-2 text-sm font-black uppercase tracking-widest text-white sm:text-base">
               ATTENTION PARENTS OF YEAR 9 10 & 11
             </div>
-            <h2 className="text-2xl font-black text-slate-900">Choose your strategy call time</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-600">
-              Select a slot below and Calendly will send the confirmation.
+            <h2 className="text-2xl font-black text-white">Choose your strategy call time</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-300">
+              Select a slot below and we&apos;ll send the confirmation.
             </p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-slate-100">
-            <LazyCalendly
-              url={CALENDLY_WEBINAR_URL}
-              title="Book your GCSE strategy call"
-            />
-          </div>
+          <CalInlineEmbed theme="dark" onBookingSuccess={handleBookingSuccess} />
         </section>
 
         <section className="mx-auto mt-12 max-w-5xl" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 500px' }}>

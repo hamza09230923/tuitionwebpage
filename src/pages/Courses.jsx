@@ -153,45 +153,9 @@ function Courses() {
     setActiveTestimonialIndex((prev) => prev + 1)
   }
 
-  const openCalendlyWidget = () => {
-    const calendlyUrl = 'https://calendly.com/admin-myschola/30min'
-
-    if (window.Calendly) {
-      window.Calendly.initPopupWidget({
-        url: calendlyUrl,
-        text: 'Book Free Consultation',
-        color: '#2563eb',
-        textColor: '#ffffff',
-        branding: true
-      })
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://assets.calendly.com/assets/external/widget.js'
-      script.async = true
-      script.onload = () => {
-        if (window.Calendly) {
-          window.Calendly.initPopupWidget({
-            url: calendlyUrl,
-            text: 'Book Free Consultation',
-            color: '#2563eb',
-            textColor: '#ffffff',
-            branding: true
-          })
-        }
-      }
-      document.body.appendChild(script)
-      setTimeout(() => {
-        if (!window.Calendly) {
-          window.open(calendlyUrl, '_blank', 'noopener,noreferrer')
-        }
-      }, 1000)
-    }
-  }
-
-  const openCalendlyPopup = () => {
+  const goToBooking = () => {
     trackLeadConsultation()
     navigate('/booking', { replace: false })
-    openCalendlyWidget()
   }
 
   const [typedText, setTypedText] = useState('')
@@ -566,7 +530,7 @@ function Courses() {
                 <li>
                   <button
                     type="button"
-                    onClick={openCalendlyPopup}
+                    onClick={goToBooking}
                     className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition inline-block mt-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation text-sm sm:text-base"
                     aria-label="Book a consultation"
                   >
