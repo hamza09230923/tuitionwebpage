@@ -11,6 +11,7 @@
     <link rel="shortcut icon" href="/favicon.svg" />
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>.seo-fallback{display:none}</style>
     <meta name="description" content="Online GCSE tuition for UK Years 9-11 students. Structured Maths, English and Science group lessons for AQA, Edexcel and OCR, designed for parents seeking reliable tuition." />
     <title>MySchola | GCSE Group Tuition for Years 9-11 (AQA, Edexcel, OCR)</title>
     
@@ -57,22 +58,31 @@
     <meta name="keywords" content="GCSE group tuition, Year 9 tuition, Year 10 tuition, Year 11 tuition, online GCSE tutoring, AQA tutoring, Edexcel tutoring, OCR tutoring, UK GCSE tuition" />
     <link rel="canonical" href="https://myschola.uk/" />
 
-    <!-- Meta Pixel Code - Async loading for performance -->
+    <!-- Meta Pixel Code - queue events immediately, load the network script after first interaction -->
     <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      !function(f,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window);
       fbq('init', '2772806336415328');
-      fbq('track', 'PageView');
+      !function(d){
+        let loaded=false;
+        const load=function(){
+          if(loaded)return;
+          loaded=true;
+          const script=d.createElement('script');
+          script.async=true;
+          script.src='https://connect.facebook.net/en_US/fbevents.js';
+          d.head.appendChild(script);
+        };
+        ['pointerdown','keydown','scroll'].forEach(function(event){
+          window.addEventListener(event,load,{once:true,passive:true});
+        });
+        window.setTimeout(load,8000);
+      }(document);
     </script>
-    <script type="module" crossorigin src="/assets/index-ChhyO_fu.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/react-vendor-CM6YM4zk.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BKBj6PC7.css">
+    <script type="module" crossorigin src="/assets/index-Ck1i8eiP.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-vendor-BwgRIuYq.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-B4_Ubwlw.css">
   </head>
   <body>
     <!-- Meta Pixel noscript (must be in body: img inside noscript in head is invalid HTML) -->
@@ -81,7 +91,7 @@
       alt=""
     /></noscript>
     <div id="root">
-      <main>
+      <main class="seo-fallback">
           <h1>Online GCSE Group Tuition for Years 9-11</h1>
           <p>
             MySchola helps UK parents find focused online GCSE tuition for children in Years 9, 10 and 11. Our small group lessons support students who want to strengthen their knowledge, improve confidence and prepare properly for GCSE exams. Lessons are delivered online, making it easier for families to access structured tuition from home.
