@@ -22,46 +22,72 @@ import aqaLogo from './university/aqa.jpg'
 import edexcelLogo from './university/edexcel-vector-logo.png'
 
 function TestimonialVideo({ src, className, showControls = true }) {
-  const videoRef = useRef(null)
+  const containerRef = useRef(null)
+  const [shouldLoad, setShouldLoad] = useState(false)
 
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    const handleLoadedMetadata = () => {
-      if (video.readyState >= 2) {
-        video.currentTime = 0.01
-        video.pause()
-      }
-    }
-
-    video.addEventListener('loadedmetadata', handleLoadedMetadata)
-
-    if (video.readyState < 2) {
-      video.load()
-    } else {
-      handleLoadedMetadata()
-    }
-
-    return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-    }
-  }, [src])
+    if (!containerRef.current || shouldLoad) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoad(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '150px', threshold: 0.01 }
+    )
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [shouldLoad])
 
   return (
-    <video
-      ref={videoRef}
-      className={className}
-      controls={showControls}
-      playsInline
-      preload="metadata"
-      width={640}
-      height={360}
+    <div ref={containerRef} className="aspect-video bg-slate-100">
+      {shouldLoad ? (
+        <video
+          className={className}
+          controls={showControls}
+          playsInline
+          preload="metadata"
+          width={640}
+          height={360}
+        >
+          <source src={src} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      ) : null}
+    </div>
+  )
+}
+
+// eslint-disable-next-line react/prop-types
+function DeferredSection({ children, className = '', ...props }) {
+  const sectionRef = useRef(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    if (!sectionRef.current || isVisible) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '300px 0px', threshold: 0.01 }
+    )
+    observer.observe(sectionRef.current)
+    return () => observer.disconnect()
+  }, [isVisible])
+
+  return (
+    <section
+      ref={sectionRef}
+      className={`deferred-section ${className}`}
+      style={isVisible ? undefined : { minHeight: '600px' }}
+      {...props}
     >
-      <source src={src} type="video/mp4" />
-      <track kind="captions" src="" label="English" srcLang="en" />
-      Your browser does not support the video tag.
-    </video>
+      {isVisible ? children : null}
+    </section>
   )
 }
 
@@ -277,7 +303,7 @@ function Home() {
       </section>
 
       {/* How Lessons Work Section */}
-      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="how-it-works-heading">
+      <DeferredSection id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="how-it-works-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="how-it-works-heading" className="text-4xl font-bold text-center mb-12">How Our Lessons Work</h2>
           <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
@@ -328,10 +354,10 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="benefits-heading">
+      <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="benefits-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="benefits-heading" className="text-4xl font-bold text-center mb-4">Benefits for Parents & Students</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
@@ -392,10 +418,10 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Social Proof / Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
+      <DeferredSection id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
         <div className="max-w-6xl mx-auto text-center">
           <h2 id="video-testimonials-heading" className="text-4xl font-bold mb-4 text-gray-900">Video Testimonials</h2>
           <p className="text-gray-600 mb-12">Short clips from students, with the subject and grade improvements below.</p>
@@ -476,9 +502,9 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
-      <section id="text-testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="testimonials-heading">
+      <DeferredSection id="text-testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="testimonials-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="testimonials-heading" className="text-4xl font-bold text-center mb-4">What Parents & Students Say</h2>
           <p className="text-center text-gray-600 mb-12">Real results from real families</p>
@@ -553,10 +579,10 @@ function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Subjects/Services Section */}
-      <section id="subjects" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="subjects-heading">
+      <DeferredSection id="subjects" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="subjects-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
@@ -582,10 +608,10 @@ function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* University Tutors Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white" aria-labelledby="universities-heading">
+      <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8 bg-white" aria-labelledby="universities-heading">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 id="universities-heading" className="text-4xl font-bold mb-4 text-gray-900">
@@ -644,10 +670,10 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Exam Boards Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="exam-boards-heading">
+      <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="exam-boards-heading">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 id="exam-boards-heading" className="text-4xl font-bold mb-4 text-gray-900">
@@ -684,10 +710,10 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Book Call Section */}
-      <section id="book-call" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-700 to-indigo-700" aria-labelledby="book-call-heading">
+      <DeferredSection id="book-call" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-700 to-indigo-700" aria-labelledby="book-call-heading">
         <div className="max-w-5xl mx-auto">
           <div className="text-center text-white mb-8">
             <h2 id="book-call-heading" className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 px-2">Ready to Start Your Child's GCSE Success Journey?</h2>
@@ -704,10 +730,10 @@ function Home() {
             />
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="faq-heading">
+      <DeferredSection id="faq" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="faq-heading">
         <div className="max-w-4xl mx-auto">
           <h2 id="faq-heading" className="text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-4">
@@ -770,10 +796,10 @@ function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="contact-heading">
+      <DeferredSection id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="contact-heading">
         <div className="max-w-4xl mx-auto">
           <h2 id="contact-heading" className="text-4xl font-bold text-center mb-12">Get in Touch</h2>
           <div className="grid md:grid-cols-2 gap-8">
@@ -794,10 +820,10 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Privacy Policy Section */}
-      <section id="privacy-policy" className="py-20 px-4 sm:px-6 lg:px-8">
+      <DeferredSection id="privacy-policy" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-12">Privacy Policy</h2>
           <div className="prose max-w-none text-gray-600 space-y-6">
@@ -830,10 +856,10 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       {/* Refund & Cancellation Policy Section */}
-      <section id="terms-of-service" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <DeferredSection id="terms-of-service" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4">Refund & Cancellation Policy</h2>
           <p className="text-center text-gray-500 mb-12">MySchola - Last updated: 9 March 2026</p>
@@ -936,7 +962,7 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </DeferredSection>
 
       </main>
       
