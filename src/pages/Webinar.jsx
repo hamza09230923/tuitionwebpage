@@ -25,6 +25,9 @@ import warwickLogo from '../university/warwick.svg'
 const HERO_BADGE = 'Free GCSE Strategy Call'
 const YOUTUBE_VIDEO_ID = 'fSvTYTwv9ac'
 const COUNT_UP_DURATION_MS = 1500
+const STRATEGY_CALL_TITLE = 'Free GCSE Strategy Call for Parents | MySchola UK'
+const STRATEGY_CALL_DESCRIPTION = "Book a free GCSE strategy call for your Year 9-11 child. Discuss grades, learning gaps and AQA, Edexcel or OCR exam support with MySchola."
+const STRATEGY_CALL_URL = 'https://myschola.uk/book-strategy-call'
 // eslint-disable-next-line react/prop-types
 function TestimonialVideo({ src, className }) {
   const videoRef = useRef(null)
@@ -194,7 +197,7 @@ function YouTubeFacade({ videoId, title }) {
         className="h-full w-full object-cover"
         width={640}
         height={480}
-        fetchpriority="high"
+        fetchPriority="high"
         decoding="async"
         onError={(e) => {
           e.currentTarget.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`
@@ -218,6 +221,38 @@ function YouTubeFacade({ videoId, title }) {
 
 function Webinar() {
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const previousTitle = document.title
+    const description = document.querySelector('meta[name="description"]')
+    const canonical = document.querySelector('link[rel="canonical"]')
+    const ogUrl = document.querySelector('meta[property="og:url"]')
+    const ogTitle = document.querySelector('meta[property="og:title"]')
+    const ogDescription = document.querySelector('meta[property="og:description"]')
+    const previous = {
+      description: description?.getAttribute('content'),
+      canonical: canonical?.getAttribute('href'),
+      ogUrl: ogUrl?.getAttribute('content'),
+      ogTitle: ogTitle?.getAttribute('content'),
+      ogDescription: ogDescription?.getAttribute('content'),
+    }
+
+    document.title = STRATEGY_CALL_TITLE
+    description?.setAttribute('content', STRATEGY_CALL_DESCRIPTION)
+    canonical?.setAttribute('href', STRATEGY_CALL_URL)
+    ogUrl?.setAttribute('content', STRATEGY_CALL_URL)
+    ogTitle?.setAttribute('content', STRATEGY_CALL_TITLE)
+    ogDescription?.setAttribute('content', STRATEGY_CALL_DESCRIPTION)
+
+    return () => {
+      document.title = previousTitle
+      if (previous.description) description?.setAttribute('content', previous.description)
+      if (previous.canonical) canonical?.setAttribute('href', previous.canonical)
+      if (previous.ogUrl) ogUrl?.setAttribute('content', previous.ogUrl)
+      if (previous.ogTitle) ogTitle?.setAttribute('content', previous.ogTitle)
+      if (previous.ogDescription) ogDescription?.setAttribute('content', previous.ogDescription)
+    }
+  }, [])
 
   const handleBookingSuccess = useCallback((bookingData, v2Data) => {
     const booking = saveStrategyCallBooking(bookingData, v2Data) || normalizeCalBooking(bookingData, v2Data)
@@ -419,17 +454,23 @@ function Webinar() {
           </div>
         </section>
 
-        <section id="booking" className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
-          <div className="px-4 pb-2 pt-5 text-center sm:px-5">
-            <div className="animate-attention mb-3 inline-block rounded-lg bg-red-600 px-4 py-2 text-sm font-black uppercase tracking-widest text-white sm:text-base">
-              ATTENTION PARENTS OF YEAR 9 10 & 11
-            </div>
-            <h2 className="text-2xl font-black text-white">Choose your strategy call time</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-300">
-              Select a slot below and we&apos;ll send the confirmation.
+        <section id="booking" className="mx-auto mt-10 max-w-5xl rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-700 px-4 py-10 shadow-2xl sm:px-8 sm:py-12">
+          <div className="mb-8 text-center text-white">
+            <h2 className="text-3xl font-bold sm:text-4xl">
+              Ready to Start Your Child&apos;s GCSE Success Journey?
+            </h2>
+            <p className="mt-4 text-base text-white sm:text-lg">
+              Book a free consultation to discuss your child&apos;s needs and see how we can help them achieve their goals.
             </p>
+            <p className="mt-2 text-sm text-white">No card required • Free 15-minute consultation</p>
           </div>
-          <CalInlineEmbed theme="dark" onBookingSuccess={handleBookingSuccess} />
+          <div className="overflow-hidden rounded-xl border border-white/20 bg-slate-950 shadow-2xl">
+            <CalInlineEmbed
+              theme="dark"
+              elementId="my-cal-inline-parentconsultation-strategy-call"
+              onBookingSuccess={handleBookingSuccess}
+            />
+          </div>
         </section>
 
         <section className="mx-auto mt-12 max-w-5xl" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 500px' }}>
