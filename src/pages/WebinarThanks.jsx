@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, CheckCircle, Mail, MessageCircle, Video } from 'lucide-react'
 import BookingDetailsCard from '../components/BookingDetailsCard'
 import { getStrategyCallBooking } from '../utils/bookingStorage'
-import { trackStrategyCallBooked } from '../utils/metaPixel'
+import { trackSchedule } from '../utils/metaPixel'
 
 const SUPPORT_EMAIL = 'myscholauk@gmail.com'
 const WHATSAPP_NUMBER = '447344193804'
@@ -24,7 +24,7 @@ function WebinarThanks() {
   useEffect(() => {
     if (!booking || trackedRef.current) return
     trackedRef.current = true
-    trackStrategyCallBooked(booking)
+    trackSchedule(booking)
   }, [booking])
 
   return (

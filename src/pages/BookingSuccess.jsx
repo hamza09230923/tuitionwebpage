@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ArrowLeft, CalendarCheck, GraduationCap } from 'lucide-react'
 import BookingDetailsCard from '../components/BookingDetailsCard'
 import { getConsultationBooking } from '../utils/bookingStorage'
-import { trackConsultationBooked } from '../utils/metaPixel'
+import { trackSchedule } from '../utils/metaPixel'
 
 function BookingSuccess() {
   const location = useLocation()
@@ -13,7 +13,7 @@ function BookingSuccess() {
   useEffect(() => {
     if (!booking || trackedRef.current) return
     trackedRef.current = true
-    trackConsultationBooked(booking)
+    trackSchedule(booking)
   }, [booking])
 
   return (

@@ -59,7 +59,7 @@ function TestimonialVideo({ src, className, showControls = true }) {
       height={360}
     >
       <source src={src} type="video/mp4" />
-      <track kind="captions" src="" label="English" srclang="en" />
+      <track kind="captions" src="" label="English" srcLang="en" />
       Your browser does not support the video tag.
     </video>
   )

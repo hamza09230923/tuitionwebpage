@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, FileText, Clock, Download, ExternalLink, Send, CheckCircle, ChevronDown, ChevronUp, Folder } from 'lucide-react'
+import { ArrowLeft, FileText, Clock, Download, ExternalLink, Send, CheckCircle, ChevronDown, ChevronUp, Folder, Video } from 'lucide-react'
+import homeworkSubmissionVideo from '../testimonials/homeworksubmission.mp4'
 import { auth, db } from '../firebase'
 import { collection, query, where, getDocs, addDoc, updateDoc, serverTimestamp, doc } from 'firebase/firestore'
 import { getAuthorizedStudentSubject } from '../utils/studentAccess'
@@ -33,6 +34,47 @@ const isHomeworkHiddenForStudent = (homework, studentData) => {
   return title
     ? getHiddenHomeworkTitleKeywords(studentData).some((keyword) => title.includes(keyword))
     : false
+}
+
+function HomeworkSubmissionGuide() {
+  return (
+    <section className="mb-8 rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="px-6 py-6 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">Homework submission tutorial</p>
+            <h2 className="text-2xl font-semibold text-gray-900 mt-2">Submit your homework the right way</h2>
+            <p className="mt-3 text-gray-600 leading-7">
+              Watch this short guide and follow the steps below to submit your homework with a shareable Google Docs link.
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-gray-700">
+              <li className="flex items-start gap-2"><span className="mt-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-blue-600" />Open the assignment and review the instructions.</li>
+              <li className="flex items-start gap-2"><span className="mt-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-blue-600" />Complete your work in Google Docs or upload the file if provided.</li>
+              <li className="flex items-start gap-2"><span className="mt-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-blue-600" />Copy the shareable link and make sure sharing is enabled.</li>
+              <li className="flex items-start gap-2"><span className="mt-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-blue-600" />Paste the link in the submission form and click Submit.</li>
+            </ul>
+          </div>
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm sm:p-6 lg:max-w-sm">
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
+              <Video className="h-4 w-4 text-blue-600" />
+              Homework video guide
+            </div>
+            <div className="aspect-video overflow-hidden rounded-2xl bg-black">
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-cover"
+              >
+                <source src={homeworkSubmissionVideo} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 function Homework() {
@@ -319,6 +361,8 @@ function Homework() {
           </div>
           <p className="text-gray-600">Download your homework assignments.</p>
         </div>
+
+        <HomeworkSubmissionGuide />
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">

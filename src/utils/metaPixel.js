@@ -38,31 +38,22 @@ export function trackStartTrial() {
   try {
     if (window.location.hostname !== 'myschola.uk') return
     window.fbq('track', 'StartTrial', { value: 0, currency: 'GBP', predicted_ltv: 0 })
-  } catch (_) {}
+  } catch {
+    // Tracking failures must not interrupt the booking flow.
+  }
 }
 
 function toMetaParamKey(key) {
   return key.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase().slice(0, 40)
 }
 
-function buildBookingMetaParams(booking, fallbackContentName) {
-  const params = {
-    content_name: booking.title || fallbackContentName,
-    content_category: 'GCSE Tuition',
-  }
+function buildBookingMetaParams(booking) {
+  const params = {}
 
-  if (booking.uid) params.booking_id = booking.uid
-  if (booking.status) params.status = booking.status
   if (booking.attendeeName) params.attendee_name = booking.attendeeName
   if (booking.attendeeEmail) params.attendee_email = booking.attendeeEmail
-  if (booking.phone) params.phone = booking.phone
-  if (booking.startTime) params.appointment_time = booking.startTime
-  if (booking.endTime) params.appointment_end_time = booking.endTime
-  if (booking.eventTypeId) params.event_type_id = String(booking.eventTypeId)
-  if (booking.hostName) params.host_name = booking.hostName
   if (booking.childName) params.child_name = booking.childName
   if (booking.childYear) params.child_year = booking.childYear
-  if (booking.currentGrades) params.current_grades = booking.currentGrades
   if (booking.subjects) params.subjects = booking.subjects
   if (booking.willAttend) params.will_attend = booking.willAttend
 
@@ -81,37 +72,23 @@ function buildBookingMetaParams(booking, fallbackContentName) {
   return params
 }
 
+function hasTrackedSchedule(booking) {
+  if (!booking.uid || typeof window === 'undefined') return false
+
+  const key = `metaScheduleTracked:${booking.uid}`
+  if (window.sessionStorage.getItem(key)) return true
+
+  window.sessionStorage.setItem(key, 'true')
+  return false
+}
+
 /** Primary conversion event — optimize Meta campaigns for Schedule. */
-export function trackSchedule(booking, fallbackContentName = 'Consultation Booked') {
+export function trackSchedule(booking) {
   if (typeof window === 'undefined' || !window.fbq || !booking) return
-  window.fbq('track', 'Schedule', buildBookingMetaParams(booking, fallbackContentName))
+  if (hasTrackedSchedule(booking)) return
+  window.fbq('track', 'Schedule', buildBookingMetaParams(booking))
 }
 
-export function trackBookNow(booking) {
-  if (typeof window === 'undefined' || !window.fbq) return
-  const params = { value: 0, currency: 'GBP' }
-  if (booking?.uid) params.booking_id = booking.uid
-  if (booking?.attendeeName) params.attendee_name = booking.attendeeName
-  window.fbq('track', 'BOOK NOW', params)
-}
-
-export function trackStrategyCallBooked(booking) {
-  if (typeof window === 'undefined' || !window.fbq || !booking) return
-  const params = buildBookingMetaParams(booking, 'Strategy Call Booked')
-  trackSchedule(booking, 'Strategy Call Booked')
-  window.fbq('track', 'Lead', params)
-  trackBookNow(booking)
-}
-
-export function trackConsultationBooked(booking) {
-  if (typeof window === 'undefined' || !window.fbq || !booking) return
-  const params = buildBookingMetaParams(booking, 'Consultation Booked')
-  trackSchedule(booking, 'Consultation Booked')
-  window.fbq('track', 'Lead', params)
-  trackBookNow(booking)
-}
-
-/** @deprecated Use trackConsultationBooked */
 export function trackBookingComplete() {
   trackLeadConsultation()
 }
