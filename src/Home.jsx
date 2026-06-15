@@ -1,4 +1,4 @@
-import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Shield, Target, TrendingUp, Mail, Phone, Clock, FileText, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CalInlineEmbed from './components/CalInlineEmbed'
@@ -61,32 +61,13 @@ function TestimonialVideo({ src, className, showControls = true }) {
 
 // eslint-disable-next-line react/prop-types
 function DeferredSection({ children, className = '', ...props }) {
-  const sectionRef = useRef(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    if (!sectionRef.current || isVisible) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '300px 0px', threshold: 0.01 }
-    )
-    observer.observe(sectionRef.current)
-    return () => observer.disconnect()
-  }, [isVisible])
-
   return (
     <section
-      ref={sectionRef}
       className={`deferred-section ${className}`}
-      style={isVisible ? undefined : { minHeight: '600px' }}
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}
       {...props}
     >
-      {isVisible ? children : null}
+      {children}
     </section>
   )
 }
@@ -277,15 +258,12 @@ function Home() {
           <div className="text-center">
             <div className="relative inline-block px-2">
               <h1 className="relative z-10 text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
-                MySchola: #1 GCSE Tutoring Platform for
-                <span className="text-blue-600"> Years 9-11</span>
+                GCSE Tuition That Helps Students Close Gaps, Build Confidence and
+                <span className="text-blue-600"> Improve Grades</span>
               </h1>
             </div>
-            <p className="text-lg sm:text-xl text-gray-600 mb-3 sm:mb-4 max-w-3xl mx-auto px-2">
-              <strong>GCSE Maths, English &amp; Science</strong> via Zoom
-            </p>
-            <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-              Personalised lessons with one-to-one support from expert tutors. Your child only sees the teacher - no distractions, maximum focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons.
+            <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-4xl mx-auto px-2">
+              Online small-group Maths, English and Science tuition for Year 9, Year 10 and Year 11 students, built around exam technique, weekly structure and clear parent feedback.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -294,10 +272,17 @@ function Home() {
                 className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-blue-700 active:bg-blue-800 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                 aria-label="Book a free consultation"
               >
-                Book Free Consultation
+                Book a Free Consultation
                 <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
               </button>
+              <Link
+                to="/courses"
+                className="bg-white text-blue-700 border-2 border-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-blue-50 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px]"
+              >
+                View GCSE Courses
+              </Link>
             </div>
+            <p className="mt-6 text-sm text-gray-600">Free consultation and trial lesson available. No card required.</p>
           </div>
         </div>
       </section>
@@ -305,52 +290,38 @@ function Home() {
       {/* How Lessons Work Section */}
       <DeferredSection id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="how-it-works-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 id="how-it-works-heading" className="text-4xl font-bold text-center mb-12">How Our Lessons Work</h2>
+          <h2 id="how-it-works-heading" className="text-4xl font-bold text-center mb-4">How MySchola Works</h2>
           <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
-            A clear, supportive structure that keeps students confident and parents fully in the loop.
+            Good GCSE tuition starts with understanding what your child needs. We use a simple four-step process so students receive focused support and parents know what happens next.
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <UserCheck className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">One-to-One Support</h3>
-              <p className="text-gray-600">Personalised lessons with one-to-one support. Your child only sees the teacher, ensuring privacy and focus.</p>
+              <h3 className="text-xl font-semibold mb-2">1. Free Consultation</h3>
+              <p className="text-gray-600">Tell us about your child's current grades, confidence, school targets and the areas causing concern. We will explain how the lessons work and whether MySchola is a suitable fit.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <ZoomIn className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Via Zoom</h3>
-              <p className="text-gray-600">Convenient online lessons from the comfort of your home. High-quality video and interactive whiteboard. Webcam and microphone are optional - we use Zoom chat to check engagement, and parents can monitor participation for privacy.</p>
+              <h3 className="text-xl font-semibold mb-2">2. Identify Gaps and Exam Board</h3>
+              <p className="text-gray-600">We identify weak topics, confirm whether your child studies AQA, Edexcel or OCR, and consider whether Foundation or Higher content is most relevant.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <Lock className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Student Privacy</h3>
-              <p className="text-gray-600">Your child only sees the teacher. Private, secure sessions designed for maximum learning focus. Webcam and mic are optional - we use Zoom chat for communication, and parents can check engagement for privacy reasons.</p>
+              <h3 className="text-xl font-semibold mb-2">3. Join Weekly Small-Group Lessons</h3>
+              <p className="text-gray-600">Your child joins structured online GCSE group tuition with clear explanations, guided practice, exam questions and opportunities to learn from other students' questions.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <MessageCircle className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">24/7 Personalised Support</h3>
-              <p className="text-gray-600">Students can ask questions anytime between lessons. Tutors respond with personalised explanations, feedback, and next-step guidance.</p>
-            </div>
-            <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-                <Users className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Parent Evenings</h3>
-              <p className="text-gray-600">Regular parent evenings to review progress, share targets, and agree on the next steps for maximum grade improvement.</p>
-            </div>
-            <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-                <FileText className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Regular Exam-Style Tests</h3>
-              <p className="text-gray-600">We set regular exams and topic checks to track progress, build exam technique, and close gaps quickly.</p>
+              <h3 className="text-xl font-semibold mb-2">4. Track Progress</h3>
+              <p className="text-gray-600">Homework, tutor feedback and parent updates help everyone see what is improving, which topics need more work and what the next priorities should be.</p>
             </div>
           </div>
         </div>
@@ -359,9 +330,9 @@ function Home() {
       {/* Benefits Section */}
       <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="benefits-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 id="benefits-heading" className="text-4xl font-bold text-center mb-4">Benefits for Parents & Students</h2>
+          <h2 id="benefits-heading" className="text-4xl font-bold text-center mb-4">Consistent Support That Can Lead to Real Progress</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Why thousands of families choose MySchola for GCSE success
+            Many of our students have improved by two or more grades after consistent lessons, homework and exam practice. Individual results vary, but regular attendance and active practice give students a clearer route forward.
           </p>
           <div className="mb-12 flex justify-center">
             <img
@@ -377,44 +348,44 @@ function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
                 <TrendingUp className="h-6 w-6 text-green-500 mr-2" aria-hidden="true" />
-                <h3 className="text-xl font-semibold">Grade Improvement</h3>
+                <h3 className="text-xl font-semibold">Encouraging Grade Progress</h3>
               </div>
-              <p className="text-gray-600">Students consistently improve by 2-3 grades with our proven teaching methods and personalised approach.</p>
+              <p className="text-gray-600">We have supported students who began with Grade 3 predictions and later achieved Grade 8 or 9 outcomes. These are individual stories, not guaranteed results, and they came through sustained effort, lessons and practice.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
                 <Award className="h-6 w-6 text-blue-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Confidence Building</h3>
               </div>
-              <p className="text-gray-600">Watch your child's confidence soar as they master difficult concepts and see their progress week by week.</p>
+              <p className="text-gray-600">Students build confidence by revisiting difficult topics, asking questions and seeing that they can answer increasingly challenging exam questions.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
                 <Target className="h-6 w-6 text-red-500 mr-2" aria-hidden="true" />
                 <h3 className="text-xl font-semibold">Exam Focus</h3>
               </div>
-              <p className="text-gray-600">Targeted exam preparation with past papers, exam techniques, and strategies tailored to GCSE requirements.</p>
+              <p className="text-gray-600">Structured GCSE exam practice uses past-paper questions, mark schemes and timed tasks to develop stronger exam technique.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
                 <Clock className="h-6 w-6 text-purple-500 mr-2" aria-hidden="true" />
-                <h3 className="text-xl font-semibold">Flexible Scheduling</h3>
+                <h3 className="text-xl font-semibold">Weekly Homework and Feedback</h3>
               </div>
-              <p className="text-gray-600">Choose times that work around your family's schedule. Evening and weekend slots available.</p>
+              <p className="text-gray-600">Homework reinforces each lesson, while feedback helps students understand mistakes and take responsibility for their next steps.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
                 <Users className="h-6 w-6 text-orange-500 mr-2" aria-hidden="true" />
-                <h3 className="text-xl font-semibold">Expert Tutors</h3>
+                <h3 className="text-xl font-semibold">Monthly Parent Progress Calls</h3>
               </div>
-              <p className="text-gray-600">Qualified UK teachers with DBS checks and proven track records of GCSE success.</p>
+              <p className="text-gray-600">Monthly Zoom progress calls give parents a clear view of attendance, homework, strengths, concerns and current priorities.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
                 <BookOpen className="h-6 w-6 text-indigo-500 mr-2" aria-hidden="true" />
-                <h3 className="text-xl font-semibold">Personalised Curriculum</h3>
+                <h3 className="text-xl font-semibold">AQA, Edexcel and OCR Focus</h3>
               </div>
-              <p className="text-gray-600">Lessons tailored to your child's learning style, pace, and specific areas that need improvement.</p>
+              <p className="text-gray-600">Lessons account for the student's exam board, current level and topic gaps so practice stays relevant to the course they are taking.</p>
             </div>
           </div>
         </div>
@@ -507,22 +478,7 @@ function Home() {
       <DeferredSection id="text-testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="testimonials-heading">
         <div className="max-w-7xl mx-auto">
           <h2 id="testimonials-heading" className="text-4xl font-bold text-center mb-4">What Parents & Students Say</h2>
-          <p className="text-center text-gray-600 mb-12">Real results from real families</p>
-{/* Results/Stats */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-blue-700 text-white p-6 rounded-lg text-center">
-              <div className="text-4xl font-bold mb-2">95%</div>
-              <div className="text-white">Students improve grades</div>
-            </div>
-            <div className="bg-green-700 text-white p-6 rounded-lg text-center">
-              <div className="text-4xl font-bold mb-2">2-3</div>
-              <div className="text-white">Grade improvement average</div>
-            </div>
-            <div className="bg-purple-700 text-white p-6 rounded-lg text-center">
-              <div className="text-4xl font-bold mb-2">300+</div>
-              <div className="text-white">Successful students</div>
-            </div>
-          </div>
+          <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">Every student's starting point and outcome is different. These stories show how regular teaching, practice and encouragement have helped individual students make progress.</p>
 
           {/* Testimonials */}
           <div className="grid md:grid-cols-3 gap-8">
@@ -584,28 +540,101 @@ function Home() {
       {/* Subjects/Services Section */}
       <DeferredSection id="subjects" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="subjects-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Subjects We Offer</h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Comprehensive GCSE support for Years 9-11
+          <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Online GCSE Tuition for Maths, English and Science</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+            Our GCSE Maths tuition, GCSE English tuition and GCSE Science tuition combine clear teaching with purposeful exam-question practice. Students receive support that matches their exam board and current needs, whether they are rebuilding foundations or aiming for the highest grades.
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid lg:grid-cols-3 gap-8">
             {[
-              { name: 'Maths', description: 'GCSE Maths (Foundation & Higher)' },
-              { name: 'Combined Science', description: 'Trilogy and Synergy pathways' },
-              { name: 'Triple Science', description: 'Biology, Chemistry, and Physics' },
-              { name: 'English Language', description: 'Reading, writing, and language skills' },
-              { name: 'English Literature', description: 'Poetry, prose, and drama analysis' }
+              {
+                name: 'GCSE Maths Tuition',
+                description: 'Maths can become frustrating when a missed topic makes later work harder. Our online GCSE Maths tuition helps Foundation and Higher students identify those gaps, rebuild core skills and practise applying methods to exam questions. Lessons develop confidence across areas such as algebra, number, geometry, ratio, probability and statistics. Tutors also teach students how to show working clearly, manage time and avoid common exam mistakes.'
+              },
+              {
+                name: 'GCSE English Tuition',
+                description: 'Our GCSE English tuition supports English Language and English Literature students with the skills needed to respond clearly under exam conditions. Lessons cover reading, analysis, creative and transactional writing, quotations, essay planning and evidence-based arguments. Students practise exam questions, improve their technique and receive feedback that helps them write with greater confidence and precision.'
+              },
+              {
+                name: 'GCSE Science Tuition',
+                description: 'GCSE Science tuition covers Biology, Chemistry and Physics for Combined Science and Triple Science students. Tutors explain difficult concepts in manageable steps, revisit topic gaps and connect knowledge to the wording used in exam questions. Foundation and Higher students practise calculations, required practicals, extended responses and the exam technique needed to earn marks consistently.'
+              }
             ].map((subject) => (
-              <div key={subject.name} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-blue-600">
-                <div className="flex items-start mb-2">
+              <div key={subject.name} className="bg-white p-7 rounded-xl shadow-md hover:shadow-lg transition border-t-4 border-blue-600">
+                <div className="flex items-start mb-3">
                   <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" aria-hidden="true" />
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">{subject.name}</h3>
-                    <p className="text-gray-600 text-sm">{subject.description}</p>
+                    <h3 className="text-xl font-semibold mb-3">{subject.name}</h3>
+                    <p className="text-gray-600 leading-relaxed">{subject.description}</p>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Link to="/courses" className="inline-flex items-center font-semibold text-blue-700 hover:text-blue-900">View GCSE Courses <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" /></Link>
+          </div>
+        </div>
+      </DeferredSection>
+
+      <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="year-groups-heading">
+        <div className="max-w-7xl mx-auto">
+          <h2 id="year-groups-heading" className="text-4xl font-bold text-center mb-4">GCSE Tuition for Every Stage of Years 9-11</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">The right priorities change as GCSE exams get closer. Our Year 9 tuition, Year 10 tuition and Year 11 tuition give students a structured weekly routine while focusing on the work that matters most at their stage.</p>
+          <div className="grid lg:grid-cols-3 gap-8">
+            <article className="bg-white p-7 rounded-xl shadow-sm">
+              <h3 className="text-2xl font-semibold mb-3 text-blue-800">Year 9 GCSE Tuition</h3>
+              <p className="text-gray-600 leading-relaxed">Year 9 is the ideal time to build foundations early. Students can strengthen key Maths, English and Science knowledge before gaps become harder to manage. Regular GCSE revision support also helps them settle into more demanding content, develop useful study habits and approach future assessments with confidence.</p>
+            </article>
+            <article className="bg-white p-7 rounded-xl shadow-sm">
+              <h3 className="text-2xl font-semibold mb-3 text-blue-800">Year 10 GCSE Tuition</h3>
+              <p className="text-gray-600 leading-relaxed">Year 10 students need to balance learning new content with remembering earlier topics. Tuition helps close gaps before mocks, improve exam technique and keep revision manageable. Weekly lessons and homework provide accountability throughout the year instead of leaving everything until the final months.</p>
+            </article>
+            <article className="bg-white p-7 rounded-xl shadow-sm">
+              <h3 className="text-2xl font-semibold mb-3 text-blue-800">Year 11 GCSE Tuition</h3>
+              <p className="text-gray-600 leading-relaxed">Year 11 tuition focuses on targeted revision, intensive exam technique and past-paper preparation. Students learn how to interpret questions, use mark schemes, manage time and prioritise weak topics. The aim is to make the final revision period calmer, clearer and more productive.</p>
+            </article>
+          </div>
+        </div>
+      </DeferredSection>
+
+      <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="parents-heading">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-start">
+          <div>
+            <h2 id="parents-heading" className="text-4xl font-bold mb-5">Built for Busy Parents Who Want Clear Progress</h2>
+            <p className="text-gray-600 leading-relaxed mb-4">It is difficult to support GCSE revision when you are not sure what has been covered, whether homework is complete or where your child is struggling. MySchola gives families a clear weekly routine and straightforward communication, without expecting parents to become subject teachers.</p>
+            <p className="text-gray-600 leading-relaxed">Students receive lessons, homework tracking, feedback and access to 1-to-1 WhatsApp tutor support between sessions. Monthly Zoom progress calls help parents understand current performance, engagement and next priorities. You can see whether the plan is working and raise concerns before they become bigger problems.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {['A dependable weekly lesson routine', 'Clear communication and progress updates', 'Homework tracking and tutor feedback', '1-to-1 WhatsApp tutor support', 'Monthly Zoom progress calls', 'Support aligned with school and exams'].map((item) => (
+              <div key={item} className="flex items-start gap-3 rounded-lg bg-blue-50 p-4">
+                <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <p className="font-medium text-gray-800">{item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DeferredSection>
+
+      <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="comparison-heading">
+        <div className="max-w-6xl mx-auto">
+          <h2 id="comparison-heading" className="text-4xl font-bold text-center mb-4">Why Parents Choose MySchola Over Traditional Tuition</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">Small-group tuition sits between costly one-to-one lessons and unsupported independent revision. It gives students regular expert teaching, useful peer discussion and personal feedback at a lower cost than typical 1-to-1 tuition.</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              ['Structured group learning', 'Lessons follow a clear plan, while tutors can revisit misunderstandings and respond to questions raised during the session.'],
+              ['Learning from other students', 'Students often benefit when somebody else asks a question they had not thought to ask or explains where they became stuck.'],
+              ['More accountability than self-study', 'A weekly timetable, homework and feedback make it easier to keep going than relying on revision intentions alone.'],
+              ['More personal support than recorded videos', 'Students can ask questions, receive feedback and contact a tutor on WhatsApp instead of watching content without guidance.']
+            ].map(([title, copy]) => (
+              <article key={title} className="bg-white rounded-xl p-6 shadow-sm">
+                <h3 className="text-xl font-semibold mb-2">{title}</h3>
+                <p className="text-gray-600 leading-relaxed">{copy}</p>
+              </article>
+            ))}
+          </div>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link to="/package" className="font-semibold text-blue-700 hover:text-blue-900">Compare Tuition Package</Link>
+            <Link to="/timetable" className="font-semibold text-blue-700 hover:text-blue-900">View Lesson Timetable</Link>
           </div>
         </div>
       </DeferredSection>
@@ -722,9 +751,9 @@ function Home() {
             </p>
             <p className="text-white text-sm">No card required • Free 15-minute consultation</p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-white/20 bg-slate-950 shadow-2xl">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
             <CalInlineEmbed
-              theme="dark"
+              theme="light"
               elementId="my-cal-inline-parentconsultation-home"
               onBookingSuccess={handleBookingSuccess}
             />
@@ -738,38 +767,16 @@ function Home() {
           <h2 id="faq-heading" className="text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {[
-              {
-                q: 'How do the Zoom lessons work?',
-                a: 'Each lesson feels one-to-one via Zoom. Your child will see only the teacher, ensuring privacy and focus. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We use interactive whiteboards and screen sharing to make lessons engaging and effective. All sessions are recorded for your child to review later.'
-              },
-              {
-                q: 'What equipment do we need?',
-                a: 'You just need a computer, tablet, or laptop with a stable internet connection. Webcam and microphone are optional - not needed. We use Zoom chat to check if students are active, and parents can monitor engagement for privacy reasons. We recommend using a desktop or laptop for the best experience with the interactive whiteboard.'
-              },
-              {
-                q: 'How long are the sessions?',
-                a: 'All lessons are 60 minutes and this duration is fixed.'
-              },
-              {
-                q: 'Can I choose the tutor?',
-                a: 'Yes! During your consultation, we\'ll discuss your child\'s learning style and match them with the best tutor. You can also request specific tutors based on availability.'
-              },
-              {
-                q: 'What if my child misses a session?',
-                a: 'All sessions are recorded and uploaded. If your child misses a lesson, they can watch the recording at their convenience. You can ask any questions through our WhatsApp support, available 24/7.'
-              },
-              {
-                q: 'Do you provide homework and practice materials?',
-                a: 'Absolutely! Each tutor provides tailored homework assignments, practice papers, and additional resources to reinforce learning between sessions. All materials are included in the lesson price.'
-              },
-              {
-                q: 'How quickly will we see results?',
-                a: 'Most students see improvement within 4-6 weeks of regular sessions. However, every child is different. We track progress regularly and adjust our approach to ensure maximum effectiveness.'
-              },
-              {
-                q: 'What age groups do you teach?',
-                a: 'We specialize in Years 9-11, preparing students for GCSEs. This includes both Foundation and Higher tier courses across all major GCSE subjects.'
-              }
+              { q: 'What subjects do you teach?', a: 'MySchola teaches GCSE Maths, English Language, English Literature, Combined Science and Triple Science. Lessons are designed for students in Year 9, Year 10 and Year 11.' },
+              { q: 'Do you cover AQA, Edexcel and OCR?', a: 'Yes. We provide AQA GCSE tuition, Edexcel GCSE tuition and OCR GCSE tuition. During the consultation, we confirm your child\'s exam board so lessons and exam-question practice are relevant to their specification.' },
+              { q: 'Is this suitable for Foundation students?', a: 'Yes. Foundation GCSE tuition helps students strengthen core knowledge, close topic gaps and build confidence with the question styles and skills needed for their target grade.' },
+              { q: 'Is this suitable for Higher students?', a: 'Yes. Higher GCSE tuition supports students with more demanding topics, multi-step questions, exam technique and the accuracy needed to work towards higher grades.' },
+              { q: 'How big are the groups?', a: 'MySchola lessons are taught in small online groups so students can receive focused teaching, ask questions and benefit from hearing how other students approach a problem. We will explain the current group options during your consultation.' },
+              { q: 'Do parents receive updates?', a: 'Yes. Parents receive clear progress updates and monthly Zoom progress calls covering attendance, homework, strengths, concerns and the topics that should be prioritised next.' },
+              { q: 'Is there homework?', a: 'Yes. Weekly homework reinforces lesson content and gives tutors another way to identify misunderstandings. Feedback helps students correct mistakes and prepare for future exam questions.' },
+              { q: 'How does the free trial work?', a: 'Book a free consultation first so we can understand your child\'s year group, subject, exam board and current needs. We will then explain the suitable lesson options and how to arrange the free trial lesson.' },
+              { q: 'Is tuition online?', a: 'Yes. Lessons are delivered online, making it easier for students to follow a consistent weekly routine from home. A laptop or desktop computer and a reliable internet connection are recommended.' },
+              { q: 'How do I book?', a: 'Use the booking calendar on this page or visit the booking page to choose a free consultation time. There is no card required for the consultation.' }
             ].map((faq, index) => (
               <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                 <button
@@ -979,11 +986,12 @@ function Home() {
             </div>
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400" role="list">
-                <li><a href="#home" className="hover:text-white transition">Home</a></li>
-                <li><a href="#how-it-works" className="hover:text-white transition">How It Works</a></li>
-                <li><a href="#subjects" className="hover:text-white transition">Subjects</a></li>
-                <li><a href="#testimonials" className="hover:text-white transition">Testimonials</a></li>
+                <ul className="space-y-2 text-gray-400" role="list">
+                  <li><a href="#home" className="hover:text-white transition">Home</a></li>
+                  <li><Link to="/courses" className="hover:text-white transition">GCSE Courses</Link></li>
+                  <li><Link to="/package" className="hover:text-white transition">Tuition Package</Link></li>
+                  <li><Link to="/timetable" className="hover:text-white transition">Lesson Timetable</Link></li>
+                  <li><Link to="/booking" className="hover:text-white transition">Book a Free Consultation</Link></li>
               </ul>
             </div>
             <div>
