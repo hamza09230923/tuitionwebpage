@@ -454,7 +454,7 @@ function Webinar() {
           </div>
         </section>
 
-        <section id="booking" className="mx-auto mt-10 max-w-5xl rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-700 px-4 py-10 shadow-2xl sm:px-8 sm:py-12">
+        <section id="booking" className="mx-auto mt-10 max-w-5xl">
           <div className="mb-8 text-center text-white">
             <h2 className="text-3xl font-bold sm:text-4xl">
               Ready to Start Your Child&apos;s GCSE Success Journey?
@@ -464,9 +464,9 @@ function Webinar() {
             </p>
             <p className="mt-2 text-sm text-white">No card required • Free 15-minute consultation</p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-white/20 bg-slate-950 shadow-2xl">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
             <CalInlineEmbed
-              theme="dark"
+              theme="light"
               elementId="my-cal-inline-parentconsultation-strategy-call"
               onBookingSuccess={handleBookingSuccess}
             />
