@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.deferred-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 800px;
+}
+
 /* Accessibility: Skip link for screen readers */
 .sr-only {
   position: absolute;
