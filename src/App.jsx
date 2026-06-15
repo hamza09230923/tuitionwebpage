@@ -22,6 +22,8 @@ const Package = lazy(() => import('./pages/Package'))
 const Timetable = lazy(() => import('./pages/Timetable'))
 const Resources = lazy(() => import('./pages/Resources'))
 const ResourceShareLink = lazy(() => import('./pages/ResourceShareLink'))
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
+const RefundCancellationPolicy = lazy(() => import('./pages/RefundCancellationPolicy'))
 
 const WEBINAR_ROUTE = '/book-strategy-call'
 const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
@@ -32,6 +34,7 @@ function RouteTracker() {
   const { pathname } = useLocation()
   useEffect(() => {
     trackPageView()
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [pathname])
   return null
 }
@@ -59,6 +62,8 @@ function App() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/package" element={<Package />} />
           <Route path="/timetable" element={<Timetable />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/refund-cancellation-policy" element={<RefundCancellationPolicy />} />
 
           {/* Protected student routes */}
           <Route

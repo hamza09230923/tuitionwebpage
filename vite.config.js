@@ -43,6 +43,32 @@ function buildStrategyCallHtml(indexHtml) {
     )
 }
 
+const LEGAL_ROUTES = [
+  {
+    path: 'privacy-policy',
+    title: 'Privacy Policy | MySchola',
+    description: 'Read the MySchola privacy policy and learn how personal information is collected, used and protected.',
+    fallback: '<main class="seo-fallback" data-page="privacy-policy"><h1>Privacy Policy</h1><p>Read how MySchola collects, uses and protects personal information for parents and students using our GCSE tuition services.</p></main>',
+  },
+  {
+    path: 'refund-cancellation-policy',
+    title: 'Refund & Cancellation Policy | MySchola',
+    description: 'Read the MySchola refund and cancellation policy for GCSE tuition subscriptions and services.',
+    fallback: '<main class="seo-fallback" data-page="refund-cancellation-policy"><h1>Refund & Cancellation Policy</h1><p>Read how refunds, cancellations and subscription changes work for MySchola GCSE tuition services.</p></main>',
+  },
+]
+
+function buildStaticRouteHtml(indexHtml, route) {
+  return indexHtml
+    .replace(/<title>[^<]*<\/title>/, `<title>${route.title}</title>`)
+    .replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${route.description}" />`)
+    .replace(/<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="https://myschola.uk/${route.path}" />`)
+    .replace(/<meta property="og:title" content="[^"]*" \/>/, `<meta property="og:title" content="${route.title}" />`)
+    .replace(/<meta property="og:description" content="[^"]*" \/>/, `<meta property="og:description" content="${route.description}" />`)
+    .replace(/<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="https://myschola.uk/${route.path}" />`)
+    .replace(/<main class="seo-fallback" data-page="home">[\s\S]*?<\/main>/, route.fallback)
+}
+
 function githubPagesSpaPlugin() {
   let outDir = resolve(process.cwd(), 'dist')
   return {
@@ -61,6 +87,11 @@ function githubPagesSpaPlugin() {
           join(strategyCallDir, 'index.html'),
           buildStrategyCallHtml(readFileSync(indexPath, 'utf8'))
         )
+        LEGAL_ROUTES.forEach((route) => {
+          const routeDir = join(outDir, route.path)
+          mkdirSync(routeDir, { recursive: true })
+          writeFileSync(join(routeDir, 'index.html'), buildStaticRouteHtml(readFileSync(indexPath, 'utf8'), route))
+        })
         console.log('Copied index.html → 404.html for GitHub Pages SPA routing')
       }
     },

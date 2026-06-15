@@ -505,8 +505,8 @@ function Courses() {
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400" role="list">
-                <li><a href="/#privacy-policy" className="hover:text-white transition">Privacy Policy</a></li>
-                <li><a href="/#terms-of-service" className="hover:text-white transition">Refund & Cancellation Policy</a></li>
+                <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
+                <li><Link to="/refund-cancellation-policy" className="hover:text-white transition">Refund & Cancellation Policy</Link></li>
                 <li><a href="/#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
