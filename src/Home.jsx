@@ -391,6 +391,28 @@ function Home() {
         </div>
       </DeferredSection>
 
+      <DeferredSection className="py-16 px-4 sm:px-6 lg:px-8 bg-blue-950 text-white" aria-labelledby="trust-heading">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 id="trust-heading" className="text-3xl sm:text-4xl font-bold">A Clear GCSE Support System for Students and Parents</h2>
+            <p className="mt-4 mx-auto max-w-3xl text-blue-100">Trust is built through consistent teaching, useful feedback and honest communication. These are the practical commitments at the centre of MySchola tuition.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              ['Every Week', 'Structured small-group lessons and homework keep revision moving.'],
+              ['Every Month', 'Parent progress calls make strengths, gaps and next steps clear.'],
+              ['3 Exam Boards', 'Focused support for AQA, Edexcel and OCR GCSE specifications.'],
+              ['Between Lessons', '1-to-1 WhatsApp tutor support helps students when they get stuck.']
+            ].map(([title, copy]) => (
+              <div key={title} className="rounded-xl border border-blue-700 bg-blue-900 p-6 text-center">
+                <p className="text-2xl font-bold text-blue-200">{title}</p>
+                <p className="mt-3 text-sm leading-relaxed text-blue-50">{copy}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DeferredSection>
+
       {/* Social Proof / Testimonials Section */}
       <DeferredSection id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="video-testimonials-heading">
         <div className="max-w-6xl mx-auto text-center">
@@ -829,148 +851,6 @@ function Home() {
         </div>
       </DeferredSection>
 
-      {/* Privacy Policy Section */}
-      <DeferredSection id="privacy-policy" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">Privacy Policy</h2>
-          <div className="prose max-w-none text-gray-600 space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Information We Collect</h3>
-              <p>We collect information that you provide directly to us, including your name, email address, phone number, and information about your child's educational needs. We also collect information automatically when you use our services, such as session recordings and progress data.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">2. How We Use Your Information</h3>
-              <p>We use the information we collect to provide, maintain, and improve our tutoring services, process your bookings, communicate with you, and ensure the safety and security of our platform.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">3. Data Security</h3>
-              <p>We implement appropriate technical and organizational measures to protect your personal information. All tutors are DBS checked, and all Zoom sessions are encrypted and secure.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">4. Session Recordings</h3>
-              <p>Lessons may be recorded for educational purposes and quality assurance. Recordings are stored securely and are accessible only to authorized personnel and the student's account.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">5. Your Rights</h3>
-              <p>You have the right to access, update, or delete your personal information at any time. You can also request a copy of your data or withdraw consent for data processing.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">6. Children's Privacy</h3>
-              <p>We take children's privacy seriously. We only collect information necessary to provide our services, and all data handling complies with UK GDPR and Children's Code requirements.</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Last updated: {new Date().toLocaleDateString('en-GB')}</p>
-            </div>
-          </div>
-        </div>
-      </DeferredSection>
-
-      {/* Refund & Cancellation Policy Section */}
-      <DeferredSection id="terms-of-service" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-4">Refund & Cancellation Policy</h2>
-          <p className="text-center text-gray-500 mb-12">MySchola - Last updated: 9 March 2026</p>
-          <div className="prose max-w-none text-gray-600 space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">1. Overview</h3>
-              <p>This Refund & Cancellation Policy explains how refunds, cancellations, and subscription changes work for services provided by MySchola.</p>
-              <p>By purchasing or subscribing to any MySchola service, you agree to this policy in addition to our Terms of Service.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">2. Subscription Payments</h3>
-              <p>MySchola provides tutoring and educational services on a weekly or monthly subscription basis.</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Payments are processed automatically through Stripe or other secure payment providers.</li>
-                <li>Subscription fees vary depending on the subjects, number of sessions, and selected package.</li>
-                <li>Subscriptions renew automatically at the end of each billing cycle unless cancelled beforehand.</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">3. 7-Day Money-Back Guarantee</h3>
-              <p>We offer a 7-day money-back guarantee from the date of your first payment.</p>
-              <p>You may request a full refund within 7 calendar days if:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>The request is made within 7 days of the initial purchase.</li>
-                <li>The request is submitted in writing.</li>
-                <li>There has been no excessive or abusive use of the service.</li>
-              </ul>
-              <p>This guarantee allows parents and students to determine whether the service is suitable for their needs.</p>
-              <p>Refunds are not intended for customers who primarily consume a significant portion of the service and then request a refund.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">4. Partial Refunds</h3>
-              <p>In certain situations, partial refunds may be offered at MySchola's discretion, including but not limited to:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Removing one subject from a multi-subject subscription.</li>
-                <li>Downgrading to a smaller tutoring package.</li>
-                <li>Reduction in services during an active billing period.</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">5. No Refunds After 7 Days</h3>
-              <p>After the 7-day money-back guarantee period has passed:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>No refunds will be issued for time already used.</li>
-                <li>Missed lessons, unused sessions, or lack of attendance do not qualify for refunds.</li>
-                <li>Refunds are not issued for failure to attend or engage with lessons.</li>
-              </ul>
-              <p>If a subscription is cancelled after this period, the cancellation will only prevent future charges.</p>
-              <p>Any partial refund will be calculated proportionally based on the remaining value of the unused service.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">6. Cancellation Policy</h3>
-              <p>You may cancel your subscription at any time.</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Cancellations apply to future billing periods only.</li>
-                <li>Access to tutoring sessions and learning resources will remain active until the end of the current paid billing period.</li>
-                <li>Once a billing cycle has begun, it is considered earned and non-refundable after the 7-day guarantee period.</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">7. How to Cancel or Request a Refund</h3>
-              <p>All cancellation or refund requests must be submitted in writing.</p>
-              <p>You can contact us via WhatsApp or SMS: +44 7344 193804.</p>
-              <p>Your request should include:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>The student's full name.</li>
-                <li>The email address or phone number used during registration.</li>
-                <li>A clear request to cancel or request a refund.</li>
-              </ul>
-              <p>Our support team will review and respond to requests as quickly as possible.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">8. Immediate Access to Digital Services</h3>
-              <p>Access to MySchola's digital platform, tutoring sessions, recordings, and learning resources is typically provided within minutes of successful payment.</p>
-              <p>By accessing the service immediately, you acknowledge that:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Digital educational services begin immediately after purchase.</li>
-                <li>Your subscription is considered active once access has been granted.</li>
-              </ul>
-              <p>This does not affect your statutory rights or the 7-day money-back guarantee, but it helps prevent misuse of the refund policy.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">9. Abuse of the Refund Policy</h3>
-              <p>To ensure fairness for all students and families, MySchola reserves the right to:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Refuse refund requests where there is evidence of repeated or abusive refund behaviour.</li>
-                <li>Suspend or terminate accounts in cases of misuse, fraudulent activity, or bad-faith use of the service.</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">10. Changes to This Policy</h3>
-              <p>MySchola may update this Refund & Cancellation Policy from time to time.</p>
-              <p>The most current version will always be available on our website.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">11. Contact</h3>
-              <p>MySchola</p>
-              <p>For support, refunds, or cancellations:</p>
-              <p>WhatsApp / SMS: +44 7344 193804</p>
-            </div>
-          </div>
-        </div>
-      </DeferredSection>
-
       </main>
       
       {/* Footer */}
@@ -997,8 +877,8 @@ function Home() {
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400" role="list">
-                <li><a href="#privacy-policy" className="hover:text-white transition">Privacy Policy</a></li>
-                <li><a href="#terms-of-service" className="hover:text-white transition">Refund & Cancellation Policy</a></li>
+                <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
+                <li><Link to="/refund-cancellation-policy" className="hover:text-white transition">Refund & Cancellation Policy</Link></li>
                 <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
