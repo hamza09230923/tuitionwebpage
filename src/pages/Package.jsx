@@ -679,7 +679,7 @@ function Package() {
                     onClick={() => handleBundleCheckout(bundle.id)}
                     className="w-full py-3 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] touch-manipulation bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-600"
                   >
-                    Start Free Trial
+                    Buy GCSE Tuition Package
                   </button>
                 </div>
               ))}
@@ -724,7 +724,7 @@ function Package() {
                     onClick={() => item.id ? handleIndividualCheckout(item.id) : goToBooking}
                     className="w-full py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                   >
-                    Start Free Trial
+                    Buy GCSE Tuition Package
                   </button>
                 </div>
               ))}
