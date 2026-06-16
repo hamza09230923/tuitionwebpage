@@ -370,6 +370,17 @@ function Webinar() {
             <span className="block text-xl sm:text-3xl mt-1">we&apos;ll continue working with you for <strong className="text-blue-400">free</strong> until we do.</span>
           </h1>
 
+          <div className="mx-auto mb-5 mt-5 max-w-3xl">
+            <a
+              href="#booking"
+              className="inline-flex w-full max-w-xl items-center justify-center gap-3 rounded-xl bg-blue-500 px-6 py-4 text-base font-black text-white shadow-[0_18px_45px_rgba(59,130,246,0.45)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/50 sm:w-auto sm:px-8 sm:text-lg"
+            >
+              <Calendar className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 text-center leading-tight">Yes, I want to book a FREE TRIAL LESSON.</span>
+              <ArrowRight className="hidden h-5 w-5 shrink-0 sm:block" aria-hidden="true" />
+            </a>
+          </div>
+
           <p className="text-xl sm:text-2xl font-black text-white mb-3">
             👇🏼 <span className="text-blue-400">Watch this now.</span>
           </p>

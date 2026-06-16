@@ -43,31 +43,10 @@ export function trackStartTrial() {
   }
 }
 
-function toMetaParamKey(key) {
-  return key.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase().slice(0, 40)
-}
-
 function buildBookingMetaParams(booking) {
   const params = {}
 
-  if (booking.attendeeName) params.attendee_name = booking.attendeeName
   if (booking.attendeeEmail) params.attendee_email = booking.attendeeEmail
-  if (booking.childName) params.child_name = booking.childName
-  if (booking.childYear) params.child_year = booking.childYear
-  if (booking.subjects) params.subjects = booking.subjects
-  if (booking.willAttend) params.will_attend = booking.willAttend
-
-  if (booking.bookingFields) {
-    Object.entries(booking.bookingFields).forEach(([key, value]) => {
-      if (value) params[`field_${toMetaParamKey(key)}`] = value
-    })
-  }
-
-  if (booking.responsesByLabel) {
-    Object.entries(booking.responsesByLabel).forEach(([label, value]) => {
-      if (value) params[`response_${toMetaParamKey(label)}`] = value
-    })
-  }
 
   return params
 }
