@@ -6,8 +6,8 @@ import { join, resolve } from 'path'
 /** Copies index.html → 404.html so GitHub Pages serves the SPA for /payment-success, /login, etc. */
 const STRATEGY_CALL_FALLBACK = `
       <main class="seo-fallback" data-page="strategy-call">
-        <h1>Free GCSE Strategy Call for Parents of Year 9-11 Students</h1>
-        <p>Book a free GCSE strategy call with MySchola to discuss your child's current grades, learning gaps and exam goals.</p>
+        <h1>Free GCSE Trial Lesson for Parents of Year 9-11 Students</h1>
+        <p>Book a free GCSE trial lesson with MySchola to see how we teach Maths, Science and English with clear visual explanations and exam-focused revision.</p>
         <h2>GCSE Support for AQA, Edexcel and OCR</h2>
         <p>Our online tuition supports UK students studying Maths, English and Science across AQA, Edexcel and OCR exam boards.</p>
         <h2>Plan the Right Next Steps</h2>
@@ -16,10 +16,10 @@ const STRATEGY_CALL_FALLBACK = `
 
 function buildStrategyCallHtml(indexHtml) {
   return indexHtml
-    .replace(/<title>[^<]*<\/title>/, '<title>Free GCSE Strategy Call for Parents | MySchola UK</title>')
+    .replace(/<title>[^<]*<\/title>/, '<title>Free GCSE Trial Lesson for Parents | MySchola UK</title>')
     .replace(
       /<meta name="description" content="[^"]*" \/>/,
-      '<meta name="description" content="Book a free GCSE strategy call for your Year 9-11 child. Discuss grades, learning gaps and AQA, Edexcel or OCR exam support with MySchola." />'
+      '<meta name="description" content="Book a free GCSE trial lesson for your Year 9-11 child. See how MySchola teaches Maths, Science and English with clear visual explanations and exam-focused revision." />'
     )
     .replace(
       /<meta property="og:url" content="[^"]*" \/>/,
@@ -27,11 +27,11 @@ function buildStrategyCallHtml(indexHtml) {
     )
     .replace(
       /<meta property="og:title" content="[^"]*" \/>/,
-      '<meta property="og:title" content="Free GCSE Strategy Call for Parents | MySchola UK" />'
+      '<meta property="og:title" content="Free GCSE Trial Lesson for Parents | MySchola UK" />'
     )
     .replace(
       /<meta property="og:description" content="[^"]*" \/>/,
-      "<meta property=\"og:description\" content=\"Book a free GCSE strategy call to discuss your child's grades, learning gaps and exam support.\" />"
+      "<meta property=\"og:description\" content=\"Book a free GCSE trial lesson and see how MySchola teaches GCSE topics with clear visual explanations.\" />"
     )
     .replace(
       /<link rel="canonical" href="[^"]*" \/>/,

@@ -44,20 +44,42 @@ export function trackStartTrial() {
 }
 
 function buildBookingMetaParams(booking) {
-  const params = {}
+  const params = {
+    content_name: 'Strategy Call Booked',
+    content_category: 'GCSE Tuition',
+    lead_type: 'free_gcse_strategy_call',
+    booking_platform: 'calcom',
+    subject_interest: booking.subjects || 'unknown',
+    year_group: booking.childYear || 'unknown',
+    source: 'website',
+  }
 
-  if (booking.attendeeEmail) params.attendee_email = booking.attendeeEmail
+  if (booking.currentGrades) params.current_grade = booking.currentGrades
 
   return params
 }
 
 function hasTrackedSchedule(booking) {
-  if (!booking.uid || typeof window === 'undefined') return false
+  if (typeof window === 'undefined') return false
 
-  const key = `metaScheduleTracked:${booking.uid}`
-  if (window.sessionStorage.getItem(key)) return true
+  const bookingFingerprint = [
+    booking.uid,
+    booking.startTime,
+    booking.endTime,
+    booking.eventTypeId,
+  ].filter(Boolean).join(':')
+  const key = bookingFingerprint
+    ? `metaScheduleTracked:${bookingFingerprint}`
+    : 'metaScheduleTracked:currentPage'
 
-  window.sessionStorage.setItem(key, 'true')
+  try {
+    if (window.sessionStorage.getItem(key) || window.localStorage.getItem(key)) return true
+
+    window.sessionStorage.setItem(key, 'true')
+    window.localStorage.setItem(key, 'true')
+  } catch {
+    return false
+  }
   return false
 }
 
