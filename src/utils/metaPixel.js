@@ -43,42 +43,43 @@ export function trackStartTrial() {
   }
 }
 
-function toMetaParamKey(key) {
-  return key.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase().slice(0, 40)
-}
-
 function buildBookingMetaParams(booking) {
-  const params = {}
-
-  if (booking.attendeeName) params.attendee_name = booking.attendeeName
-  if (booking.attendeeEmail) params.attendee_email = booking.attendeeEmail
-  if (booking.childName) params.child_name = booking.childName
-  if (booking.childYear) params.child_year = booking.childYear
-  if (booking.subjects) params.subjects = booking.subjects
-  if (booking.willAttend) params.will_attend = booking.willAttend
-
-  if (booking.bookingFields) {
-    Object.entries(booking.bookingFields).forEach(([key, value]) => {
-      if (value) params[`field_${toMetaParamKey(key)}`] = value
-    })
+  const params = {
+    content_name: 'Strategy Call Booked',
+    content_category: 'GCSE Tuition',
+    lead_type: 'free_gcse_strategy_call',
+    booking_platform: 'calcom',
+    subject_interest: booking.subjects || 'unknown',
+    year_group: booking.childYear || 'unknown',
+    source: 'website',
   }
 
-  if (booking.responsesByLabel) {
-    Object.entries(booking.responsesByLabel).forEach(([label, value]) => {
-      if (value) params[`response_${toMetaParamKey(label)}`] = value
-    })
-  }
+  if (booking.currentGrades) params.current_grade = booking.currentGrades
 
   return params
 }
 
 function hasTrackedSchedule(booking) {
-  if (!booking.uid || typeof window === 'undefined') return false
+  if (typeof window === 'undefined') return false
 
-  const key = `metaScheduleTracked:${booking.uid}`
-  if (window.sessionStorage.getItem(key)) return true
+  const bookingFingerprint = [
+    booking.uid,
+    booking.startTime,
+    booking.endTime,
+    booking.eventTypeId,
+  ].filter(Boolean).join(':')
+  const key = bookingFingerprint
+    ? `metaScheduleTracked:${bookingFingerprint}`
+    : 'metaScheduleTracked:currentPage'
 
-  window.sessionStorage.setItem(key, 'true')
+  try {
+    if (window.sessionStorage.getItem(key) || window.localStorage.getItem(key)) return true
+
+    window.sessionStorage.setItem(key, 'true')
+    window.localStorage.setItem(key, 'true')
+  } catch {
+    return false
+  }
   return false
 }
 

@@ -11,8 +11,9 @@
     <link rel="shortcut icon" href="/favicon.svg" />
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Online GCSE tuition for Years 9-11. Small-group Maths, English and Science lessons for AQA, Edexcel and OCR, designed for parents seeking reliable UK tuition." />
-    <title>MySchola | GCSE Group Tuition for Years 9-11 (AQA, Edexcel, OCR)</title>
+    <style>.seo-fallback{display:none}</style>
+    <meta name="description" content="Online GCSE tuition for Year 9, Year 10 and Year 11 students. Small-group Maths, English and Science lessons with exam practice, homework, feedback and parent updates." />
+    <title>MySchola | Online GCSE Tuition for Maths, English &amp; Science</title>
     
     <!-- Performance: Preconnect to only critical external domains (max 4) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -24,8 +25,8 @@
     <!-- Open Graph / Facebook - Required for link previews and search results -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://myschola.uk/" />
-    <meta property="og:title" content="MySchola | GCSE Group Tuition for Years 9-11" />
-    <meta property="og:description" content="Small-group GCSE tuition in Maths, English and Science for AQA, Edexcel and OCR. Parent-friendly online lessons for UK Year 9-11 students." />
+    <meta property="og:title" content="MySchola | Online GCSE Tuition for Maths, English &amp; Science" />
+    <meta property="og:description" content="Online GCSE tuition for Year 9, Year 10 and Year 11 students. Small-group Maths, English and Science lessons with exam practice, homework, feedback and parent updates." />
     <meta property="og:image" content="https://myschola.uk/favicon.svg" />
     <meta property="og:site_name" content="MySchola" />
     
@@ -37,7 +38,7 @@
       "name": "MySchola",
       "url": "https://myschola.uk",
       "logo": "https://myschola.uk/favicon.svg",
-      "description": "MySchola: #1 GCSE Tutoring Platform for Years 9-11. Expert one-to-one online tutoring in Maths, English & Science via Zoom.",
+      "description": "Online small-group GCSE tuition for Year 9, Year 10 and Year 11 students, covering Maths, English and Science with homework, feedback and parent updates.",
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "GB"
@@ -54,25 +55,34 @@
     </script>
     
     <!-- Additional SEO -->
-    <meta name="keywords" content="GCSE tutoring, online tutoring, Maths tutoring, English tutoring, Science tutoring, Years 9-11, Zoom tutoring, UK tutoring" />
+    <meta name="keywords" content="GCSE group tuition, Year 9 tuition, Year 10 tuition, Year 11 tuition, online GCSE tutoring, AQA tutoring, Edexcel tutoring, OCR tutoring, UK GCSE tuition" />
     <link rel="canonical" href="https://myschola.uk/" />
 
-    <!-- Meta Pixel Code - Async loading for performance -->
+    <!-- Meta Pixel Code - queue events immediately, load the network script after first interaction -->
     <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      !function(f,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window);
       fbq('init', '2772806336415328');
-      fbq('track', 'PageView');
+      !function(d){
+        let loaded=false;
+        const load=function(){
+          if(loaded)return;
+          loaded=true;
+          const script=d.createElement('script');
+          script.async=true;
+          script.src='https://connect.facebook.net/en_US/fbevents.js';
+          d.head.appendChild(script);
+        };
+        ['pointerdown','keydown','scroll'].forEach(function(event){
+          window.addEventListener(event,load,{once:true,passive:true});
+        });
+        window.setTimeout(load,8000);
+      }(document);
     </script>
-    <script type="module" crossorigin src="/assets/index-DUDfwYQd.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/react-vendor-CM6YM4zk.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BAwyqQfc.css">
+    <script type="module" crossorigin src="/assets/index-DoVQ1MvF.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-vendor-BwgRIuYq.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-BXme3xDj.css">
   </head>
   <body>
     <!-- Meta Pixel noscript (must be in body: img inside noscript in head is invalid HTML) -->
@@ -81,30 +91,108 @@
       alt=""
     /></noscript>
     <div id="root">
-      <main>
-        <h1>Online GCSE Group Tuition for Years 9-11</h1>
-        <p>
-          MySchola helps UK parents find focused online GCSE tuition for children in Years 9, 10 and 11. Our small group lessons support students who want to strengthen their knowledge, improve confidence and prepare properly for GCSE exams. Lessons are delivered online, making it easier for families to access structured tuition from home.
-        </p>
-        <h2>Maths, English and Science GCSE Support</h2>
-        <p>
-          Students can receive tuition in GCSE Maths, English Language, English Literature, Combined Science and Triple Science. Our tutors explain difficult topics clearly, help students practise exam questions and identify gaps before they become bigger problems. Group lessons give students regular teaching and guided practice while keeping parents informed about progress.
-        </p>
-        <h2>AQA, Edexcel and OCR Exam Board Tuition</h2>
-        <p>
-          GCSE courses and exam questions vary between exam boards. MySchola tuition is designed around the requirements of AQA, Edexcel and OCR specifications, including Foundation and Higher pathways where relevant. Students learn the subject knowledge, exam techniques and time-management skills needed for their own course.
-        </p>
-        <h2>Tuition Designed for Parents and Students</h2>
-        <p>
-          Parents want reliable support that fits around school and family life. Our online group tuition provides a clear weekly routine, access to expert tutors and targeted preparation for school assessments, mocks and final GCSE exams. Whether a student needs to rebuild foundations, move towards a higher grade or stay on track, MySchola provides practical support throughout Years 9-11.
-        </p>
-        <h2>Explore MySchola</h2>
-        <p>
-          Learn more about our <a href="/courses">GCSE courses</a>, view the <a href="/timetable">lesson timetable</a>, compare the <a href="/package">tuition package</a>, or <a href="/booking">book a free consultation</a> to discuss the right group lesson pathway for your child.
-        </p>
+      <main class="seo-fallback" data-page="home">
+          <h1>GCSE Tuition That Helps Students Close Gaps, Build Confidence and Improve Grades</h1>
+          <p>
+            MySchola provides online small-group Maths, English and Science tuition for Year 9, Year 10 and Year 11 students. Lessons are built around GCSE exam technique, a dependable weekly structure, homework, feedback and clear parent updates. Students receive focused help to close topic gaps, build confidence and prepare properly for AQA, Edexcel and OCR exams.
+          </p>
+          <h2>How MySchola Works</h2>
+          <p>
+            We begin with a free consultation to understand your child's current level, exam board and weak topics. Students then join weekly small-group lessons and track progress through homework, tutor feedback and parent updates.
+          </p>
+          <h2>GCSE Maths, English and Science Tuition</h2>
+          <p>
+            Our GCSE Maths tuition supports Foundation and Higher students with topic gaps, problem solving and exam questions. GCSE English tuition develops reading, writing, analysis and essay technique. GCSE Science tuition covers Biology, Chemistry and Physics for Combined and Triple Science, with clear explanations and relevant exam practice.
+          </p>
+          <h2>Year 9, Year 10 and Year 11 Tuition</h2>
+          <p>
+            Year 9 tuition builds strong foundations early. Year 10 tuition closes gaps before mocks and creates a consistent revision routine. Year 11 tuition focuses on intensive exam technique, targeted revision and past-paper preparation.
+          </p>
+          <h2>Built for Busy Parents Who Want Clear Progress</h2>
+          <p>
+            Parents receive clear communication, homework tracking, progress updates, WhatsApp support and monthly Zoom progress calls. Many students have improved by two or more grades after consistent lessons, homework and exam practice, although every student's starting point and outcome is different.
+          </p>
+          <h2>A Clear GCSE Support System</h2>
+          <p>
+            MySchola is designed around practical commitments rather than vague promises. Students attend structured small-group lessons every week, receive homework and feedback, and can access one-to-one WhatsApp tutor support when they become stuck between lessons. Parents receive monthly progress calls so that strengths, concerns and next steps remain clear. Tuition supports the three major exam boards AQA, Edexcel and OCR.
+          </p>
+          <h2>Why Consistent GCSE Tuition Matters</h2>
+          <p>
+            GCSE courses cover a large amount of content, and a student can easily lose confidence when several small gaps begin to affect new topics. Waiting until the final months of Year 11 can make revision feel overwhelming. A regular weekly lesson gives students time to revisit difficult knowledge, practise applying it and ask questions before misunderstandings become larger. The aim is not to add unnecessary pressure. It is to create a manageable routine that helps students make steady progress.
+          </p>
+          <p>
+            Online GCSE tuition also gives families greater consistency. Students can join lessons from home without travelling to a tuition centre, while parents can fit sessions around school and family commitments. Small-group lessons create a focused environment where students learn from the tutor and from the questions asked by other students. This can help students recognise common mistakes, compare approaches and understand that they are not the only person who finds a topic difficult.
+          </p>
+          <h2>GCSE Maths Tuition for Foundation and Higher Students</h2>
+          <p>
+            GCSE Maths tuition should do more than demonstrate a method once. Students need to understand when to use a method, how to show working clearly and how to check whether an answer is sensible. MySchola lessons support Foundation and Higher students across number, algebra, ratio, geometry, probability and statistics. Tutors identify topic gaps, explain ideas in manageable steps and use exam questions to help students apply their knowledge independently.
+          </p>
+          <p>
+            Exam technique is an important part of Maths progress. Students practise interpreting command words, selecting useful information, managing multi-step problems and avoiding common errors. Regular homework provides another opportunity to check understanding. Feedback then helps students see exactly where marks were lost and what they should do differently next time.
+          </p>
+          <h2>GCSE English Language and Literature Tuition</h2>
+          <p>
+            GCSE English tuition helps students develop the confidence to read carefully, plan effectively and communicate ideas clearly under timed conditions. English Language lessons support comprehension, analysis, creative writing and transactional writing. Students learn how to select evidence, explain the effect of language and structure, and shape their writing for a specific audience and purpose.
+          </p>
+          <p>
+            English Literature tuition supports poetry, prose and drama study. Rather than relying only on memorised quotations, students learn how to build a clear argument, connect evidence to the question and explain ideas with precision. Exam-question practice and feedback help students improve essay structure, use time effectively and understand what examiners reward.
+          </p>
+          <h2>GCSE Science Tuition for Combined and Triple Science</h2>
+          <p>
+            GCSE Science tuition covers Biology, Chemistry and Physics for Combined Science and Triple Science students. Science can become difficult when students remember individual facts but struggle to connect them or apply them to unfamiliar questions. Lessons revisit important concepts, clarify scientific vocabulary and use relevant exam questions to develop understanding.
+          </p>
+          <p>
+            Foundation and Higher students practise calculations, required practicals, graphs, data interpretation and longer written responses. Tutors help students understand how mark schemes work and how to include the detail needed to earn marks. This combination of subject knowledge and GCSE exam technique supports more confident revision and better preparation for assessments.
+          </p>
+          <h2>Year 9 Tuition: Build Strong Foundations Early</h2>
+          <p>
+            Year 9 tuition gives students time to strengthen essential knowledge before GCSE pressure increases. It can help a student who has missed earlier concepts, lacks confidence in class or needs more challenge than school lessons currently provide. Building a weekly study routine early makes later revision more manageable and helps students approach GCSE content with stronger foundations.
+          </p>
+          <h2>Year 10 Tuition: Close Gaps Before Mocks</h2>
+          <p>
+            Year 10 students are learning a growing amount of new content while also needing to remember earlier topics. MySchola helps students close knowledge gaps before mocks and develop a consistent approach to revision. Weekly lessons, homework and exam practice provide accountability throughout the year, reducing the risk of leaving too much work until Year 11.
+          </p>
+          <h2>Year 11 Tuition: Prepare for GCSE Exams</h2>
+          <p>
+            Year 11 tuition focuses on targeted GCSE revision support, intensive exam technique and past-paper preparation. Students learn how to prioritise weak areas, interpret questions, use mark schemes and manage their time. The goal is to make final exam preparation clearer and more productive while ensuring students continue to understand the content behind their answers.
+          </p>
+          <h2>How Progress Is Tracked</h2>
+          <p>
+            Progress is easier to understand when families can see more than a single test grade. MySchola uses lesson participation, homework, feedback and exam-question performance to identify what is improving and where further support is needed. Monthly parent progress calls create an opportunity to discuss attendance, confidence, current priorities and useful next steps.
+          </p>
+          <p>
+            Results depend on each student's starting point, attendance and effort. Many MySchola students have improved by two or more grades after consistent lessons, homework and exam practice. Some individual students who began with Grade 3 predictions have later achieved Grade 8 or 9 outcomes. These examples are encouraging, but they are not guarantees. MySchola focuses on providing the teaching, structure and feedback that help students work towards their own potential.
+          </p>
+          <h2>Why Parents Choose Small-Group GCSE Tuition</h2>
+          <p>
+            Small-group tuition can offer a useful balance between traditional one-to-one lessons and independent revision. It is generally lower cost than one-to-one tuition while still giving students access to live teaching and personal feedback. Students benefit from hearing other questions, seeing different approaches and taking part in a structured learning routine.
+          </p>
+          <p>
+            Group tuition also provides more accountability than self-study and more personal support than pre-recorded videos. Students know when lessons and homework are due, can ask for clarification and receive feedback on their work. Parents receive communication about progress instead of having to guess whether revision is effective.
+          </p>
+          <h2>GCSE Tuition for AQA, Edexcel and OCR</h2>
+          <p>
+            Exam boards assess similar knowledge in different ways, so useful GCSE tuition must account for the specification a student is following. MySchola provides AQA GCSE tuition, Edexcel GCSE tuition and OCR GCSE tuition. During the free consultation, parents can explain the student's subjects, school targets and exam board so that suitable support can be identified.
+          </p>
+          <h2>Frequently Asked Questions</h2>
+          <h3>What subjects does MySchola teach?</h3>
+          <p>MySchola teaches GCSE Maths, English Language, English Literature, Combined Science and Triple Science for Year 9, Year 10 and Year 11 students.</p>
+          <h3>Is tuition suitable for Foundation and Higher students?</h3>
+          <p>Yes. Foundation GCSE tuition focuses on secure core knowledge and relevant question styles, while Higher GCSE tuition supports more demanding topics, multi-step questions and higher-grade exam technique.</p>
+          <h3>Do students receive homework?</h3>
+          <p>Yes. Weekly homework reinforces lesson content and helps tutors identify misunderstandings. Students receive feedback so they can correct mistakes and improve future answers.</p>
+          <h3>Do parents receive progress updates?</h3>
+          <p>Yes. Parents receive clear updates and monthly Zoom progress calls that cover attendance, homework, strengths, concerns and current priorities.</p>
+          <h3>How does the free trial work?</h3>
+          <p>Parents first book a free consultation to discuss the student's year group, subject, exam board and current needs. MySchola then explains suitable lesson options and how to arrange the free trial lesson.</p>
+          <h3>Is tuition online?</h3>
+          <p>Yes. Lessons are delivered online so students can follow a consistent weekly routine from home. A laptop or desktop computer and reliable internet connection are recommended.</p>
+          <h2>Explore MySchola</h2>
+          <p>
+            Learn more about our <a href="/courses">GCSE courses</a>, view the <a href="/timetable">lesson timetable</a>, compare the <a href="/package">tuition package</a>, or <a href="/booking">book a free consultation</a> to discuss the right group lesson pathway for your child.
+          </p>
       </main>
-    </div>
-
+    </div>
   </body>
 </html>
 
