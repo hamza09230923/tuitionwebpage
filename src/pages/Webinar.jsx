@@ -485,7 +485,6 @@ function Webinar() {
             <p className="mt-4 text-base text-white sm:text-lg">
               Book a free consultation to discuss your child&apos;s needs and see how we can help them achieve their goals.
             </p>
-            <p className="mt-2 text-sm text-white">No card required • Free 15-minute consultation</p>
           </div>
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
             <CalInlineEmbed
