@@ -24,7 +24,7 @@ import warwickLogo from '../university/warwick.svg'
 
 const YOUTUBE_VIDEO_ID = 'fSvTYTwv9ac'
 const COUNT_UP_DURATION_MS = 1500
-const STRATEGY_CALL_TITLE = 'Free GCSE Trial Lesson for Parents | MySchola UK'
+const STRATEGY_CALL_TITLE = "Don't Leave Your Child's GCSE Grades to Chance | MySchola"
 const STRATEGY_CALL_DESCRIPTION = "Book a free GCSE trial lesson for your Year 9-11 child. See how MySchola teaches Maths, Science, and English with clear visual explanations and exam-focused revision."
 const STRATEGY_CALL_URL = 'https://myschola.uk/book-strategy-call'
 const LESSON_OUTCOMES = [
@@ -371,11 +371,11 @@ function Webinar() {
             ATTENTION PARENTS OF YEAR 9 10 & 11
           </div>
           <h1 className="mx-auto mb-3 max-w-4xl text-3xl font-black tracking-tight text-white sm:text-5xl">
-            <span className="block">Help your child work towards <strong className="text-blue-400">GCSE grades 7–9</strong> in just <strong className="text-blue-400">12 weeks</strong></span>
-            <span className="block text-blue-400 underline decoration-2 underline-offset-4">GUARANTEED</span>
-            <span className="block text-2xl sm:text-4xl mt-2">OR..</span>
-            <span className="block text-xl sm:text-3xl mt-1">we&apos;ll continue working with you for <strong className="text-blue-400">free</strong> until we do.</span>
+            Don&apos;t leave your child&apos;s GCSE grades to chance.
           </h1>
+          <p className="mx-auto max-w-3xl text-lg font-bold text-slate-100 sm:text-2xl">
+            Give them a clear plan to aim for <strong className="text-blue-400">grades 7-9.</strong>
+          </p>
 
           <a
             href="#booking"

@@ -72,6 +72,11 @@ function DeferredSection({ children, className = '', ...props }) {
   )
 }
 
+const getCohortMonth = () => new Intl.DateTimeFormat('en-GB', {
+  month: 'long',
+  timeZone: 'Europe/London',
+}).format(new Date())
+
 function Home() {
   const navigate = useNavigate()
   const testimonialVideos = [
@@ -87,6 +92,7 @@ function Home() {
   const loopEndIndex = totalTestimonialVideos * 2
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFAQ, setOpenFAQ] = useState(null)
+  const [cohortMonth, setCohortMonth] = useState(getCohortMonth)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(loopStartIndex)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
   const [visibleTestimonialCount, setVisibleTestimonialCount] = useState(() => {
@@ -109,6 +115,20 @@ function Home() {
     updateVisibleCount()
     window.addEventListener('resize', updateVisibleCount)
     return () => window.removeEventListener('resize', updateVisibleCount)
+  }, [])
+
+  useEffect(() => {
+    let monthTimer
+
+    const updateForNewMonth = () => {
+      setCohortMonth(getCohortMonth())
+      const now = new Date()
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+      monthTimer = window.setTimeout(updateForNewMonth, nextMonth.getTime() - now.getTime() + 1000)
+    }
+
+    updateForNewMonth()
+    return () => window.clearTimeout(monthTimer)
   }, [])
 
   useEffect(() => {
@@ -157,7 +177,7 @@ function Home() {
 
       {/* Cohort Banner */}
       <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
-        Join our June cohort as soon as possible — spaces are running out!
+        Join our {cohortMonth} cohort as soon as possible - spaces are running out!
       </div>
       
       {/* Navigation */}
