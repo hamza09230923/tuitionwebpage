@@ -6,7 +6,7 @@ import { join, resolve } from 'path'
 /** Copies index.html → 404.html so GitHub Pages serves the SPA for /payment-success, /login, etc. */
 const STRATEGY_CALL_FALLBACK = `
       <main class="seo-fallback" data-page="strategy-call">
-        <h1>Free GCSE Trial Lesson for Parents of Year 9-11 Students</h1>
+        <h1>Don't Leave Your Child's GCSE Grades to Chance</h1>
         <p>Book a free GCSE trial lesson with MySchola to see how we teach Maths, Science and English with clear visual explanations and exam-focused revision.</p>
         <h2>GCSE Support for AQA, Edexcel and OCR</h2>
         <p>Our online tuition supports UK students studying Maths, English and Science across AQA, Edexcel and OCR exam boards.</p>
@@ -16,7 +16,7 @@ const STRATEGY_CALL_FALLBACK = `
 
 function buildStrategyCallHtml(indexHtml) {
   return indexHtml
-    .replace(/<title>[^<]*<\/title>/, '<title>Free GCSE Trial Lesson for Parents | MySchola UK</title>')
+    .replace(/<title>[^<]*<\/title>/, "<title>Don't Leave Your Child's GCSE Grades to Chance | MySchola</title>")
     .replace(
       /<meta name="description" content="[^"]*" \/>/,
       '<meta name="description" content="Book a free GCSE trial lesson for your Year 9-11 child. See how MySchola teaches Maths, Science and English with clear visual explanations and exam-focused revision." />'
@@ -27,7 +27,7 @@ function buildStrategyCallHtml(indexHtml) {
     )
     .replace(
       /<meta property="og:title" content="[^"]*" \/>/,
-      '<meta property="og:title" content="Free GCSE Trial Lesson for Parents | MySchola UK" />'
+      "<meta property=\"og:title\" content=\"Don't Leave Your Child's GCSE Grades to Chance | MySchola\" />"
     )
     .replace(
       /<meta property="og:description" content="[^"]*" \/>/,
