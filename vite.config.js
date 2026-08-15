@@ -7,7 +7,7 @@ import { join, resolve } from 'path'
 const STRATEGY_CALL_FALLBACK = `
       <main class="seo-fallback" data-page="strategy-call">
         <h1>Don't Leave Your Child's GCSE Grades to Chance</h1>
-        <p>Book a free GCSE trial lesson with MySchola to see how we teach Maths, Science and English with clear visual explanations and exam-focused revision.</p>
+        <p>Book a free GCSE consultation with MySchola to see how we support Maths, Science and English with clear visual explanations and exam-focused revision.</p>
         <h2>GCSE Support for AQA, Edexcel and OCR</h2>
         <p>Our online tuition supports UK students studying Maths, English and Science across AQA, Edexcel and OCR exam boards.</p>
         <h2>Plan the Right Next Steps</h2>
@@ -19,7 +19,7 @@ function buildStrategyCallHtml(indexHtml) {
     .replace(/<title>[^<]*<\/title>/, "<title>Don't Leave Your Child's GCSE Grades to Chance | MySchola</title>")
     .replace(
       /<meta name="description" content="[^"]*" \/>/,
-      '<meta name="description" content="Book a free GCSE trial lesson for your Year 9-11 child. See how MySchola teaches Maths, Science and English with clear visual explanations and exam-focused revision." />'
+      '<meta name="description" content="Book a free GCSE consultation for your Year 9-11 child. See how MySchola supports Maths, Science and English with clear visual explanations and exam-focused revision." />'
     )
     .replace(
       /<meta property="og:url" content="[^"]*" \/>/,
@@ -31,7 +31,7 @@ function buildStrategyCallHtml(indexHtml) {
     )
     .replace(
       /<meta property="og:description" content="[^"]*" \/>/,
-      "<meta property=\"og:description\" content=\"Book a free GCSE trial lesson and see how MySchola teaches GCSE topics with clear visual explanations.\" />"
+      "<meta property=\"og:description\" content=\"Book a free GCSE consultation and see how MySchola supports GCSE topics with clear visual explanations.\" />"
     )
     .replace(
       /<link rel="canonical" href="[^"]*" \/>/,

@@ -25,7 +25,7 @@ import warwickLogo from '../university/warwick.svg'
 const YOUTUBE_VIDEO_ID = 'fSvTYTwv9ac'
 const COUNT_UP_DURATION_MS = 1500
 const STRATEGY_CALL_TITLE = "Don't Leave Your Child's GCSE Grades to Chance | MySchola"
-const STRATEGY_CALL_DESCRIPTION = "Book a free GCSE trial lesson for your Year 9-11 child. See how MySchola teaches Maths, Science, and English with clear visual explanations and exam-focused revision."
+const STRATEGY_CALL_DESCRIPTION = "Book a free GCSE consultation for your Year 9-11 child. See how MySchola supports Maths, Science, and English with clear visual explanations and exam-focused revision."
 const STRATEGY_CALL_URL = 'https://myschola.uk/book-strategy-call'
 const LESSON_OUTCOMES = [
   'The high-frequency GCSE topics to prioritise first in Maths, Science, and English',
@@ -382,7 +382,7 @@ function Webinar() {
             className="mx-auto mt-6 inline-flex max-w-full items-center justify-center gap-2 rounded-xl bg-blue-500 px-6 py-4 text-center text-base font-black text-white shadow-[0_18px_45px_rgba(59,130,246,0.45)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/50 sm:px-8 sm:text-lg"
           >
             <Calendar className="h-5 w-5 shrink-0" aria-hidden="true" />
-            <span>Yes, I want to book a FREE TRIAL LESSON.</span>
+            <span>Yes, I want to book a FREE CONSULTATION.</span>
           </a>
 
           <p className="mt-6 text-xl sm:text-2xl font-black text-white mb-3">
@@ -400,7 +400,7 @@ function Webinar() {
 
           <div className="mt-6">
             <p className="mx-auto max-w-4xl text-xl font-bold leading-8 text-slate-100 sm:text-2xl sm:leading-9">
-              Here is what your child will learn in the free trial lesson.
+              Here is what we will cover in the free consultation.
             </p>
 
             <div className="mx-auto mt-6 grid max-w-4xl gap-3 text-left sm:grid-cols-2">
@@ -420,7 +420,7 @@ function Webinar() {
               className="mx-auto mt-7 inline-flex max-w-full items-center justify-center gap-2 rounded-xl bg-blue-500 px-6 py-4 text-center text-base font-black text-white shadow-[0_18px_45px_rgba(59,130,246,0.45)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/50 sm:px-8 sm:text-lg"
             >
               <Calendar className="h-5 w-5 shrink-0" aria-hidden="true" />
-              <span>Yes, I want to book a FREE TRIAL LESSON.</span>
+              <span>Yes, I want to book a FREE CONSULTATION.</span>
             </a>
 
             <p className="mx-auto mt-6 max-w-2xl rounded-full border border-amber-300/25 bg-amber-400/10 px-4 py-2 text-sm font-bold text-amber-100">
