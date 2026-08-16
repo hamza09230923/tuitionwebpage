@@ -573,7 +573,7 @@ function Package() {
               Year {year} Course
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
-              Choose Your <span className="text-blue-600">Learning Package</span>
+              Choose Your <span className="text-blue-600">Group Learning Package</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Flexible pricing options tailored for Year {year} students. All packages include expert tutoring, detailed feedback, and exam preparation.

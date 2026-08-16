@@ -11,6 +11,7 @@ import testimonialVideo4 from './testimonials/testimonial4.mp4'
 import testimonialVideo5 from './testimonials/testimonial5.mp4'
 import benefitsComparisonGraphic from './assets/checklist.jpeg'
 import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
+import { getCohortMonth, getMsUntilNextLocalMonth } from './utils/cohortMonth'
 // University logos
 import nottinghamLogo from './university/nottingham-university-logo.png'
 import kingsCollegeLogo from './university/King\'s_College_London_logo.svg'
@@ -72,11 +73,6 @@ function DeferredSection({ children, className = '', ...props }) {
   )
 }
 
-const getCohortMonth = () => new Intl.DateTimeFormat('en-GB', {
-  month: 'long',
-  timeZone: 'Europe/London',
-}).format(new Date())
-
 function Home() {
   const navigate = useNavigate()
   const testimonialVideos = [
@@ -122,9 +118,7 @@ function Home() {
 
     const updateForNewMonth = () => {
       setCohortMonth(getCohortMonth())
-      const now = new Date()
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-      monthTimer = window.setTimeout(updateForNewMonth, nextMonth.getTime() - now.getTime() + 1000)
+      monthTimer = window.setTimeout(updateForNewMonth, getMsUntilNextLocalMonth())
     }
 
     updateForNewMonth()

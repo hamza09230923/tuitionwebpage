@@ -11,6 +11,7 @@ import testimonialVideo3 from '../testimonials/testmonial3.mp4'
 import testimonialVideo4 from '../testimonials/testimonial4.mp4'
 import testimonialVideo5 from '../testimonials/testimonial5.mp4'
 import { trackLeadConsultation, trackLeadWhatsApp } from '../utils/metaPixel'
+import { getCohortMonth, getMsUntilNextLocalMonth } from '../utils/cohortMonth'
 
 function TestimonialVideo({ src, className }) {
   const videoRef = useRef(null)
@@ -57,6 +58,7 @@ function Courses() {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [selectedYear, setSelectedYear] = useState(9)
+  const [cohortMonth, setCohortMonth] = useState(getCohortMonth)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(2)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
   const [visibleTestimonialCount, setVisibleTestimonialCount] = useState(() => {
@@ -116,6 +118,18 @@ function Courses() {
       subjects: ['Mathematics (Higher & Foundation)', 'English Language & Literature', 'Combined Science', 'Triple Science', 'Exam Mastery Sessions']
     }
   }
+
+  useEffect(() => {
+    let monthTimer
+
+    const updateForNewMonth = () => {
+      setCohortMonth(getCohortMonth())
+      monthTimer = window.setTimeout(updateForNewMonth, getMsUntilNextLocalMonth())
+    }
+
+    updateForNewMonth()
+    return () => window.clearTimeout(monthTimer)
+  }, [])
 
   useEffect(() => {
     const updateVisibleCount = () => {
@@ -199,7 +213,7 @@ function Courses() {
 
       {/* Cohort Banner */}
       <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
-        Join our March cohort as soon as possible — spaces are running out!
+        Join our {cohortMonth} cohort as soon as possible - spaces are running out!
       </div>
 
       {/* Navigation */}
