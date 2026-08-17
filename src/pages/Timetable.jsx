@@ -98,12 +98,10 @@ const summerScheduleData = [
   },
   {
     day: 'Wednesday',
-    status: 'active',
-    subject: 'English Language',
-    time: '6:00 PM - 8:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-red-500'
+    status: 'off',
+    subject: null,
+    time: null,
+    board: null
   },
   {
     day: 'Thursday',
@@ -125,7 +123,16 @@ const summerScheduleData = [
     day: 'Saturday',
     status: 'active',
     subject: 'English Literature',
-    time: '10:00 AM - 12:00 PM',
+    time: '10:00 AM - 11:00 AM',
+    board: 'AQA, Edexcel & OCR',
+    level: 'Foundation & Higher',
+    color: 'bg-red-500'
+  },
+  {
+    day: 'Saturday',
+    status: 'active',
+    subject: 'English Language',
+    time: '11:00 AM - 12:00 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
@@ -134,7 +141,7 @@ const summerScheduleData = [
     day: 'Saturday',
     status: 'active',
     subject: 'Chemistry',
-    time: '11:00 AM - 12:00 PM',
+    time: '2:00 PM - 3:00 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-green-500'
@@ -161,7 +168,6 @@ function Timetable() {
 
   // Get current day
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
-  const currentDayIndex = scheduleData.findIndex(d => d.day === today)
 
   useEffect(() => {
     // Announce page load for screen readers
@@ -173,11 +179,11 @@ function Timetable() {
   }
 
   const getTodaySchedule = () => {
-    const todayData = scheduleData[currentDayIndex]
-    if (!todayData || todayData.status === 'off') {
+    const todayEntries = scheduleData.filter(d => d.day === today && d.status === 'active')
+    if (todayEntries.length === 0) {
       return 'No classes today. Take a break!'
     }
-    return `Today: ${todayData.subject} at ${todayData.time}`
+    return `Today: ${todayEntries.map(({ subject, time }) => `${subject} at ${time}`).join('; ')}`
   }
 
   return (
