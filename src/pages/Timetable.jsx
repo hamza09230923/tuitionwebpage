@@ -171,7 +171,7 @@ function Timetable() {
 
   useEffect(() => {
     // Announce page load for screen readers
-    setAnnouncement('MySchola GCSE Timetable page loaded. Summer and September live lesson schedules available.')
+    setAnnouncement('MySchola GCSE Timetable page loaded. 6 days of live lessons available.')
   }, [])
 
   const handleDayClick = (dayData) => {
