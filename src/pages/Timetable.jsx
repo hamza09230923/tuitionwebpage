@@ -78,7 +78,7 @@ const septemberScheduleData = [
   }
 ]
 
-// Summer Timetable (June - August)
+// Summer Timetable (June - 5 September)
 const summerScheduleData = [
   {
     day: 'Monday',
@@ -315,7 +315,7 @@ function Timetable() {
           </p>
 
           {/* Schedule Toggle */}
-          <div className="mt-6 inline-flex bg-slate-200 rounded-lg p-1">
+          <div className="mt-6 inline-flex max-w-full flex-wrap justify-center gap-1 bg-slate-200 rounded-lg p-1">
             <button
               onClick={() => setScheduleType('summer')}
               className={`px-4 py-2 rounded-md font-medium transition-all ${
@@ -324,7 +324,7 @@ function Timetable() {
                   : 'text-slate-600 hover:text-slate-800'
               }`}
             >
-              Summer (Jun-Aug)
+              Summer (Jun-5 September)
             </button>
             <button
               onClick={() => setScheduleType('september')}
@@ -334,7 +334,7 @@ function Timetable() {
                   : 'text-slate-600 hover:text-slate-800'
               }`}
             >
-              September Term
+              September Term (from 6 September onward)
             </button>
           </div>
         </div>
