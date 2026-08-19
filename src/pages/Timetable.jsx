@@ -25,8 +25,8 @@ const septemberScheduleData = [
   {
     day: 'Tuesday',
     status: 'active',
-    subject: 'English Literature',
-    time: '7:00 PM - 8:00 PM',
+    subject: 'English Language',
+    time: '6:00 PM - 7:00 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
@@ -62,13 +62,13 @@ const septemberScheduleData = [
     day: 'Saturday',
     status: 'active',
     subject: 'Mathematics',
-    time: '11:00 AM - 12:00 PM',
+    time: '10:00 AM - 11:00 AM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-blue-500'
   },
   {
-    day: 'Sunday',
+    day: 'Saturday',
     status: 'active',
     subject: 'Physics',
     time: '2:00 PM - 3:00 PM',
