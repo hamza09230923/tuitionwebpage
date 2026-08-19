@@ -12,20 +12,22 @@ import {
   X
 } from 'lucide-react'
 
-const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const scheduleMeta = {
   summer: {
-    label: 'Summer (Jun-5 September)',
-    calendarTitle: 'Summer Weekly Calendar',
-    dateRange: 'June to 5 September'
+    label: 'Summer Programme (June - 5 September)',
+    calendarTitle: 'Summer Programme Calendar',
+    dateRange: 'June - 5 September'
   },
   september: {
-    label: 'September Term (from 6 September onward)',
-    calendarTitle: 'September Term Weekly Calendar',
-    dateRange: 'From 6 September onward'
+    label: 'September Term (From 6 September onwards)',
+    calendarTitle: 'September Term Calendar',
+    dateRange: 'From 6 September onwards'
   }
 }
+
+const formatTimeRange = (time) => time.replace(/:00/g, '')
 
 // September Timetable (Academic Year)
 const septemberScheduleData = [
@@ -410,7 +412,7 @@ function Timetable() {
           </div>
 
           <div className="overflow-x-auto">
-            <div className="min-w-[760px]">
+            <div className="min-w-[980px]">
               <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-bold uppercase tracking-wide text-slate-500">
                 {weekDays.map((day) => (
                   <div key={day} className="px-1 py-3">
@@ -430,8 +432,7 @@ function Timetable() {
                         isToday ? 'bg-blue-50' : 'bg-white'
                       }`}
                     >
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <p className="text-sm font-bold text-slate-900">{day.slice(0, 3)}</p>
+                      <div className="mb-3 flex h-5 items-center justify-end">
                         {isToday && (
                           <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[11px] font-bold text-white">
                             Today
@@ -453,9 +454,9 @@ function Timetable() {
                               aria-label={`${entry.day}. ${entry.subject} at ${entry.time}`}
                             >
                               <span className="block text-sm font-bold leading-tight">{entry.subject}</span>
-                              <span className="mt-1 flex items-center gap-1 text-[11px] font-semibold leading-tight text-white/90">
-                                <Clock className="h-3 w-3 shrink-0" />
-                                {entry.time}
+                              <span className="mt-1 flex items-center gap-1 whitespace-nowrap text-xs font-semibold leading-tight text-white/90">
+                                <Clock className="h-3.5 w-3.5 shrink-0" />
+                                {formatTimeRange(entry.time)}
                               </span>
                             </button>
                           ))}
