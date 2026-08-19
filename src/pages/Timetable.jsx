@@ -6,12 +6,26 @@ import {
   BookOpen, 
   GraduationCap, 
   MessageCircle,
-  ChevronRight,
   Users,
   Sparkles,
   Menu,
   X
 } from 'lucide-react'
+
+const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const scheduleMeta = {
+  summer: {
+    label: 'Summer (Jun-5 September)',
+    calendarTitle: 'Summer Weekly Calendar',
+    dateRange: 'June to 5 September'
+  },
+  september: {
+    label: 'September Term (from 6 September onward)',
+    calendarTitle: 'September Term Weekly Calendar',
+    dateRange: 'From 6 September onward'
+  }
+}
 
 // September Timetable (Academic Year)
 const septemberScheduleData = [
@@ -171,12 +185,18 @@ function Timetable() {
 
   useEffect(() => {
     // Announce page load for screen readers
-    setAnnouncement('MySchola GCSE Timetable page loaded. 6 days of live lessons available.')
+    setAnnouncement('MySchola GCSE Timetable page loaded. Weekly calendar view available.')
   }, [])
+
+  useEffect(() => {
+    setSelectedDay(null)
+  }, [scheduleType])
 
   const handleDayClick = (dayData) => {
     setSelectedDay(dayData)
   }
+
+  const getDayEntries = (day) => scheduleData.filter(d => d.day === day && d.status === 'active')
 
   const getTodaySchedule = () => {
     const todayEntries = scheduleData.filter(d => d.day === today && d.status === 'active')
@@ -317,7 +337,7 @@ function Timetable() {
             Your GCSE Learning Timetable
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Structured live sessions for Year 9-11 students. Click any day to hear details.
+            Structured live sessions for Year 9-11 students. Click any lesson to see details.
           </p>
 
           {/* Schedule Toggle */}
@@ -330,7 +350,7 @@ function Timetable() {
                   : 'text-slate-600 hover:text-slate-800'
               }`}
             >
-              Summer (Jun-5 September)
+              {scheduleMeta.summer.label}
             </button>
             <button
               onClick={() => setScheduleType('september')}
@@ -340,7 +360,7 @@ function Timetable() {
                   : 'text-slate-600 hover:text-slate-800'
               }`}
             >
-              September Term (from 6 September onward)
+              {scheduleMeta.september.label}
             </button>
           </div>
         </div>
@@ -362,116 +382,150 @@ function Timetable() {
           </p>
         </div>
 
-        {/* Timetable Grid */}
-        <div 
-          className="grid gap-4"
-          role="list"
-          aria-label="Weekly timetable"
+        {/* Weekly Calendar */}
+        <div
+          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+          role="region"
+          aria-label={`${scheduleMeta[scheduleType].calendarTitle}: ${scheduleMeta[scheduleType].dateRange}`}
         >
-          {scheduleData.map((dayData, index) => (
-            <button
-              key={`${dayData.day}-${index}`}
-              onClick={() => handleDayClick(dayData)}
-              className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
-                selectedDay?.day === dayData.day && selectedDay?.time === dayData.time
-                  ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' 
-                  : 'border-slate-200 hover:border-blue-300 hover:shadow-md'
-              } ${dayData.status === 'off' ? 'bg-slate-50' : 'bg-white'}`}
-              role="listitem"
-              aria-label={`${dayData.day}. ${dayData.status === 'off' ? 'No classes' : `${dayData.subject} at ${dayData.time}`}`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {/* Day Indicator */}
-                  <div 
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm ${
-                      dayData.status === 'off' 
-                        ? 'bg-slate-200 text-slate-500' 
-                        : `${dayData.color} text-white`
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {dayData.day.slice(0, 3)}
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-lg">
-                      {dayData.day}
-                    </h3>
-                    {dayData.status === 'off' ? (
-                      <p className="text-slate-500 font-medium">Rest Day</p>
-                    ) : (
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="font-semibold text-slate-700">{dayData.subject}</span>
-                        <span className="text-slate-400">|</span>
-                        <span className="flex items-center gap-1 text-slate-600 text-sm">
-                          <Clock className="h-3.5 w-3.5" />
-                          {dayData.time}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+          <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">{scheduleMeta[scheduleType].calendarTitle}</h3>
+              <p className="text-sm font-medium text-slate-500">{scheduleMeta[scheduleType].dateRange}</p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                Maths
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                English
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                Science
+              </span>
+            </div>
+          </div>
 
-                {dayData.status === 'active' && (
-                  <div className="hidden sm:flex items-center gap-2">
-                    <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">
-                      {dayData.board}
-                    </span>
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
+          <div className="overflow-x-auto">
+            <div className="min-w-[760px]">
+              <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-bold uppercase tracking-wide text-slate-500">
+                {weekDays.map((day) => (
+                  <div key={day} className="px-1 py-3">
+                    {day.slice(0, 3)}
                   </div>
-                )}
+                ))}
               </div>
 
-              {/* Expanded Details */}
-              {selectedDay?.day === dayData.day && selectedDay?.time === dayData.time && dayData.status === 'active' && (
-                <div 
-                  className="mt-4 pt-4 border-t border-slate-100 animate-fadeIn"
-                  role="region"
-                  aria-label={`${dayData.day} details`}
-                >
-                  <div className="grid sm:grid-cols-4 gap-4">
-                    <div className="bg-slate-50 p-3 rounded-lg">
-                      <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Subject</p>
-                      <p className="font-semibold text-slate-900 flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-blue-600" />
-                        {dayData.subject}
-                      </p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-lg">
-                      <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Time</p>
-                      <p className="font-semibold text-slate-900 flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        {dayData.time}
-                      </p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-lg">
-                      <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Exam Board</p>
-                      <p className="font-semibold text-slate-900">{dayData.board}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-lg">
-                      <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Level</p>
-                      <p className="font-semibold text-slate-900">{dayData.level}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 flex gap-3">
-                    <a
-                      href="https://wa.me/447344193804"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition text-sm"
+              <div className="grid grid-cols-7">
+                {weekDays.map((day) => {
+                  const entries = getDayEntries(day)
+                  const isToday = day === today
+                  return (
+                    <div
+                      key={day}
+                      className={`min-h-[158px] border-r border-slate-200 p-3 last:border-r-0 ${
+                        isToday ? 'bg-blue-50' : 'bg-white'
+                      }`}
                     >
-                      <MessageCircle className="h-4 w-4" />
-                      Ask on WhatsApp
-                    </a>
-                  </div>
-                </div>
-              )}
-            </button>
-          ))}
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <p className="text-sm font-bold text-slate-900">{day.slice(0, 3)}</p>
+                        {isToday && (
+                          <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                            Today
+                          </span>
+                        )}
+                      </div>
+
+                      {entries.length > 0 ? (
+                        <div className="space-y-2">
+                          {entries.map((entry) => (
+                            <button
+                              key={`${entry.day}-${entry.subject}-${entry.time}`}
+                              onClick={() => handleDayClick(entry)}
+                              className={`w-full rounded-lg px-2.5 py-2 text-left text-white shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-4 focus:ring-blue-300 ${entry.color} ${
+                                selectedDay?.day === entry.day && selectedDay?.time === entry.time && selectedDay?.subject === entry.subject
+                                  ? 'ring-4 ring-blue-200'
+                                  : ''
+                              }`}
+                              aria-label={`${entry.day}. ${entry.subject} at ${entry.time}`}
+                            >
+                              <span className="block text-sm font-bold leading-tight">{entry.subject}</span>
+                              <span className="mt-1 flex items-center gap-1 text-[11px] font-semibold leading-tight text-white/90">
+                                <Clock className="h-3 w-3 shrink-0" />
+                                {entry.time}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex h-[92px] items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 text-sm font-medium text-slate-400">
+                          Rest day
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
         </div>
+
+        {selectedDay && selectedDay.status === 'active' && (
+          <div
+            className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            role="region"
+            aria-label={`${selectedDay.day} selected lesson details`}
+          >
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`h-11 w-11 rounded-xl ${selectedDay.color} flex items-center justify-center text-sm font-bold text-white`}>
+                  {selectedDay.day.slice(0, 3)}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">{selectedDay.subject}</h3>
+                  <p className="text-sm font-medium text-slate-500">{selectedDay.day}</p>
+                </div>
+              </div>
+              <a
+                href="https://wa.me/447344193804"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Ask on WhatsApp
+              </a>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-4">
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Subject</p>
+                <p className="flex items-center gap-2 font-semibold text-slate-900">
+                  <BookOpen className="h-4 w-4 text-blue-600" />
+                  {selectedDay.subject}
+                </p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Time</p>
+                <p className="flex items-center gap-2 font-semibold text-slate-900">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  {selectedDay.time}
+                </p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Exam Board</p>
+                <p className="font-semibold text-slate-900">{selectedDay.board}</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Level</p>
+                <p className="font-semibold text-slate-900">{selectedDay.level}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Human Support Section */}
         <div className="mt-8 bg-gradient-to-r from-emerald-50 via-white to-blue-50 rounded-2xl p-6 border border-emerald-200">
