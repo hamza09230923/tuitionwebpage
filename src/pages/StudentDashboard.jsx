@@ -380,16 +380,29 @@ function StudentDashboard() {
           {isUnlocked(subject) ? (
             <>
               {subject.zoomLink && (
-                <a
-                  href={subject.zoomLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
-                  aria-label={`Join Zoom session for ${displayName}`}
-                >
-                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                  Join Zoom
-                </a>
+                <>
+                  <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm">
+                    <p className="font-medium text-blue-900">Zoom meeting link</p>
+                    <a
+                      href={subject.zoomLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
+                    >
+                      {subject.zoomLink}
+                    </a>
+                  </div>
+                  <a
+                    href={subject.zoomLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                    aria-label={`Join Zoom session for ${displayName}`}
+                  >
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                    Join Zoom
+                  </a>
+                </>
               )}
 
               <div className="grid grid-cols-2 gap-2">
