@@ -148,6 +148,64 @@ const getSubjectBaseKey = (subjectOrId) => {
 
 const getScienceCardTitle = (key) => key.charAt(0).toUpperCase() + key.slice(1)
 
+const getDateFromFirestoreValue = (value) => {
+  if (!value) {
+    return null
+  }
+
+  if (value.toDate) {
+    return value.toDate()
+  }
+
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const getAcademicYearIncrement = (anchorDate, currentDate = new Date()) => {
+  if (!anchorDate || currentDate <= anchorDate) {
+    return 0
+  }
+
+  let increment = currentDate.getFullYear() - anchorDate.getFullYear()
+  const septemberStartThisYear = new Date(currentDate.getFullYear(), 8, 1)
+  const anchorSeptemberStart = new Date(anchorDate.getFullYear(), 8, 1)
+
+  if (currentDate < septemberStartThisYear) {
+    increment -= 1
+  }
+
+  if (anchorDate >= anchorSeptemberStart) {
+    increment -= 1
+  }
+
+  return Math.max(0, increment + 1)
+}
+
+const getStudentYearLabel = (studentData) => {
+  const rawYear = studentData?.schoolYear || studentData?.yearGroup || studentData?.year || studentData?.currentYear
+  const normalizedYear = String(rawYear || '').trim()
+
+  if (!normalizedYear) {
+    return ''
+  }
+
+  const yearMatch = normalizedYear.match(/\d+/)
+  if (!yearMatch) {
+    return normalizedYear
+  }
+
+  const baseYear = Number(yearMatch[0])
+  if (!Number.isFinite(baseYear)) {
+    return normalizedYear
+  }
+
+  const anchorDate = getDateFromFirestoreValue(studentData?.schoolYearSetAt) ||
+    getDateFromFirestoreValue(studentData?.createdAt)
+  const currentYear = Math.min(baseYear + getAcademicYearIncrement(anchorDate), 11)
+
+  return `Year ${currentYear}`
+}
+
 const getScienceSubjectCard = (subjects, key) => {
   const exactSubject = subjects.find((subject) => {
     const id = normalizeSubjectId(subject.id)
@@ -346,6 +404,7 @@ function StudentDashboard() {
     scienceAccessKeys.has('biology') &&
     scienceAccessKeys.has('chemistry') &&
     !scienceAccessKeys.has('physics')
+  const studentYearLabel = getStudentYearLabel(student)
 
   const renderSubjectCard = (subject, options = {}) => {
     const displayName = options.displayName || getCanonicalSubjectName(subject)
@@ -522,8 +581,15 @@ function StudentDashboard() {
             <BookOpen className="h-8 w-8 text-blue-600" aria-hidden="true" />
             <div>
               <h1 className="text-xl font-semibold text-gray-900">MySchola Student Dashboard</h1>
-              <p className="text-sm text-gray-500">
-                Hi, <span className="font-medium">{student?.name || 'Student'}</span>
+              <p className="text-sm text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span>
+                  Hi, <span className="font-medium">{student?.name || 'Student'}</span>
+                </span>
+                {studentYearLabel && (
+                  <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                    {studentYearLabel}
+                  </span>
+                )}
               </p>
             </div>
           </div>
