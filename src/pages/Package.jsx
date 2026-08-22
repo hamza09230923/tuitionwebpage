@@ -153,6 +153,23 @@ function Package() {
     setActiveTestimonialIndex((prev) => prev + 1)
   }
 
+  const rememberPendingCheckout = (item) => {
+    const value = Number(String(item?.price || '').replace(/[^0-9.]/g, ''))
+    if (!Number.isFinite(value) || value <= 0) return
+
+    try {
+      window.sessionStorage.setItem('myscholaPendingCheckout', JSON.stringify({
+        id: item.id,
+        name: item.name,
+        value,
+        currency: 'GBP',
+        savedAt: Date.now(),
+      }))
+    } catch {
+      // Tracking storage failures must not block checkout.
+    }
+  }
+
   const getMathsScienceEnglishLink = () => {
     return 'https://buy.stripe.com/4gMaEY7FR9x24xJc9vcjS2c'
   }
@@ -233,6 +250,9 @@ function Package() {
   }
 
   const handleBundleCheckout = (bundleType) => {
+    const selectedBundle = bundles.find((bundle) => bundle.id === bundleType)
+    rememberPendingCheckout(selectedBundle)
+
     switch (bundleType) {
       case 'maths-science-english':
         window.location.href = getMathsScienceEnglishLink()
@@ -255,6 +275,9 @@ function Package() {
   }
 
   const handleIndividualCheckout = (subjectType) => {
+    const selectedPackage = individualPricing.find((item) => item.id === subjectType)
+    rememberPendingCheckout(selectedPackage)
+
     switch (subjectType) {
       case 'science':
         window.location.href = getScienceLink()
@@ -298,7 +321,6 @@ function Package() {
       price: '£66',
       perLesson: '£11.00 per lesson',
       period: '/week',
-      trialDays: 7,
       popular: true,
       features: [
         '24 lessons per month / 6 lessons a week',
@@ -318,7 +340,6 @@ function Package() {
       price: '£39',
       perLesson: '£13.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '12 lessons per month / 3 lessons a week',
         'Exam Technique Focused',
@@ -336,7 +357,6 @@ function Package() {
       price: '£52',
       perLesson: '£13.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '16 lessons per month / 4 lessons a week',
         'Exam Technique Focused',
@@ -354,7 +374,6 @@ function Package() {
       price: '£60',
       perLesson: '£12.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '20 lessons per month / 5 lessons a week',
         'Exam Technique Focused',
@@ -376,7 +395,6 @@ function Package() {
       price: '£39',
       perLesson: '£13.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '12 lessons per month / 3 lessons a week',
         'Exam Technique Focused',
@@ -394,7 +412,6 @@ function Package() {
       price: '£26',
       perLesson: '£13.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '8 lessons per month / 2 lessons a week',
         'Exam Technique Focused',
@@ -412,7 +429,6 @@ function Package() {
       price: '£15',
       perLesson: '£15.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '4 lessons per month / 1 lesson a week',
         'Exam Technique Focused',
@@ -429,7 +445,6 @@ function Package() {
       price: '£15',
       perLesson: '£15.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '4 lessons per month / 1 lesson a week',
         'Exam Technique Focused',
@@ -447,7 +462,6 @@ function Package() {
       price: '£15',
       perLesson: '£15.00 per lesson',
       period: '/week',
-      trialDays: 7,
       features: [
         '4 lessons per month / 1 lesson a week',
         'Exam Technique Focused',

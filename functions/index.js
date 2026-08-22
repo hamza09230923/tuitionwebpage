@@ -1,6 +1,8 @@
 const admin = require('firebase-admin')
 const functions = require('firebase-functions')
+const crypto = require('crypto')
 const { google } = require('googleapis')
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '')
 
 admin.initializeApp()
 
@@ -77,6 +79,190 @@ const handleOptions = (req, res) => {
 
 const jsonError = (res, status, message) => {
   res.status(status).json({ error: message })
+}
+
+const sha256 = (value) => crypto
+  .createHash('sha256')
+  .update(String(value).trim().toLowerCase())
+  .digest('hex')
+
+const getStripeWebhookEvent = (req) => {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!webhookSecret) {
+    return req.body
+  }
+
+  const signature = req.get('stripe-signature')
+  if (!signature) {
+    throw new Error('Missing Stripe signature')
+  }
+
+  return stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret)
+}
+
+const buildMetaUserData = (session) => {
+  const customer = session.customer_details || {}
+  const userData = {}
+
+  if (customer.email) {
+    userData.em = [sha256(customer.email)]
+  }
+
+  if (customer.phone) {
+    userData.ph = [sha256(customer.phone.replace(/\D/g, ''))]
+  }
+
+  if (session.client_reference_id) {
+    userData.external_id = [sha256(session.client_reference_id)]
+  }
+
+  return userData
+}
+
+const buildMetaChargeUserData = (charge) => {
+  const billingDetails = charge.billing_details || {}
+  const userData = {}
+
+  if (billingDetails.email) {
+    userData.em = [sha256(billingDetails.email)]
+  }
+
+  if (billingDetails.phone) {
+    userData.ph = [sha256(billingDetails.phone.replace(/\D/g, ''))]
+  }
+
+  if (charge.customer) {
+    userData.external_id = [sha256(charge.customer)]
+  }
+
+  return userData
+}
+
+const sendMetaPurchaseEvent = async (session) => {
+  const accessToken = process.env.META_ACCESS_TOKEN
+  const pixelId = process.env.META_PIXEL_ID || '2772806336415328'
+  const graphVersion = process.env.META_GRAPH_VERSION || 'v26.0'
+
+  if (!accessToken || !pixelId) {
+    console.warn('Meta CAPI is not configured; skipping Purchase event')
+    return { skipped: true }
+  }
+
+  const amountTotal = Number(session.amount_total)
+  if (!Number.isFinite(amountTotal) || amountTotal <= 0) {
+    console.log('Stripe checkout completed with no paid amount; skipping Meta Purchase event')
+    return { skipped: true }
+  }
+
+  const value = amountTotal / 100
+  const currency = String(session.currency || 'gbp').toUpperCase()
+  const userData = buildMetaUserData(session)
+
+  if (!Object.keys(userData).length) {
+    console.warn('Meta CAPI user_data is empty; skipping Purchase event')
+    return { skipped: true }
+  }
+
+  const payload = {
+    data: [
+      {
+        event_name: 'Purchase',
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: session.payment_intent || session.id,
+        action_source: 'website',
+        event_source_url: process.env.META_EVENT_SOURCE_URL || 'https://myschola.uk/payment-success',
+        user_data: userData,
+        custom_data: {
+          currency,
+          value
+        }
+      }
+    ]
+  }
+
+  const testEventCode = process.env.META_TEST_EVENT_CODE
+  if (testEventCode) {
+    payload.test_event_code = testEventCode
+  }
+
+  const response = await fetch(
+    `https://graph.facebook.com/${graphVersion}/${pixelId}/events?access_token=${encodeURIComponent(accessToken)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }
+  )
+
+  const result = await response.json()
+  if (!response.ok) {
+    throw new Error(`Meta CAPI request failed: ${JSON.stringify(result)}`)
+  }
+
+  return result
+}
+
+const sendMetaChargePurchaseEvent = async (charge) => {
+  const accessToken = process.env.META_ACCESS_TOKEN
+  const pixelId = process.env.META_PIXEL_ID || '2772806336415328'
+  const graphVersion = process.env.META_GRAPH_VERSION || 'v26.0'
+
+  if (!accessToken || !pixelId) {
+    console.warn('Meta CAPI is not configured; skipping charge Purchase event')
+    return { skipped: true }
+  }
+
+  const amount = Number(charge.amount)
+  if (!Number.isFinite(amount) || amount <= 0 || charge.paid === false) {
+    console.log('Stripe charge is not a paid amount; skipping Meta Purchase event')
+    return { skipped: true }
+  }
+
+  const currency = String(charge.currency || 'gbp').toUpperCase()
+  const userData = buildMetaChargeUserData(charge)
+
+  if (!Object.keys(userData).length) {
+    console.warn('Meta CAPI user_data is empty for charge; skipping Purchase event')
+    return { skipped: true }
+  }
+
+  const payload = {
+    data: [
+      {
+        event_name: 'Purchase',
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: charge.payment_intent || charge.id,
+        action_source: 'website',
+        event_source_url: process.env.META_EVENT_SOURCE_URL || 'https://myschola.uk/payment-success',
+        user_data: userData,
+        custom_data: {
+          currency,
+          value: amount / 100
+        }
+      }
+    ]
+  }
+
+  const testEventCode = process.env.META_TEST_EVENT_CODE
+  if (testEventCode) {
+    payload.test_event_code = testEventCode
+  }
+
+  const response = await fetch(
+    `https://graph.facebook.com/${graphVersion}/${pixelId}/events?access_token=${encodeURIComponent(accessToken)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }
+  )
+
+  const result = await response.json()
+  if (!response.ok) {
+    throw new Error(`Meta CAPI charge request failed: ${JSON.stringify(result)}`)
+  }
+
+  return result
 }
 
 const getAuthToken = async (req) => {
@@ -489,6 +675,37 @@ exports.createHidriveUpload = functions.https.onRequest(async (req, res) => {
   } catch (err) {
     console.error('createHidriveUpload error:', err)
     jsonError(res, 500, err.message || 'Upload initialization failed')
+  }
+})
+
+exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    return jsonError(res, 405, 'Method not allowed')
+  }
+
+  let event
+  try {
+    event = getStripeWebhookEvent(req)
+  } catch (err) {
+    console.error('Stripe webhook verification failed:', err)
+    return jsonError(res, 400, err.message || 'Invalid Stripe webhook')
+  }
+
+  try {
+    if (event.type === 'checkout.session.completed') {
+      await sendMetaPurchaseEvent(event.data.object)
+    } else if (event.type === 'charge.succeeded') {
+      await sendMetaChargePurchaseEvent(event.data.object)
+    }
+
+    res.status(200).json({ received: true })
+  } catch (err) {
+    console.error('stripeWebhook error:', err)
+    res.status(200).json({
+      received: true,
+      metaForwarded: false,
+      error: err.message || 'Meta forwarding failed'
+    })
   }
 })
 
