@@ -10,6 +10,8 @@ import testimonialVideo2 from '../testimonials/testimonial2.mp4'
 import testimonialVideo3 from '../testimonials/testmonial3.mp4'
 import testimonialVideo4 from '../testimonials/testimonial4.mp4'
 import testimonialVideo5 from '../testimonials/testimonial5.mp4'
+import parentTestimonialVideo from '../testimonials/parentTestimonial.MP4'
+import studentTestimonialVideo from '../testimonials/studentTestimonial.MP4'
 import { trackLeadConsultation, trackLeadWhatsApp } from '../utils/metaPixel'
 import { getCohortMonth, getMsUntilNextLocalMonth } from '../utils/cohortMonth'
 
@@ -69,6 +71,8 @@ function Courses() {
   })
 
   const testimonialVideos = [
+    { src: parentTestimonialVideo, id: 7, name: 'Parent Testimonial', subjects: ['Parent Feedback'], improvementLabel: 'Family experience' },
+    { src: studentTestimonialVideo, id: 6, name: 'Student Testimonial', subjects: ['Student Feedback'], improvementLabel: 'Learning experience' },
     { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo3, id: 3, name: 'Eyaad', subjects: ['Physics'], improvedBy: 2 },
@@ -454,7 +458,7 @@ function Courses() {
                                 {video.subjects.join(' / ')}
                               </span>
                               <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-blue-700">
-                                {formatImprovement(video.improvedBy)}
+                                {video.improvementLabel || formatImprovement(video.improvedBy)}
                               </span>
                             </div>
                           </div>
