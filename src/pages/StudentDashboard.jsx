@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { getStudentSubjectIds, isTutorialStudent } from '../utils/studentAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
@@ -92,6 +92,7 @@ const writeAccessList = (list) => {
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 const SCIENCE_SUBJECTS = ['biology', 'chemistry', 'physics']
 const BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK = 'https://us06web.zoom.us/s/81775136769?pwd=VxunmI72c7rCcPotVtzobCSZuuAESW.1#success'
+const NEW_RECORDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
 const normalizeSubjectName = (subjectName) => String(subjectName || '').toLowerCase()
 const normalizeSubjectId = (subjectId) => String(subjectId || '').toLowerCase()
@@ -159,6 +160,174 @@ const getDateFromFirestoreValue = (value) => {
 
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
+}
+
+const getHiddenIds = (studentData, fieldName) => {
+  const hiddenIds = Array.isArray(studentData?.[fieldName]) ? studentData[fieldName] : []
+  return new Set(hiddenIds.map((id) => String(id)))
+}
+
+const getHiddenTitleKeywords = (studentData, fieldName) => {
+  const keywords = Array.isArray(studentData?.[fieldName]) ? studentData[fieldName] : []
+
+  return keywords
+    .map((keyword) => String(keyword || '').trim().toLowerCase())
+    .filter(Boolean)
+}
+
+const isItemHiddenForStudent = (item, studentData, idFieldName, titleFieldName) => {
+  if (getHiddenIds(studentData, idFieldName).has(String(item.id))) {
+    return true
+  }
+
+  const title = String(item.title || '').toLowerCase()
+  return title
+    ? getHiddenTitleKeywords(studentData, titleFieldName).some((keyword) => title.includes(keyword))
+    : false
+}
+
+const isApprovedItem = (item) => !('approvalStatus' in item) || item.approvalStatus === 'approved'
+
+const getSoonestAssignment = (assignments) => (
+  assignments
+    .map((assignment) => ({
+      ...assignment,
+      dueDateValue: getDateFromFirestoreValue(assignment.dueDate)
+    }))
+    .sort((a, b) => {
+      if (!a.dueDateValue && !b.dueDateValue) return 0
+      if (!a.dueDateValue) return 1
+      if (!b.dueDateValue) return -1
+      return a.dueDateValue - b.dueDateValue
+    })[0] || null
+)
+
+const getLatestRecording = (recordings) => (
+  recordings
+    .map((recording) => ({
+      ...recording,
+      dateValue: getDateFromFirestoreValue(recording.date)
+    }))
+    .sort((a, b) => {
+      if (!a.dateValue && !b.dateValue) return 0
+      if (!a.dateValue) return 1
+      if (!b.dateValue) return -1
+      return b.dateValue - a.dateValue
+    })[0] || null
+)
+
+const formatShortDate = (date) => (
+  date
+    ? date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    : 'No date'
+)
+
+const loadDashboardOverview = async (uid, studentData, subjectIds) => {
+  if (subjectIds.length === 0) {
+    return {
+      assignmentsDue: 0,
+      newRecordings: 0,
+      nextAssignment: null,
+      latestRecording: null
+    }
+  }
+
+  const submissionsSnapshot = await getDocs(
+    query(collection(db, 'submissions'), where('studentId', '==', uid))
+  )
+  const submittedHomeworkIds = new Set(
+    submissionsSnapshot.docs
+      .map((submissionDoc) => submissionDoc.data()?.homeworkId)
+      .filter(Boolean)
+      .map((homeworkId) => String(homeworkId))
+  )
+
+  const overviewData = await Promise.all(subjectIds.map(async (subjectId) => {
+    const [
+      subjectHomeworksSnapshot,
+      studentHomeworksSnapshot,
+      subjectRecordingsSnapshot,
+      studentRecordingsSnapshot
+    ] = await Promise.all([
+      getDocs(query(collection(db, 'homeworks'), where('subjectId', '==', subjectId))).catch(() => ({ docs: [] })),
+      getDocs(query(
+        collection(db, 'studentHomeworks'),
+        where('subjectId', '==', subjectId),
+        where('studentId', '==', uid)
+      )).catch(() => ({ docs: [] })),
+      getDocs(query(collection(db, 'recordings'), where('subjectId', '==', subjectId))).catch(() => ({ docs: [] })),
+      getDocs(query(
+        collection(db, 'studentRecordings'),
+        where('subjectId', '==', subjectId),
+        where('studentId', '==', uid)
+      )).catch(() => ({ docs: [] }))
+    ])
+
+    const homeworks = [
+      ...subjectHomeworksSnapshot.docs.map((homeworkDoc) => ({
+        id: homeworkDoc.id,
+        sourceCollection: 'homeworks',
+        subjectId,
+        ...homeworkDoc.data()
+      })),
+      ...studentHomeworksSnapshot.docs.map((homeworkDoc) => ({
+        id: homeworkDoc.id,
+        sourceCollection: 'studentHomeworks',
+        subjectId,
+        ...homeworkDoc.data()
+      }))
+    ].filter((homework) => (
+      !submittedHomeworkIds.has(String(homework.id)) &&
+      !isItemHiddenForStudent(
+        homework,
+        studentData,
+        'hiddenHomeworkIds',
+        'hiddenHomeworkTitleKeywords'
+      )
+    ))
+
+    const recordings = [
+      ...subjectRecordingsSnapshot.docs.map((recordingDoc) => ({
+        id: recordingDoc.id,
+        sourceCollection: 'recordings',
+        subjectId,
+        ...recordingDoc.data()
+      })),
+      ...studentRecordingsSnapshot.docs.map((recordingDoc) => ({
+        id: recordingDoc.id,
+        sourceCollection: 'studentRecordings',
+        subjectId,
+        ...recordingDoc.data()
+      }))
+    ].filter((recording) => (
+      isApprovedItem(recording) &&
+      !isItemHiddenForStudent(
+        recording,
+        studentData,
+        'hiddenRecordingIds',
+        'hiddenRecordingTitleKeywords'
+      )
+    ))
+
+    return { homeworks, recordings }
+  }))
+
+  const homeworks = overviewData.flatMap((item) => item.homeworks)
+  const recordings = overviewData.flatMap((item) => item.recordings)
+  const newestAllowedDate = new Date(Date.now() - NEW_RECORDING_WINDOW_MS)
+  const newRecordings = recordings.filter((recording) => {
+    const recordingDate = getDateFromFirestoreValue(recording.date)
+    return recordingDate && recordingDate >= newestAllowedDate
+  })
+
+  return {
+    assignmentsDue: homeworks.length,
+    newRecordings: newRecordings.length,
+    nextAssignment: getSoonestAssignment(homeworks),
+    latestRecording: getLatestRecording(newRecordings),
+    dueHomeworks: homeworks,
+    newRecordingItems: newRecordings
+  }
 }
 
 const getAcademicYearIncrement = (anchorDate, currentDate = new Date()) => {
@@ -243,6 +412,15 @@ function StudentDashboard() {
   const [unlockSubjectId, setUnlockSubjectId] = useState(null)
   const [pinInput, setPinInput] = useState('')
   const [pinError, setPinError] = useState('')
+  const [overview, setOverview] = useState({
+    assignmentsDue: 0,
+    newRecordings: 0,
+    nextAssignment: null,
+    latestRecording: null,
+    dueHomeworks: [],
+    newRecordingItems: []
+  })
+  const [activeOverviewPanel, setActiveOverviewPanel] = useState('')
 
   useEffect(() => {
     const loadStudentData = async () => {
@@ -267,6 +445,8 @@ function StudentDashboard() {
         setTutorialAccess(isTutorialStudent(studentData))
         setDebugInfo(null)
         const studentSubjectIds = getStudentSubjectIds(studentData)
+        const dashboardOverview = await loadDashboardOverview(user.uid, studentData, studentSubjectIds)
+        setOverview(dashboardOverview)
 
         // Debug: Log student data
         console.log('Student data:', studentData)
@@ -405,6 +585,33 @@ function StudentDashboard() {
     scienceAccessKeys.has('chemistry') &&
     !scienceAccessKeys.has('physics')
   const studentYearLabel = getStudentYearLabel(student)
+  const overviewCards = [
+    {
+      id: 'homework',
+      title: 'Homework Due',
+      value: overview.assignmentsDue,
+      detail: overview.nextAssignment
+        ? `Next: ${overview.nextAssignment.title || 'Untitled homework'} - ${formatShortDate(overview.nextAssignment.dueDateValue)}`
+        : 'No pending homework',
+      icon: FileText,
+      iconClassName: 'bg-green-50 text-green-700 border-green-100',
+      items: overview.dueHomeworks || [],
+      emptyLabel: 'No homework due right now'
+    },
+    {
+      id: 'recordings',
+      title: 'New recordings',
+      value: overview.newRecordings,
+      detail: overview.latestRecording
+        ? `Latest: ${overview.latestRecording.title || 'Untitled recording'} - ${formatShortDate(overview.latestRecording.dateValue)}`
+        : 'No new recordings this week',
+      icon: Video,
+      iconClassName: 'bg-blue-50 text-blue-700 border-blue-100',
+      items: overview.newRecordingItems || [],
+      emptyLabel: 'No new recordings this week'
+    }
+  ]
+  const activeOverviewCard = overviewCards.find((card) => card.id === activeOverviewPanel)
 
   const renderSubjectCard = (subject, options = {}) => {
     const displayName = options.displayName || getCanonicalSubjectName(subject)
@@ -615,6 +822,74 @@ function StudentDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="mb-8" aria-labelledby="dashboard-overview-heading">
+          <div className="mb-4">
+            <h2 id="dashboard-overview-heading" className="text-2xl font-bold text-gray-900">
+              Dashboard Overview
+            </h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {overviewCards.map((card) => {
+              const OverviewIcon = card.icon
+              return (
+                <button
+                  key={card.title}
+                  type="button"
+                  onClick={() => setActiveOverviewPanel((current) => current === card.id ? '' : card.id)}
+                  className={`rounded-lg border bg-white p-5 text-left shadow-sm transition hover:border-blue-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    activeOverviewPanel === card.id ? 'border-blue-300 ring-1 ring-blue-100' : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                      <p className="mt-1 text-3xl font-bold text-gray-900">{card.value}</p>
+                    </div>
+                    <div className={`rounded-lg border p-3 ${card.iconClassName}`}>
+                      <OverviewIcon className="h-6 w-6" aria-hidden="true" />
+                    </div>
+                  </div>
+                  <p className="mt-4 truncate text-sm text-gray-600">{card.detail}</p>
+                </button>
+              )
+            })}
+          </div>
+          {activeOverviewCard && (
+            <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
+              <div className="border-b border-gray-100 px-5 py-4">
+                <h3 className="font-semibold text-gray-900">{activeOverviewCard.title}</h3>
+              </div>
+              {activeOverviewCard.items.length > 0 ? (
+                <div className="divide-y divide-gray-100">
+                  {activeOverviewCard.items.map((item) => {
+                    const dateValue = activeOverviewCard.id === 'homework'
+                      ? getDateFromFirestoreValue(item.dueDate)
+                      : getDateFromFirestoreValue(item.date)
+                    const itemHref = activeOverviewCard.id === 'homework'
+                      ? `/app/subject/${item.subjectId}/homework`
+                      : `/app/subject/${item.subjectId}/recordings`
+
+                    return (
+                      <Link
+                        key={`${item.sourceCollection}-${item.id}`}
+                        to={itemHref}
+                        className="flex flex-col gap-1 px-5 py-4 transition hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <span className="font-medium text-gray-900">{item.title || 'Untitled'}</span>
+                        <span className="text-sm text-gray-500">
+                          {activeOverviewCard.id === 'homework' ? 'Due' : 'Added'} {formatShortDate(dateValue)}
+                        </span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p className="px-5 py-4 text-sm text-gray-600">{activeOverviewCard.emptyLabel}</p>
+              )}
+            </div>
+          )}
+        </section>
+
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Subjects</h2>
           <p className="text-gray-600">
