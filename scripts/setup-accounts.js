@@ -114,13 +114,13 @@ const defaultSubjects = [
     id: 'english_lang_001',
     name: 'English Language',
     description: 'GCSE English Language',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/83547340736'
   },
   {
     id: 'english_lit_001',
     name: 'English Literature',
     description: 'GCSE English Literature',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/84218770525'
   },
   {
     id: 'combined_science_001',
