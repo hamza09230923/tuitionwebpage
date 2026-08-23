@@ -298,12 +298,15 @@ const createOrUpdateWithAdminSdk = async (
   const studentRef = db.collection('students').doc(userRecord.uid)
   const existingStudent = await studentRef.get()
   const existingData = existingStudent.exists ? existingStudent.data() : {}
+  const shouldSetSchoolYearAnchor = !existingStudent.exists ||
+    existingData.schoolYear !== student.schoolYear
 
   await studentRef.set(
     {
       name: student.name,
       email: student.email,
       schoolYear: student.schoolYear,
+      ...(shouldSetSchoolYearAnchor ? { schoolYearSetAt: admin.firestore.FieldValue.serverTimestamp() } : {}),
       subjects: subjectIds,
       subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
       hiddenRecordingIds,
@@ -420,6 +423,8 @@ const createOrUpdateWithClientSdk = async (
     const studentRef = doc(db, 'students', studentUser.uid)
     const existingStudent = await getDoc(studentRef)
     const existingData = existingStudent.exists() ? existingStudent.data() : {}
+    const shouldSetSchoolYearAnchor = !existingStudent.exists() ||
+      existingData.schoolYear !== student.schoolYear
 
     await setDoc(
       studentRef,
@@ -427,6 +432,7 @@ const createOrUpdateWithClientSdk = async (
         name: student.name,
         email: student.email,
         schoolYear: student.schoolYear,
+        ...(shouldSetSchoolYearAnchor ? { schoolYearSetAt: serverTimestamp() } : {}),
         subjects: subjectIds,
         subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
         hiddenRecordingIds,
