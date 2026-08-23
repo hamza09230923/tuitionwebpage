@@ -47,6 +47,26 @@ const SUBJECTS = {
     description: 'GCSE Combined Science',
     zoomLink: ''
   },
+  triple_science_001: {
+    name: 'Triple Science',
+    description: 'GCSE Triple Science (Biology, Chemistry, Physics)',
+    zoomLink: ''
+  },
+  biology_001: {
+    name: 'Biology',
+    description: 'GCSE Biology',
+    zoomLink: ''
+  },
+  chemistry_001: {
+    name: 'Chemistry',
+    description: 'GCSE Chemistry',
+    zoomLink: ''
+  },
+  physics_001: {
+    name: 'Physics',
+    description: 'GCSE Physics',
+    zoomLink: ''
+  },
   english_lang_001: {
     name: 'English Language',
     description: 'GCSE English Language',
@@ -95,6 +115,14 @@ const parseArgs = () => {
         parsed.hiddenTitleKeywords.push(next)
       }
       i += 1
+    } else if (arg === '--no-hide-title') {
+      parsed.noHideTitle = true
+    } else if (arg === '--hide-existing-recordings') {
+      parsed.hideExistingRecordings = true
+    } else if (arg === '--hide-existing-homeworks') {
+      parsed.hideExistingHomeworks = true
+    } else if (arg === '--hide-homework-guide') {
+      parsed.hideHomeworkGuide = true
     } else if (arg === '--admin-email') {
       parsed.adminEmail = next
       i += 1
@@ -191,7 +219,14 @@ const validateStudent = (student) => {
   }
 }
 
-const createOrUpdateWithAdminSdk = async (student, subjectIds, hiddenTitleKeywords) => {
+const createOrUpdateWithAdminSdk = async (
+  student,
+  subjectIds,
+  hiddenTitleKeywords,
+  hideExistingRecordings,
+  hideExistingHomeworks,
+  hideHomeworkGuide
+) => {
   const serviceAccountPath = join(process.cwd(), 'serviceAccountKey.json')
   const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'))
 
@@ -237,14 +272,28 @@ const createOrUpdateWithAdminSdk = async (student, subjectIds, hiddenTitleKeywor
     })
   }
 
-  const recordingsSnapshot = await db
-    .collection('recordings')
-    .where('subjectId', 'in', subjectIds)
-    .get()
+  const [recordingsSnapshot, studentRecordingsSnapshot] = await Promise.all([
+    db.collection('recordings').where('subjectId', 'in', subjectIds).get(),
+    db.collection('studentRecordings').where('studentId', '==', userRecord.uid).get()
+  ])
 
-  const hiddenRecordingIds = recordingsSnapshot.docs
-    .filter((recordingDoc) => titleMatchesHiddenKeyword(recordingDoc.data(), hiddenTitleKeywords))
+  const hiddenRecordingIds = [...recordingsSnapshot.docs, ...studentRecordingsSnapshot.docs]
+    .filter((recordingDoc) => (
+      hideExistingRecordings || titleMatchesHiddenKeyword(recordingDoc.data(), hiddenTitleKeywords)
+    ))
     .map((recordingDoc) => recordingDoc.id)
+
+  let hiddenHomeworkIds = []
+  if (hideExistingHomeworks) {
+    const [subjectHomeworksSnapshot, studentHomeworksSnapshot] = await Promise.all([
+      db.collection('homeworks').where('subjectId', 'in', subjectIds).get(),
+      db.collection('studentHomeworks').where('studentId', '==', userRecord.uid).get()
+    ])
+    hiddenHomeworkIds = Array.from(new Set([
+      ...subjectHomeworksSnapshot.docs.map((homeworkDoc) => homeworkDoc.id),
+      ...studentHomeworksSnapshot.docs.map((homeworkDoc) => homeworkDoc.id)
+    ]))
+  }
 
   const studentRef = db.collection('students').doc(userRecord.uid)
   const existingStudent = await studentRef.get()
@@ -259,6 +308,8 @@ const createOrUpdateWithAdminSdk = async (student, subjectIds, hiddenTitleKeywor
       subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
       hiddenRecordingIds,
       hiddenRecordingTitleKeywords: hiddenTitleKeywords,
+      ...(hideExistingHomeworks ? { hiddenHomeworkIds } : {}),
+      hideHomeworkGuide: Boolean(hideHomeworkGuide),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       ...(existingStudent.exists ? {} : { createdAt: admin.firestore.FieldValue.serverTimestamp() })
     },
@@ -267,11 +318,20 @@ const createOrUpdateWithAdminSdk = async (student, subjectIds, hiddenTitleKeywor
 
   return {
     uid: userRecord.uid,
-    hiddenRecordingIds
+    hiddenRecordingIds,
+    hiddenHomeworkIds
   }
 }
 
-const createOrUpdateWithClientSdk = async (student, subjectIds, hiddenTitleKeywords, adminCredentials) => {
+const createOrUpdateWithClientSdk = async (
+  student,
+  subjectIds,
+  hiddenTitleKeywords,
+  hideExistingRecordings,
+  hideExistingHomeworks,
+  hideHomeworkGuide,
+  adminCredentials
+) => {
   const firebaseConfig = getFirebaseConfig()
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
     throw new Error('Firebase client config is missing. Check the .env file.')
@@ -334,13 +394,28 @@ const createOrUpdateWithClientSdk = async (student, subjectIds, hiddenTitleKeywo
       }
     }
 
-    const recordingsSnapshot = await getDocs(
-      query(collection(db, 'recordings'), where('subjectId', 'in', subjectIds))
-    )
+    const [recordingsSnapshot, studentRecordingsSnapshot] = await Promise.all([
+      getDocs(query(collection(db, 'recordings'), where('subjectId', 'in', subjectIds))),
+      getDocs(query(collection(db, 'studentRecordings'), where('studentId', '==', studentUser.uid)))
+    ])
 
-    const hiddenRecordingIds = recordingsSnapshot.docs
-      .filter((recordingDoc) => titleMatchesHiddenKeyword(recordingDoc.data(), hiddenTitleKeywords))
+    const hiddenRecordingIds = [...recordingsSnapshot.docs, ...studentRecordingsSnapshot.docs]
+      .filter((recordingDoc) => (
+        hideExistingRecordings || titleMatchesHiddenKeyword(recordingDoc.data(), hiddenTitleKeywords)
+      ))
       .map((recordingDoc) => recordingDoc.id)
+
+    let hiddenHomeworkIds = []
+    if (hideExistingHomeworks) {
+      const [subjectHomeworksSnapshot, studentHomeworksSnapshot] = await Promise.all([
+        getDocs(query(collection(db, 'homeworks'), where('subjectId', 'in', subjectIds))),
+        getDocs(query(collection(db, 'studentHomeworks'), where('studentId', '==', studentUser.uid)))
+      ])
+      hiddenHomeworkIds = Array.from(new Set([
+        ...subjectHomeworksSnapshot.docs.map((homeworkDoc) => homeworkDoc.id),
+        ...studentHomeworksSnapshot.docs.map((homeworkDoc) => homeworkDoc.id)
+      ]))
+    }
 
     const studentRef = doc(db, 'students', studentUser.uid)
     const existingStudent = await getDoc(studentRef)
@@ -356,6 +431,8 @@ const createOrUpdateWithClientSdk = async (student, subjectIds, hiddenTitleKeywo
         subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
         hiddenRecordingIds,
         hiddenRecordingTitleKeywords: hiddenTitleKeywords,
+        ...(hideExistingHomeworks ? { hiddenHomeworkIds } : {}),
+        hideHomeworkGuide: Boolean(hideHomeworkGuide),
         updatedAt: serverTimestamp(),
         ...(existingStudent.exists() ? {} : { createdAt: serverTimestamp() })
       },
@@ -364,7 +441,8 @@ const createOrUpdateWithClientSdk = async (student, subjectIds, hiddenTitleKeywo
 
     return {
       uid: studentUser.uid,
-      hiddenRecordingIds
+      hiddenRecordingIds,
+      hiddenHomeworkIds
     }
   } finally {
     await Promise.all([
@@ -379,7 +457,9 @@ const main = async () => {
   const args = parseArgs()
   const subjectIds = args.subjectIds?.length ? args.subjectIds : DEFAULT_SUBJECT_IDS
   const hiddenTitleKeywords = normalizeHiddenTitleKeywords(
-    args.hiddenTitleKeywords.length ? args.hiddenTitleKeywords : DEFAULT_HIDDEN_TITLE_KEYWORDS
+    args.noHideTitle
+      ? []
+      : (args.hiddenTitleKeywords.length ? args.hiddenTitleKeywords : DEFAULT_HIDDEN_TITLE_KEYWORDS)
   )
   const student = {
     name: args.name || DEFAULT_STUDENT.name,
@@ -393,11 +473,21 @@ const main = async () => {
   const serviceAccountPath = join(process.cwd(), 'serviceAccountKey.json')
   const useAdminSdk = existsSync(serviceAccountPath)
   const result = useAdminSdk
-    ? await createOrUpdateWithAdminSdk(student, subjectIds, hiddenTitleKeywords)
+    ? await createOrUpdateWithAdminSdk(
+      student,
+      subjectIds,
+      hiddenTitleKeywords,
+      args.hideExistingRecordings,
+      args.hideExistingHomeworks,
+      args.hideHomeworkGuide
+    )
     : await createOrUpdateWithClientSdk(
       student,
       subjectIds,
       hiddenTitleKeywords,
+      args.hideExistingRecordings,
+      args.hideExistingHomeworks,
+      args.hideHomeworkGuide,
       {
         email: args.adminEmail || process.env.MYSCHOLA_ADMIN_EMAIL || 'admin@myschola.com',
         password: args.adminPassword || process.env.MYSCHOLA_ADMIN_PASSWORD || 'Admin123!'
@@ -412,6 +502,8 @@ const main = async () => {
   console.log(`Subjects: ${subjectIds.join(', ')}`)
   console.log(`Hidden title keywords: ${hiddenTitleKeywords.join(', ') || 'none'}`)
   console.log(`Matching hidden recording IDs: ${result.hiddenRecordingIds.join(', ') || 'none found'}`)
+  console.log(`Hidden homework IDs: ${result.hiddenHomeworkIds.join(', ') || 'none found'}`)
+  console.log(`Homework guide hidden: ${Boolean(args.hideHomeworkGuide)}`)
 }
 
 main().catch((error) => {

@@ -88,6 +88,7 @@ function Homework() {
   const [accessDenied, setAccessDenied] = useState(false)
   const [submissions, setSubmissions] = useState([])
   const [studentName, setStudentName] = useState('')
+  const [hideHomeworkGuide, setHideHomeworkGuide] = useState(false)
   const [googleDocsUrls, setGoogleDocsUrls] = useState({})
   const [submittingHomeworkId, setSubmittingHomeworkId] = useState(null)
   const [updatingHomeworkId, setUpdatingHomeworkId] = useState(null)
@@ -151,6 +152,7 @@ function Homework() {
         setHomeworks(homeworksData)
 
         setStudentName(access.student?.name || access.student?.displayName || '')
+        setHideHomeworkGuide(Boolean(access.student?.hideHomeworkGuide))
 
         // Load student's submissions for this subject
         const submissionsQuery = query(
@@ -362,7 +364,7 @@ function Homework() {
           <p className="text-gray-600">Download your homework assignments.</p>
         </div>
 
-        <HomeworkSubmissionGuide />
+        {!hideHomeworkGuide && <HomeworkSubmissionGuide />}
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">

@@ -4,7 +4,20 @@ const { google } = require('googleapis')
 
 admin.initializeApp()
 
-const db = admin.firestore()
+let db
+
+const getDb = () => {
+  if (!db) {
+    db = admin.firestore()
+  }
+  return db
+}
+
+// The default Gen 1 App Engine service account is unavailable. Use the enabled
+// Compute Engine default service account for these functions until it is restored.
+const runtimeFunctions = functions.runWith({
+  serviceAccount: '927860875256-compute@developer.gserviceaccount.com'
+})
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
@@ -89,11 +102,11 @@ const getAuthToken = async (req) => {
 }
 
 const getUserRole = async (uid) => {
-  const adminDoc = await db.doc(`admins/${uid}`).get()
+  const adminDoc = await getDb().doc(`admins/${uid}`).get()
   if (adminDoc.exists) {
     return 'admin'
   }
-  const teacherDoc = await db.doc(`teachers/${uid}`).get()
+  const teacherDoc = await getDb().doc(`teachers/${uid}`).get()
   if (teacherDoc.exists) {
     return 'teacher'
   }
@@ -440,7 +453,7 @@ const createShareLink = async (token, hidrivePath) => {
   return shareLink
 }
 
-exports.createHidriveUpload = functions.https.onRequest(async (req, res) => {
+exports.createHidriveUpload = runtimeFunctions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -492,7 +505,7 @@ exports.createHidriveUpload = functions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.createRecording = functions.https.onRequest(async (req, res) => {
+exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -539,7 +552,7 @@ exports.createRecording = functions.https.onRequest(async (req, res) => {
         return jsonError(res, 403, 'Only admins can create student-specific recordings')
       }
 
-      const studentSnapshot = await db.doc(`students/${studentId}`).get()
+      const studentSnapshot = await getDb().doc(`students/${studentId}`).get()
       if (!studentSnapshot.exists) {
         return jsonError(res, 400, 'Student profile was not found')
       }
@@ -568,7 +581,7 @@ exports.createRecording = functions.https.onRequest(async (req, res) => {
 
     const approvalStatus = role === 'admin' ? 'approved' : 'pending'
     const collectionName = recordingVisibility === 'student' ? 'studentRecordings' : 'recordings'
-    const docRef = await db.collection(collectionName).add({
+    const docRef = await getDb().collection(collectionName).add({
       subjectId,
       title,
       videoUrl: finalVideoUrl,
@@ -605,7 +618,7 @@ exports.createRecording = functions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.createHomework = functions.https.onRequest(async (req, res) => {
+exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -652,7 +665,7 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
         return jsonError(res, 403, 'Only admins can create student-specific homework')
       }
 
-      const studentSnapshot = await db.doc(`students/${studentId}`).get()
+      const studentSnapshot = await getDb().doc(`students/${studentId}`).get()
       if (!studentSnapshot.exists) {
         return jsonError(res, 400, 'Student profile was not found')
       }
@@ -698,7 +711,7 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
     }
 
     const collectionName = homeworkVisibility === 'student' ? 'studentHomeworks' : 'homeworks'
-    const docRef = await db.collection(collectionName).add({
+    const docRef = await getDb().collection(collectionName).add({
       subjectId,
       title,
       description: description || '',
@@ -735,7 +748,7 @@ exports.createHomework = functions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.createResource = functions.https.onRequest(async (req, res) => {
+exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -784,7 +797,7 @@ exports.createResource = functions.https.onRequest(async (req, res) => {
         return jsonError(res, 403, 'Only admins can create student-specific resources')
       }
 
-      const studentSnapshot = await db.doc(`students/${studentId}`).get()
+      const studentSnapshot = await getDb().doc(`students/${studentId}`).get()
       if (!studentSnapshot.exists) {
         return jsonError(res, 400, 'Student profile was not found')
       }
@@ -813,7 +826,7 @@ exports.createResource = functions.https.onRequest(async (req, res) => {
 
     const approvalStatus = role === 'admin' ? 'approved' : 'pending'
     const collectionName = resourceVisibility === 'student' ? 'studentResources' : 'resources'
-    const docRef = await db.collection(collectionName).add({
+    const docRef = await getDb().collection(collectionName).add({
       subjectId,
       title,
       description: description || '',
@@ -851,7 +864,7 @@ exports.createResource = functions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.registerWebinar = functions.https.onRequest(async (req, res) => {
+exports.registerWebinar = runtimeFunctions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -884,7 +897,7 @@ exports.registerWebinar = functions.https.onRequest(async (req, res) => {
       return jsonError(res, 400, 'Email address is invalid')
     }
 
-    const docRef = await db.collection('webinarRegistrations').add({
+    const docRef = await getDb().collection('webinarRegistrations').add({
       fullName: normalizedName,
       email: normalizedEmail,
       phone: normalizedPhone,
@@ -917,7 +930,7 @@ exports.registerWebinar = functions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.exportWebinarRegistrations = functions.https.onRequest(async (req, res) => {
+exports.exportWebinarRegistrations = runtimeFunctions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
