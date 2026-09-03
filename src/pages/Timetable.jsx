@@ -59,7 +59,7 @@ const septemberScheduleData = [
   {
     day: 'Thursday',
     status: 'active',
-    subject: 'English Language',
+    subject: 'English Literature',
     time: '6:00 PM - 7:00 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
