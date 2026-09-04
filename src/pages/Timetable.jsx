@@ -28,33 +28,102 @@ const scheduleMeta = {
 }
 
 const formatTimeRange = (time) => time.replace(/:00/g, '')
+const getLevelBadges = (level) => {
+  const normalizedLevel = String(level || '').toLowerCase()
+
+  if (normalizedLevel.includes('higher') && (normalizedLevel.includes('foundation') || normalizedLevel.includes('lower'))) {
+    return ['H', 'F']
+  }
+
+  if (normalizedLevel.includes('higher')) {
+    return ['H']
+  }
+
+  if (normalizedLevel.includes('foundation') || normalizedLevel.includes('lower')) {
+    return ['F']
+  }
+
+  return []
+}
+
+const getTierLabel = (entry) => {
+  const subject = String(entry?.subject || '').toLowerCase()
+  const normalizedLevel = String(entry?.level || '').toLowerCase()
+
+  if (subject.includes('english')) {
+    return ''
+  }
+
+  if (normalizedLevel.includes('higher') && (normalizedLevel.includes('foundation') || normalizedLevel.includes('lower'))) {
+    return 'Foundation and Higher Tiers'
+  }
+
+  if (normalizedLevel.includes('higher')) {
+    return 'Higher Tier'
+  }
+
+  if (normalizedLevel.includes('foundation') || normalizedLevel.includes('lower')) {
+    return 'Foundation Tier'
+  }
+
+  return ''
+}
 
 // September Timetable (Academic Year)
 const septemberScheduleData = [
   {
     day: 'Monday',
-    status: 'off',
-    subject: null,
-    time: null,
-    board: null
+    status: 'active',
+    subject: 'Biology',
+    time: '6:00 PM - 7:00 PM',
+    board: 'AQA, Edexcel & OCR',
+    level: 'Higher Tier',
+    color: 'bg-green-500'
+  },
+  {
+    day: 'Monday',
+    status: 'active',
+    subject: 'Mathematics',
+    time: '6:00 PM - 7:00 PM',
+    board: 'AQA, Edexcel & OCR',
+    level: 'Foundation Tier',
+    color: 'bg-blue-500'
+  },
+  {
+    day: 'Monday',
+    status: 'active',
+    subject: 'Chemistry',
+    time: '7:15 PM - 8:15 PM',
+    board: 'AQA, Edexcel & OCR',
+    level: 'Foundation Tier',
+    color: 'bg-green-500'
   },
   {
     day: 'Tuesday',
+    status: 'active',
+    subject: 'Biology',
+    time: '6:00 PM - 7:00 PM',
+    board: 'AQA, Edexcel & OCR',
+    level: 'Foundation Tier',
+    color: 'bg-green-500'
+  },
+  {
+    day: 'Tuesday',
+    status: 'active',
+    subject: 'Physics',
+    time: '7:15 PM - 8:15 PM',
+    board: 'AQA, Edexcel & OCR',
+    level: 'Foundation Tier',
+    color: 'bg-green-500'
+  },
+  {
+    day: 'Wednesday',
     status: 'active',
     subject: 'English Language',
     time: '6:00 PM - 7:00 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
-  },
-  {
-    day: 'Wednesday',
-    status: 'active',
-    subject: 'Biology',
-    time: '6:00 PM - 7:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-green-500'
   },
   {
     day: 'Thursday',
@@ -71,7 +140,7 @@ const septemberScheduleData = [
     subject: 'Chemistry',
     time: '6:00 PM - 7:00 PM',
     board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
+    level: 'Higher Tier',
     color: 'bg-green-500'
   },
   {
@@ -80,7 +149,7 @@ const septemberScheduleData = [
     subject: 'Mathematics',
     time: '10:00 AM - 11:00 AM',
     board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
+    level: 'Higher Tier',
     color: 'bg-blue-500'
   },
   {
@@ -89,8 +158,15 @@ const septemberScheduleData = [
     subject: 'Physics',
     time: '2:00 PM - 3:00 PM',
     board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
+    level: 'Higher Tier',
     color: 'bg-green-500'
+  },
+  {
+    day: 'Sunday',
+    status: 'off',
+    subject: null,
+    time: null,
+    board: null
   }
 ]
 
@@ -198,7 +274,11 @@ function Timetable() {
     if (todayEntries.length === 0) {
       return 'No classes today. Take a break!'
     }
-    return `Today: ${todayEntries.map(({ subject, time }) => `${subject} at ${time}`).join('; ')}`
+    return `Today: ${todayEntries.map((entry) => {
+      const tierLabel = getTierLabel(entry)
+      const subjectLabel = tierLabel ? `${entry.subject} (${tierLabel})` : entry.subject
+      return `${subjectLabel} at ${entry.time}`
+    }).join('; ')}`
   }
 
   return (
@@ -446,7 +526,21 @@ function Timetable() {
                               }`}
                               aria-label={`${entry.day}. ${entry.subject} at ${entry.time}`}
                             >
-                              <span className="block text-sm font-bold leading-tight">{entry.subject}</span>
+                              <span className="flex items-start justify-between gap-2">
+                                <span className="min-w-0 text-sm font-bold leading-tight">{entry.subject}</span>
+                                {scheduleType === 'september' && !String(entry.subject || '').toLowerCase().includes('english') && (
+                                  <span className="flex shrink-0 gap-1" aria-label={`${entry.level} lesson`}>
+                                    {getLevelBadges(entry.level).map((badge) => (
+                                      <span
+                                        key={badge}
+                                        className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-black leading-none shadow-sm ${badge === 'H' ? 'bg-yellow-300 text-slate-900' : 'border border-red-200 bg-white text-red-700'}`}
+                                      >
+                                        {badge}
+                                      </span>
+                                    ))}
+                                  </span>
+                                )}
+                              </span>
                               <span className="mt-1 flex items-center gap-1 whitespace-nowrap text-xs font-semibold leading-tight text-white/90">
                                 <Clock className="h-3.5 w-3.5 shrink-0" />
                                 {formatTimeRange(entry.time)}
