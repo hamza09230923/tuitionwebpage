@@ -92,12 +92,6 @@ const writeAccessList = (list) => {
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 const SCIENCE_SUBJECTS = ['biology', 'chemistry', 'physics']
 const BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK = 'https://us06web.zoom.us/s/81775136769?pwd=VxunmI72c7rCcPotVtzobCSZuuAESW.1#success'
-const LOWER_TIER_ZOOM_LINKS = {
-  biology: 'https://us06web.zoom.us/j/89459404457',
-  chemistry: 'https://us06web.zoom.us/j/87681117103',
-  physics: 'https://us06web.zoom.us/j/89595206121',
-  maths: 'https://us06web.zoom.us/j/86423040533'
-}
 const NEW_RECORDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
 const normalizeSubjectName = (subjectName) => String(subjectName || '').toLowerCase()
@@ -154,151 +148,6 @@ const getSubjectBaseKey = (subjectOrId) => {
 }
 
 const getScienceCardTitle = (key) => key.charAt(0).toUpperCase() + key.slice(1)
-
-const isEnglishSubject = (subject) => {
-  const name = normalizeSubjectName(subject?.name)
-  const id = normalizeSubjectId(subject?.id)
-
-  return (
-    name.includes('english') ||
-    id.startsWith('english_lang') ||
-    id.startsWith('english_lit')
-  )
-}
-
-const getTieredSubjectKey = (subject) => {
-  const baseKey = getSubjectBaseKey(subject)
-
-  if (['biology', 'chemistry', 'physics'].includes(baseKey)) {
-    return baseKey
-  }
-
-  const name = normalizeSubjectName(subject?.name)
-  const id = normalizeSubjectId(subject?.id)
-
-  if (name.includes('math') || id.startsWith('maths')) {
-    return 'maths'
-  }
-
-  return null
-}
-
-const getLowerTierZoomLink = (subject) => {
-  const tieredSubjectKey = getTieredSubjectKey(subject)
-  return tieredSubjectKey ? LOWER_TIER_ZOOM_LINKS[tieredSubjectKey] || '' : ''
-}
-
-const FOUNDATION_TIER_LABEL = 'Foundation Tier'
-
-const renderZoomJoinButton = (zoomLink, displayName, tierLabel) => {
-  const joinLabel = tierLabel ? `Join Zoom · ${tierLabel}` : 'Join Zoom'
-  const ariaLabel = tierLabel
-    ? `Join ${tierLabel} Zoom session for ${displayName}`
-    : `Join Zoom session for ${displayName}`
-
-  return (
-    <a
-      href={zoomLink}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-      aria-label={ariaLabel}
-    >
-      <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-      {joinLabel}
-    </a>
-  )
-}
-
-const renderTierBadge = (tierLabel) => {
-  const isHigher = tierLabel === 'Higher Tier'
-
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-        isHigher
-          ? 'bg-yellow-300 text-slate-900'
-          : 'border border-red-200 bg-white text-red-700'
-      }`}
-    >
-      {tierLabel}
-    </span>
-  )
-}
-
-const renderSubjectZoomActions = (subject, displayName) => {
-  const higherLink = subject.zoomLink || ''
-  const foundationLink = getLowerTierZoomLink(subject)
-  const english = isEnglishSubject(subject)
-
-  if (!higherLink && !foundationLink) {
-    return null
-  }
-
-  if (english && higherLink) {
-    return (
-      <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm">
-        <p className="font-medium text-blue-900">Zoom meeting link</p>
-        <a
-          href={higherLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-1 block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
-        >
-          {higherLink}
-        </a>
-        <div className="mt-2">
-          {renderZoomJoinButton(higherLink, displayName)}
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm">
-      <p className="font-medium text-blue-900">Zoom meeting link</p>
-
-      <div className="mt-3 space-y-3">
-        {higherLink && (
-          <div>
-            <div className="mb-1 flex items-center gap-2">
-              {renderTierBadge('Higher Tier')}
-            </div>
-            <a
-              href={higherLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
-            >
-              {higherLink}
-            </a>
-          </div>
-        )}
-
-        {foundationLink && (
-          <div>
-            <div className="mb-1 flex items-center gap-2">
-              {renderTierBadge(FOUNDATION_TIER_LABEL)}
-            </div>
-            <a
-              href={foundationLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
-            >
-              {foundationLink}
-            </a>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3 flex flex-col gap-2">
-        {higherLink && renderZoomJoinButton(higherLink, displayName, 'Higher Tier')}
-        {foundationLink && renderZoomJoinButton(foundationLink, displayName, FOUNDATION_TIER_LABEL)}
-      </div>
-    </div>
-  )
-}
 
 const getDateFromFirestoreValue = (value) => {
   if (!value) {
@@ -796,7 +645,31 @@ function StudentDashboard() {
         <div className="space-y-3">
           {isUnlocked(subject) ? (
             <>
-              {renderSubjectZoomActions(subject, displayName)}
+              {subject.zoomLink && (
+                <>
+                  <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm">
+                    <p className="font-medium text-blue-900">Zoom meeting link</p>
+                    <a
+                      href={subject.zoomLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
+                    >
+                      {subject.zoomLink}
+                    </a>
+                  </div>
+                  <a
+                    href={subject.zoomLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+                    aria-label={`Join Zoom session for ${displayName}`}
+                  >
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                    Join Zoom
+                  </a>
+                </>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <Link
