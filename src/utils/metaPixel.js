@@ -27,19 +27,21 @@ export function trackLeadWhatsApp() {
   }
 }
 
-export function trackPurchase() {
+export function trackPurchase({ value, currency = 'GBP', eventId } = {}) {
   if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', 'Purchase', { currency: 'GBP' })
-  }
-}
+    const numericValue = Number(value)
+    if (!Number.isFinite(numericValue) || numericValue <= 0) {
+      return
+    }
 
-export function trackStartTrial() {
-  if (typeof window === 'undefined' || !window.fbq) return
-  try {
-    if (window.location.hostname !== 'myschola.uk') return
-    window.fbq('track', 'StartTrial', { value: 0, currency: 'GBP', predicted_ltv: 0 })
-  } catch {
-    // Tracking failures must not interrupt the booking flow.
+    const params = { currency, value: numericValue }
+
+    if (eventId) {
+      window.fbq('track', 'Purchase', params, { eventID: eventId })
+      return
+    }
+
+    window.fbq('track', 'Purchase', params)
   }
 }
 
