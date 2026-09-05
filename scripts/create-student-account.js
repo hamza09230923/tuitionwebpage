@@ -50,12 +50,12 @@ const SUBJECTS = {
   english_lang_001: {
     name: 'English Language',
     description: 'GCSE English Language',
-    zoomLink: 'https://us06web.zoom.us/j/83547340736'
+    zoomLink: 'https://us06web.zoom.us/j/89020463558'
   },
   english_lit_001: {
     name: 'English Literature',
     description: 'GCSE English Literature',
-    zoomLink: 'https://us06web.zoom.us/j/84218770525'
+    zoomLink: 'https://us06web.zoom.us/j/83496181405'
   }
 }
 

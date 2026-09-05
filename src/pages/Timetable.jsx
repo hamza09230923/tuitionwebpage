@@ -15,15 +15,10 @@ import {
 const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const scheduleMeta = {
-  summer: {
-    label: 'Summer Programme (June - 5 September)',
-    calendarTitle: 'Summer Programme Calendar',
-    dateRange: 'June - 5 September'
-  },
   september: {
-    label: 'September Term (From 6 September onwards)',
-    calendarTitle: 'September Term Calendar',
-    dateRange: 'From 6 September onwards'
+    label: '2026 September - 2027 July',
+    calendarTitle: '2026 September - 2027 July Calendar',
+    dateRange: 'September 2026 - July 2027'
   }
 }
 
@@ -170,86 +165,12 @@ const septemberScheduleData = [
   }
 ]
 
-// Summer Timetable (June - 5 September)
-const summerScheduleData = [
-  {
-    day: 'Monday',
-    status: 'active',
-    subject: 'Maths',
-    time: '6:00 PM - 7:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-blue-500'
-  },
-  {
-    day: 'Tuesday',
-    status: 'active',
-    subject: 'Chemistry',
-    time: '7:00 PM - 8:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-green-500'
-  },
-  {
-    day: 'Wednesday',
-    status: 'active',
-    subject: 'English Literature',
-    time: '6:00 PM - 7:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-red-500'
-  },
-  {
-    day: 'Thursday',
-    status: 'off',
-    subject: null,
-    time: null,
-    board: null
-  },
-  {
-    day: 'Friday',
-    status: 'active',
-    subject: 'Biology',
-    time: '5:00 PM - 6:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-green-500'
-  },
-  {
-    day: 'Saturday',
-    status: 'active',
-    subject: 'English Language',
-    time: '10:00 AM - 11:00 AM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-red-500'
-  },
-  {
-    day: 'Saturday',
-    status: 'active',
-    subject: 'Physics',
-    time: '11:00 AM - 12:00 PM',
-    board: 'AQA, Edexcel & OCR',
-    level: 'Foundation & Higher',
-    color: 'bg-green-500'
-  },
-  {
-    day: 'Sunday',
-    status: 'off',
-    subject: null,
-    time: null,
-    board: null
-  }
-]
-
 function Timetable() {
   const [selectedDay, setSelectedDay] = useState(null)
   const [announcement, setAnnouncement] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [scheduleType, setScheduleType] = useState('summer') // 'summer' or 'september'
-
-  // Get current schedule based on toggle
-  const scheduleData = scheduleType === 'summer' ? summerScheduleData : septemberScheduleData
+  const scheduleType = 'september'
+  const scheduleData = septemberScheduleData
 
   // Get current day
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
@@ -258,10 +179,6 @@ function Timetable() {
     // Announce page load for screen readers
     setAnnouncement('MySchola GCSE Timetable page loaded. Weekly calendar view available.')
   }, [])
-
-  useEffect(() => {
-    setSelectedDay(null)
-  }, [scheduleType])
 
   const handleDayClick = (dayData) => {
     setSelectedDay(dayData)
@@ -415,29 +332,9 @@ function Timetable() {
             Structured live sessions for Year 9-11 students. Click any lesson to see details.
           </p>
 
-          {/* Schedule Toggle */}
-          <div className="mt-6 inline-flex max-w-full flex-wrap justify-center gap-1 bg-slate-200 rounded-lg p-1">
-            <button
-              onClick={() => setScheduleType('summer')}
-              className={`px-4 py-2 rounded-md font-medium transition-all ${
-                scheduleType === 'summer'
-                  ? 'bg-white text-orange-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-800'
-              }`}
-            >
-              {scheduleMeta.summer.label}
-            </button>
-            <button
-              onClick={() => setScheduleType('september')}
-              className={`px-4 py-2 rounded-md font-medium transition-all ${
-                scheduleType === 'september'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-800'
-              }`}
-            >
-              {scheduleMeta.september.label}
-            </button>
-          </div>
+          <p className="mt-6 text-base font-semibold text-blue-700">
+            {scheduleMeta.september.label}
+          </p>
         </div>
 
         {/* Today's Highlight */}
@@ -528,7 +425,7 @@ function Timetable() {
                             >
                               <span className="flex items-start justify-between gap-2">
                                 <span className="min-w-0 text-sm font-bold leading-tight">{entry.subject}</span>
-                                {scheduleType === 'september' && !String(entry.subject || '').toLowerCase().includes('english') && (
+                                {!String(entry.subject || '').toLowerCase().includes('english') && (
                                   <span className="flex shrink-0 gap-1" aria-label={`${entry.level} lesson`}>
                                     {getLevelBadges(entry.level).map((badge) => (
                                       <span

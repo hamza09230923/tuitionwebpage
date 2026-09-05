@@ -110,7 +110,6 @@ function HomeworkShareLink() {
         hidrivePath: pending.hidrivePath,
         hidriveFileId: pending.hidriveFileId,
         visibility: pending.visibility || 'subject',
-        studentIds: Array.isArray(pending.studentIds) ? pending.studentIds : [],
         studentId: pending.studentId || null,
         studentName: pending.studentName || null,
         studentEmail: pending.studentEmail || null
@@ -120,7 +119,7 @@ function HomeworkShareLink() {
       setMessage('Homework added successfully!')
     } catch (err) {
       console.error('Error saving homework:', err)
-      setMessage(err?.message || 'Failed to save homework')
+      setMessage('Failed to save homework')
     } finally {
       setLoading(false)
     }
@@ -177,15 +176,10 @@ function HomeworkShareLink() {
             )}
             <p>
               <span className="font-medium">Access:</span>{' '}
-              {pending.visibility === 'students'
-                ? `${Array.isArray(pending.studentIds) ? pending.studentIds.length : 0} selected student${Array.isArray(pending.studentIds) && pending.studentIds.length === 1 ? '' : 's'}`
-                : pending.visibility === 'student'
+              {pending.visibility === 'student'
                 ? pending.studentName || pending.studentEmail || pending.studentId || 'Specific student'
                 : 'All students enrolled in this subject'}
             </p>
-            {pending.visibility === 'students' && Array.isArray(pending.studentNames) && pending.studentNames.length > 0 && (
-              <p><span className="font-medium">Recipients:</span> {pending.studentNames.join(', ')}</p>
-            )}
             {pending.fileName && (
               <p><span className="font-medium">File:</span> {pending.fileName}</p>
             )}

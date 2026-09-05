@@ -9,11 +9,8 @@ import testimonialVideo2 from './testimonials/testimonial2.mp4'
 import testimonialVideo3 from './testimonials/testmonial3.mp4'
 import testimonialVideo4 from './testimonials/testimonial4.mp4'
 import testimonialVideo5 from './testimonials/testimonial5.mp4'
-import parentTestimonialVideo from './testimonials/parentTestimonial.MP4'
-import studentTestimonialVideo from './testimonials/studentTestimonial.MP4'
 import benefitsComparisonGraphic from './assets/checklist.jpeg'
 import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
-import { getCohortMonth, getMsUntilNextLocalMonth } from './utils/cohortMonth'
 // University logos
 import nottinghamLogo from './university/nottingham-university-logo.png'
 import kingsCollegeLogo from './university/King\'s_College_London_logo.svg'
@@ -75,11 +72,14 @@ function DeferredSection({ children, className = '', ...props }) {
   )
 }
 
+const getCohortMonth = () => new Intl.DateTimeFormat('en-GB', {
+  month: 'long',
+  timeZone: 'Europe/London',
+}).format(new Date())
+
 function Home() {
   const navigate = useNavigate()
   const testimonialVideos = [
-    { src: parentTestimonialVideo, id: 7, name: 'Parent Testimonial', subjects: ['Parent Feedback'], improvementLabel: 'Family experience' },
-    { src: studentTestimonialVideo, id: 6, name: 'Student Testimonial', subjects: ['Student Feedback'], improvementLabel: 'Learning experience' },
     { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
     { src: testimonialVideo3, id: 3, name: 'Eyaad', subjects: ['Physics'], improvedBy: 2 },
@@ -122,7 +122,9 @@ function Home() {
 
     const updateForNewMonth = () => {
       setCohortMonth(getCohortMonth())
-      monthTimer = window.setTimeout(updateForNewMonth, getMsUntilNextLocalMonth())
+      const now = new Date()
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+      monthTimer = window.setTimeout(updateForNewMonth, nextMonth.getTime() - now.getTime() + 1000)
     }
 
     updateForNewMonth()
@@ -300,7 +302,7 @@ function Home() {
                 View GCSE Courses
               </Link>
             </div>
-            <p className="mt-6 text-sm text-gray-600">Free consultation available. No card required.</p>
+            <p className="mt-6 text-sm text-gray-600">Free consultation and trial lesson available. No card required.</p>
           </div>
         </div>
       </section>
@@ -472,7 +474,7 @@ function Home() {
                               {video.subjects.join(' / ')}
                             </span>
                             <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-blue-700">
-                              {video.improvementLabel || formatImprovement(video.improvedBy)}
+                              {formatImprovement(video.improvedBy)}
                             </span>
                           </div>
                         </div>
@@ -814,7 +816,7 @@ function Home() {
               { q: 'How big are the groups?', a: 'MySchola lessons are taught in small online groups so students can receive focused teaching, ask questions and benefit from hearing how other students approach a problem. We will explain the current group options during your consultation.' },
               { q: 'Do parents receive updates?', a: 'Yes. Parents receive clear progress updates and monthly Zoom progress calls covering attendance, homework, strengths, concerns and the topics that should be prioritised next.' },
               { q: 'Is there homework?', a: 'Yes. Weekly homework reinforces lesson content and gives tutors another way to identify misunderstandings. Feedback helps students correct mistakes and prepare for future exam questions.' },
-              { q: 'How does the free consultation work?', a: 'Book a free consultation first so we can understand your child\'s year group, subject, exam board and current needs. We will then explain the suitable lesson options and next steps.' },
+              { q: 'How does the free trial work?', a: 'Book a free consultation first so we can understand your child\'s year group, subject, exam board and current needs. We will then explain the suitable lesson options and how to arrange the free trial lesson.' },
               { q: 'Is tuition online?', a: 'Yes. Lessons are delivered online, making it easier for students to follow a consistent weekly routine from home. A laptop or desktop computer and a reliable internet connection are recommended.' },
               { q: 'How do I book?', a: 'Use the booking calendar on this page or visit the booking page to choose a free consultation time. There is no card required for the consultation.' }
             ].map((faq, index) => (

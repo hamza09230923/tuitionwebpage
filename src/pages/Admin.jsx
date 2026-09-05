@@ -165,7 +165,7 @@ function Admin() {
   const [homeworkFile, setHomeworkFile] = useState(null)
   const [homeworkUploadProgress, setHomeworkUploadProgress] = useState(0)
   const [homeworkAudience, setHomeworkAudience] = useState('subject')
-  const [selectedHomeworkStudentIds, setSelectedHomeworkStudentIds] = useState([])
+  const [selectedHomeworkStudentId, setSelectedHomeworkStudentId] = useState('')
   const [managedHomeworks, setManagedHomeworks] = useState([])
   const [managedHomeworksLoading, setManagedHomeworksLoading] = useState(false)
   const [deletingHomeworkId, setDeletingHomeworkId] = useState('')
@@ -193,20 +193,6 @@ function Admin() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const isAdmin = userRole === 'admin'
-  const selectedHomeworkStudents = enrolledStudents.filter((student) => (
-    selectedHomeworkStudentIds.includes(student.id)
-  ))
-  const allHomeworkStudentsSelected = enrolledStudents.length > 0 && (
-    selectedHomeworkStudents.length === enrolledStudents.length
-  )
-
-  const toggleHomeworkStudent = (studentId) => {
-    setSelectedHomeworkStudentIds((currentIds) => (
-      currentIds.includes(studentId)
-        ? currentIds.filter((id) => id !== studentId)
-        : [...currentIds, studentId]
-    ))
-  }
 
   // Require a signed-in user with admin or teacher role document
   useEffect(() => {
@@ -585,7 +571,7 @@ function Admin() {
     setExamBoard('')
     setTier('')
     setSelectedRecordingStudentId('')
-    setSelectedHomeworkStudentIds([])
+    setSelectedHomeworkStudentId('')
     setSelectedResourceStudentId('')
   }, [selectedSubject, subjects])
 
@@ -1122,19 +1108,15 @@ function Admin() {
       return
     }
 
-    if (homeworkAudience === 'students' && selectedHomeworkStudents.length === 0) {
-      setMessage('Please select at least one student who should receive this homework')
-      return
-    }
-
-    if (homeworkAudience === 'students' && selectedHomeworkStudents.length !== selectedHomeworkStudentIds.length) {
-      setMessage('One or more selected students are no longer enrolled in this subject')
+    if (homeworkAudience === 'student' && !selectedHomeworkStudentId) {
+      setMessage('Please select the student who should receive this homework')
       return
     }
 
     setLoading(true)
     setMessage('')
     try {
+      const selectedHomeworkStudent = enrolledStudents.find((student) => student.id === selectedHomeworkStudentId)
       let hidrivePath = null
       let hidriveFileId = null
       let attachmentName = null
@@ -1180,15 +1162,9 @@ function Admin() {
         hidriveFileId,
         fileName: homeworkFile.name,
         visibility: homeworkAudience,
-        studentIds: homeworkAudience === 'students'
-          ? selectedHomeworkStudents.map((student) => student.id)
-          : [],
-        studentNames: homeworkAudience === 'students'
-          ? selectedHomeworkStudents.map((student) => getStudentDisplayName(student))
-          : [],
-        studentId: null,
-        studentName: null,
-        studentEmail: null
+        studentId: homeworkAudience === 'student' ? selectedHomeworkStudentId : null,
+        studentName: homeworkAudience === 'student' ? getStudentDisplayName(selectedHomeworkStudent) : null,
+        studentEmail: homeworkAudience === 'student' ? selectedHomeworkStudent?.email || null : null
       }
 
       sessionStorage.setItem('pendingHomework', JSON.stringify(pendingHomework))
@@ -1198,7 +1174,7 @@ function Admin() {
       setHomeworkFile(null)
       setHomeworkUploadProgress(0)
       setHomeworkAudience('subject')
-      setSelectedHomeworkStudentIds([])
+      setSelectedHomeworkStudentId('')
       navigate('/admin/homework-share-link', { state: { pendingHomework } })
     } catch (err) {
       console.error('Error adding homework:', err)
@@ -1416,10 +1392,7 @@ function Admin() {
           </label>
           <select
             value={selectedSubject}
-            onChange={(e) => {
-              setSelectedSubject(e.target.value)
-              setSelectedHomeworkStudentIds([])
-            }}
+            onChange={(e) => setSelectedSubject(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {subjects.map(subject => (
@@ -2077,75 +2050,43 @@ function Admin() {
                       onChange={(e) => {
                         setHomeworkAudience(e.target.value)
                         if (e.target.value === 'subject') {
-                          setSelectedHomeworkStudentIds([])
+                          setSelectedHomeworkStudentId('')
                         }
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
                     >
                       <option value="subject">All students enrolled in this subject</option>
-                      <option value="students">Selected students only</option>
+                      <option value="student">One specific student only</option>
                     </select>
                   </div>
 
-                  {homeworkAudience === 'students' && (
-                    <fieldset>
-                      <legend className="block text-sm font-medium text-gray-700 mb-2">
-                        Students *
-                      </legend>
-                      <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-                        <span className="text-xs font-medium text-gray-600">
-                          {selectedHomeworkStudents.length} selected
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Choose one or more students enrolled in this subject.
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedHomeworkStudentIds(enrolledStudents.map((student) => student.id))}
-                          disabled={subjectStudentsLoading || enrolledStudents.length === 0 || allHomeworkStudentsSelected}
-                          className="px-3 py-1.5 text-sm font-medium text-green-700 border border-green-200 rounded-md hover:bg-green-50 disabled:opacity-50"
-                        >
-                          Select all
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedHomeworkStudentIds([])}
-                          disabled={selectedHomeworkStudentIds.length === 0}
-                          className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50"
-                        >
-                          Clear
-                        </button>
-                      </div>
-                      <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-gray-300 bg-white p-3">
-                        {subjectStudentsLoading ? (
-                          <p className="text-sm text-gray-600">Loading students...</p>
-                        ) : enrolledStudents.length === 0 ? (
-                          <p className="text-sm text-red-600">
-                            No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
-                          </p>
-                        ) : (
-                          enrolledStudents.map((student) => (
-                            <label
-                              key={student.id}
-                              className="flex cursor-pointer items-start gap-3 rounded-md px-2 py-2 hover:bg-green-50"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedHomeworkStudentIds.includes(student.id)}
-                                onChange={() => toggleHomeworkStudent(student.id)}
-                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                              />
-                              <span className="text-sm text-gray-800">
-                                {getStudentDisplayName(student)}
-                                {student.email ? ` (${student.email})` : ''}
-                              </span>
-                            </label>
-                          ))
-                        )}
-                      </div>
-                    </fieldset>
+                  {homeworkAudience === 'student' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Student *
+                      </label>
+                      <select
+                        value={selectedHomeworkStudentId}
+                        onChange={(e) => setSelectedHomeworkStudentId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        required
+                        disabled={subjectStudentsLoading}
+                      >
+                        <option value="">
+                          {subjectStudentsLoading ? 'Loading students...' : 'Select student'}
+                        </option>
+                        {enrolledStudents.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {getStudentDisplayName(student)}{student.email ? ` (${student.email})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {!subjectStudentsLoading && enrolledStudents.length === 0 && (
+                        <p className="mt-2 text-sm text-red-600">
+                          No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}

@@ -8,15 +8,15 @@ import {
   ArrowRight,
   MessageCircle,
   Check,
+  Star,
   ArrowLeft,
+  Zap,
 } from 'lucide-react'
 import testimonialVideo1 from '../testimonials/testimonial1-5gwMtUAO.mp4'
 import testimonialVideo2 from '../testimonials/testimonial2.mp4'
 import testimonialVideo3 from '../testimonials/testmonial3.mp4'
 import testimonialVideo4 from '../testimonials/testimonial4.mp4'
 import testimonialVideo5 from '../testimonials/testimonial5.mp4'
-import parentTestimonialVideo from '../testimonials/parentTestimonial.MP4'
-import studentTestimonialVideo from '../testimonials/studentTestimonial.MP4'
 
 function trackLeadWhatsApp() {
   if (window.gtag) {
@@ -71,8 +71,6 @@ function TestimonialVideo({ src, className = '' }) {
 }
 
 const testimonialVideos = [
-  { src: parentTestimonialVideo, id: 7, name: 'Parent Testimonial', subjects: ['Parent Feedback'], improvementLabel: 'Family experience' },
-  { src: studentTestimonialVideo, id: 6, name: 'Student Testimonial', subjects: ['Student Feedback'], improvementLabel: 'Learning experience' },
   { src: testimonialVideo5, id: 5, name: 'Labib', subjects: ['English Literature'], improvedBy: 3 },
   { src: testimonialVideo4, id: 4, name: 'Mia', subjects: ['English Literature'], improvedBy: 3 },
   { src: testimonialVideo3, id: 3, name: 'Eyaad', subjects: ['Physics'], improvedBy: 2 },
@@ -82,7 +80,6 @@ const testimonialVideos = [
 
 function Package() {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
   const year = searchParams.get('year') || '9'
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(5)
@@ -95,6 +92,7 @@ function Package() {
     }
     return 1
   })
+  const [selectedYear, setSelectedYear] = useState(year)
   const totalTestimonialVideos = testimonialVideos.length
   const loopedTestimonialVideos = [...testimonialVideos, ...testimonialVideos, ...testimonialVideos]
   const loopStartIndex = totalTestimonialVideos
@@ -153,61 +151,53 @@ function Package() {
     setActiveTestimonialIndex((prev) => prev + 1)
   }
 
-  const rememberPendingCheckout = (item) => {
-    const value = Number(String(item?.price || '').replace(/[^0-9.]/g, ''))
-    if (!Number.isFinite(value) || value <= 0) return
-
-    try {
-      window.sessionStorage.setItem('myscholaPendingCheckout', JSON.stringify({
-        id: item.id,
-        name: item.name,
-        value,
-        currency: 'GBP',
-        savedAt: Date.now(),
-      }))
-    } catch {
-      // Tracking storage failures must not block checkout.
-    }
-  }
-
   const getMathsScienceEnglishLink = () => {
-    return 'https://buy.stripe.com/4gMaEY7FR9x24xJc9vcjS2c'
+    return 'https://buy.stripe.com/9B600k4tF4cI5BN6PbcjS1P'
   }
 
   const getMathsEnglishLink = () => {
-    return 'https://buy.stripe.com/bJedRad0b38E2pB3CZcjS2a'
+    return 'https://buy.stripe.com/7sY6oI9NZfVq7JVb5rcjS1Q'
   }
 
   const getEnglishScienceLink = () => {
-    return 'https://buy.stripe.com/7sY5kE1htbFa8NZa1ncjS2k'
+    return 'https://buy.stripe.com/bJeaEY4tFbFafcn4H3cjS1O'
   }
 
   const getScienceMathsLink = () => {
-    return 'https://buy.stripe.com/28E28s9NZfVq3tF8XjcjS2b'
+    switch (year) {
+      case '9':
+        return 'https://buy.stripe.com/00w28s3pB7oU7JVehDcjS0l'
+      case '10':
+        return 'https://buy.stripe.com/14A6oId0bbFa8NZ0qNcjS0m'
+      case '11':
+        return 'https://buy.stripe.com/28EfZi7FR9x27JV1uRcjS0n'
+      default:
+        return 'https://buy.stripe.com/00w28s3pB7oU7JVehDcjS0l'
+    }
   }
 
   const getScienceLink = () => {
-    return 'https://buy.stripe.com/9B67sM8JVaB65BNc9vcjS2f'
+    return 'https://buy.stripe.com/6oU9AUf8j4cI1lxgpLcjS1N'
   }
 
   const getEnglishOnlyLink = () => {
-    return 'https://buy.stripe.com/4gM8wQ6BN6kQ7JVgpLcjS2g'
+    return 'https://buy.stripe.com/3cIeVegcn38Ed4f4H3cjS1M'
   }
 
   const getMathsOnlyLink = () => {
-    return 'https://buy.stripe.com/aFacN6aS324A7JV8XjcjS2h'
+    return 'https://buy.stripe.com/aFa4gAbW77oUaW73CZcjS1L'
   }
 
   const getSingleScienceLink = () => {
-    return 'https://buy.stripe.com/00w28sgcn9x2d4f7TfcjS2i'
+    return 'https://buy.stripe.com/aFa14o4tFeRm3tFa1ncjS1J'
   }
 
   const getSingleEnglishLink = () => {
-    return 'https://buy.stripe.com/3cI9AU6BNcJe2pB8XjcjS2j'
+    return 'https://buy.stripe.com/aFa7sM6BN24Ad4fb5rcjS1K'
   }
 
   const getMathsScienceLink = () => {
-    return 'https://buy.stripe.com/28E28s9NZfVq3tF8XjcjS2b'
+    return 'https://buy.stripe.com/28E4gA5xJdNiaW7flHcjS1S'
   }
 
   const getChemistryLink = () => {
@@ -250,9 +240,6 @@ function Package() {
   }
 
   const handleBundleCheckout = (bundleType) => {
-    const selectedBundle = bundles.find((bundle) => bundle.id === bundleType)
-    rememberPendingCheckout(selectedBundle)
-
     switch (bundleType) {
       case 'maths-science-english':
         window.location.href = getMathsScienceEnglishLink()
@@ -274,10 +261,12 @@ function Package() {
     }
   }
 
-  const handleIndividualCheckout = (subjectType) => {
-    const selectedPackage = individualPricing.find((item) => item.id === subjectType)
-    rememberPendingCheckout(selectedPackage)
+  const getTestPackageLink = () => {
+    // £1 Test Package Stripe Link
+    return 'https://buy.stripe.com/8x28wQe4faB63tF1uRcjS1g'
+  }
 
+  const handleIndividualCheckout = (subjectType) => {
     switch (subjectType) {
       case 'science':
         window.location.href = getScienceLink()
@@ -318,12 +307,14 @@ function Package() {
       id: 'maths-science-english',
       name: '24 Lesson Bundle',
       subjects: 'English, Maths & Science',
-      price: '£66',
-      perLesson: '£11.00 per lesson',
-      period: '/week',
+      price: '£216',
+      perLesson: '£9.00 per lesson',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       popular: true,
       features: [
-        '24 lessons per month / 6 lessons a week',
+        '24 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -337,11 +328,13 @@ function Package() {
       id: 'maths-english',
       name: '12 Lesson Bundle',
       subjects: 'Maths & English',
-      price: '£39',
-      perLesson: '£13.00 per lesson',
-      period: '/week',
+      price: '£140',
+      perLesson: '£11.66 per lesson',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '12 lessons per month / 3 lessons a week',
+        '12 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -354,11 +347,13 @@ function Package() {
       id: 'maths-science',
       name: '16 Lesson Bundle',
       subjects: 'Maths & Science',
-      price: '£52',
-      perLesson: '£13.00 per lesson',
-      period: '/week',
+      price: '£165',
+      perLesson: '£10.31 per lesson',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '16 lessons per month / 4 lessons a week',
+        '16 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -371,11 +366,13 @@ function Package() {
       id: 'english-science',
       name: '20 Lesson Bundle',
       subjects: 'English & Science',
-      price: '£60',
-      perLesson: '£12.00 per lesson',
-      period: '/week',
+      price: '£195',
+      perLesson: '£9.75 per lesson',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '20 lessons per month / 5 lessons a week',
+        '20 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -392,11 +389,13 @@ function Package() {
       id: 'science',
       name: '12 Science Lessons',
       subjects: 'Biology, Chemistry & Physics',
-      price: '£39',
-      perLesson: '£13.00 per lesson',
-      period: '/week',
+      price: '£132',
+      perLesson: '£11.00 per lesson',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '12 lessons per month / 3 lessons a week',
+        '12 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -409,11 +408,13 @@ function Package() {
       id: 'english-only',
       name: '8 English Lessons',
       subjects: 'Literature & Language',
-      price: '£26',
+      price: '£104',
       perLesson: '£13.00 per lesson',
-      period: '/week',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '8 lessons per month / 2 lessons a week',
+        '8 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -426,11 +427,13 @@ function Package() {
       id: 'maths-only',
       name: '4 Maths Lessons',
       subjects: 'Maths only',
-      price: '£15',
+      price: '£59.99',
       perLesson: '£15.00 per lesson',
-      period: '/week',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '4 lessons per month / 1 lesson a week',
+        '4 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -442,11 +445,13 @@ function Package() {
       id: 'single-science',
       name: 'Single Science Package',
       subjects: 'Focuses on one science only',
-      price: '£15',
+      price: '£59.99',
       perLesson: '£15.00 per lesson',
-      period: '/week',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '4 lessons per month / 1 lesson a week',
+        '4 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -459,11 +464,13 @@ function Package() {
       id: 'single-english',
       name: 'Single English Package',
       subjects: 'Focuses on either Literature or Language',
-      price: '£15',
+      price: '£59.99',
       perLesson: '£15.00 per lesson',
-      period: '/week',
+      period: '/month',
+      billing: 'Billed monthly after 7-day free trial',
+      trialDays: 7,
       features: [
-        '4 lessons per month / 1 lesson a week',
+        '4 lessons per month',
         'Exam Technique Focused',
         'Unlimited Platform Access',
         'Assessments',
@@ -591,7 +598,7 @@ function Package() {
               Year {year} Course
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
-              Choose Your <span className="text-blue-600">Group Learning Package</span>
+              Choose Your <span className="text-blue-600">Learning Package</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Flexible pricing options tailored for Year {year} students. All packages include expert tutoring, detailed feedback, and exam preparation.
@@ -656,6 +663,9 @@ function Package() {
                       {bundle.perLesson}
                     </div>
                   )}
+                  <p className={`text-sm mb-4 ${bundle.popular ? 'text-blue-100' : 'text-gray-500'}`}>
+                    {bundle.billing}
+                  </p>
                   <ul className="space-y-3 mb-4 flex-grow">
                     {bundle.features.map((feature, fidx) => (
                       <li key={fidx} className="flex items-start gap-3">
@@ -669,7 +679,7 @@ function Package() {
                     onClick={() => handleBundleCheckout(bundle.id)}
                     className="w-full py-3 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px] touch-manipulation bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-600"
                   >
-                    Buy GCSE Tuition Package
+                    Start Free Trial
                   </button>
                 </div>
               ))}
@@ -700,6 +710,7 @@ function Package() {
                       {item.perLesson}
                     </div>
                   )}
+                  <p className="text-sm text-gray-500 mb-6">{item.billing}</p>
                   <ul className="space-y-3 mb-8 flex-grow">
                     {item.features.map((feature, fidx) => (
                       <li key={fidx} className="flex items-start gap-3">
@@ -713,7 +724,7 @@ function Package() {
                     onClick={() => item.id ? handleIndividualCheckout(item.id) : goToBooking}
                     className="w-full py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                   >
-                    Buy GCSE Tuition Package
+                    Start Free Trial
                   </button>
                 </div>
               ))}
@@ -764,7 +775,7 @@ function Package() {
                                 {video.subjects.join(' / ')}
                               </span>
                               <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-blue-700">
-                                {video.improvementLabel || formatImprovement(video.improvedBy)}
+                                {formatImprovement(video.improvedBy)}
                               </span>
                             </div>
                           </div>

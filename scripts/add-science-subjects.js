@@ -25,19 +25,19 @@ const scienceSubjects = [
     id: 'biology_001',
     name: 'Biology',
     description: 'GCSE Biology',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/89121648473'
   },
   {
     id: 'chemistry_001',
     name: 'Chemistry',
     description: 'GCSE Chemistry',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/82539769232'
   },
   {
     id: 'physics_001',
     name: 'Physics',
     description: 'GCSE Physics',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/89245151127'
   }
 ]
 
