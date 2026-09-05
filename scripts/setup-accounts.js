@@ -108,19 +108,19 @@ const defaultSubjects = [
     id: 'maths_001',
     name: 'Maths',
     description: 'GCSE Mathematics',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/84989135376'
   },
   {
     id: 'english_lang_001',
     name: 'English Language',
     description: 'GCSE English Language',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/89020463558'
   },
   {
     id: 'english_lit_001',
     name: 'English Literature',
     description: 'GCSE English Literature',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/83496181405'
   },
   {
     id: 'combined_science_001',
@@ -138,19 +138,19 @@ const defaultSubjects = [
     id: 'biology_001',
     name: 'Biology',
     description: 'GCSE Biology',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/89121648473'
   },
   {
     id: 'chemistry_001',
     name: 'Chemistry',
     description: 'GCSE Chemistry',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/82539769232'
   },
   {
     id: 'physics_001',
     name: 'Physics',
     description: 'GCSE Physics',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/89245151127'
   }
 ];
 

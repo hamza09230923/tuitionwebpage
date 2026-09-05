@@ -50,12 +50,12 @@ const SUBJECTS = {
   english_lang_001: {
     name: 'English Language',
     description: 'GCSE English Language',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/89020463558'
   },
   english_lit_001: {
     name: 'English Literature',
     description: 'GCSE English Literature',
-    zoomLink: ''
+    zoomLink: 'https://us06web.zoom.us/j/83496181405'
   }
 }
 
@@ -249,12 +249,15 @@ const createOrUpdateWithAdminSdk = async (student, subjectIds, hiddenTitleKeywor
   const studentRef = db.collection('students').doc(userRecord.uid)
   const existingStudent = await studentRef.get()
   const existingData = existingStudent.exists ? existingStudent.data() : {}
+  const shouldSetSchoolYearAnchor = !existingStudent.exists ||
+    existingData.schoolYear !== student.schoolYear
 
   await studentRef.set(
     {
       name: student.name,
       email: student.email,
       schoolYear: student.schoolYear,
+      ...(shouldSetSchoolYearAnchor ? { schoolYearSetAt: admin.firestore.FieldValue.serverTimestamp() } : {}),
       subjects: subjectIds,
       subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
       hiddenRecordingIds,
@@ -345,6 +348,8 @@ const createOrUpdateWithClientSdk = async (student, subjectIds, hiddenTitleKeywo
     const studentRef = doc(db, 'students', studentUser.uid)
     const existingStudent = await getDoc(studentRef)
     const existingData = existingStudent.exists() ? existingStudent.data() : {}
+    const shouldSetSchoolYearAnchor = !existingStudent.exists() ||
+      existingData.schoolYear !== student.schoolYear
 
     await setDoc(
       studentRef,
@@ -352,6 +357,7 @@ const createOrUpdateWithClientSdk = async (student, subjectIds, hiddenTitleKeywo
         name: student.name,
         email: student.email,
         schoolYear: student.schoolYear,
+        ...(shouldSetSchoolYearAnchor ? { schoolYearSetAt: serverTimestamp() } : {}),
         subjects: subjectIds,
         subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
         hiddenRecordingIds,
