@@ -5,7 +5,14 @@ import { trackPurchase } from '../utils/metaPixel'
 
 function PaymentSuccess() {
   useEffect(() => {
-    trackPurchase()
+    try {
+      const storedCheckout = window.sessionStorage.getItem('myscholaPendingCheckout')
+      const checkout = storedCheckout ? JSON.parse(storedCheckout) : null
+      trackPurchase(checkout || { currency: 'GBP' })
+      window.sessionStorage.removeItem('myscholaPendingCheckout')
+    } catch {
+      trackPurchase({ currency: 'GBP' })
+    }
   }, [])
 
   return (
