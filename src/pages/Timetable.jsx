@@ -186,17 +186,7 @@ function Timetable() {
 
   const getDayEntries = (day) => scheduleData.filter(d => d.day === day && d.status === 'active')
 
-  const getTodaySchedule = () => {
-    const todayEntries = scheduleData.filter(d => d.day === today && d.status === 'active')
-    if (todayEntries.length === 0) {
-      return 'No classes today. Take a break!'
-    }
-    return `Today: ${todayEntries.map((entry) => {
-      const tierLabel = getTierLabel(entry)
-      const subjectLabel = tierLabel ? `${entry.subject} (${tierLabel})` : entry.subject
-      return `${subjectLabel} at ${entry.time}`
-    }).join('; ')}`
-  }
+  const todayEntries = getDayEntries(today)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -349,9 +339,23 @@ function Timetable() {
               Today - {today}
             </span>
           </div>
-          <p className="text-xl font-semibold">
-            {getTodaySchedule()}
-          </p>
+          {todayEntries.length > 0 ? (
+            <div className="text-xl font-semibold leading-snug">
+              <p className="mb-1">Today:</p>
+              {todayEntries.map((entry) => {
+                const tierLabel = getTierLabel(entry)
+                const subjectLabel = tierLabel ? `${entry.subject} (${tierLabel})` : entry.subject
+
+                return (
+                  <p key={`${entry.subject}-${entry.time}`}>
+                    {subjectLabel} at {entry.time}
+                  </p>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-xl font-semibold leading-snug">No classes today. Take a break!</p>
+          )}
         </div>
 
         {/* Weekly Calendar */}
