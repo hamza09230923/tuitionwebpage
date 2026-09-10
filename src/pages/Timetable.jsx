@@ -116,7 +116,7 @@ const septemberScheduleData = [
     status: 'active',
     subject: 'English Language',
     time: '6:00 PM - 7:00 PM',
-    board: 'AQA',
+    board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
   },
@@ -125,7 +125,7 @@ const septemberScheduleData = [
     status: 'active',
     subject: 'English Literature',
     time: '6:00 PM - 7:00 PM',
-    board: 'AQA',
+    board: 'AQA, Edexcel & OCR',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
   },
@@ -235,7 +235,7 @@ function Timetable() {
                 <a href="/#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
                 <a href="/courses" className="text-gray-700 hover:text-blue-600 transition">Courses</a>
                 <a href="/package" className="text-gray-700 hover:text-blue-600 transition">Pricing</a>
-                <Link to="/faqs" className="text-gray-700 hover:text-blue-600 transition">FAQ</Link>
+                <a href="/#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
               </div>
             </div>
 
@@ -282,7 +282,7 @@ function Timetable() {
               <a href="/#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">How It Works</a>
               <a href="/courses" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Courses</a>
               <a href="/package" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Pricing</a>
-              <Link to="/faqs" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</Link>
+              <a href="/#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -569,7 +569,7 @@ function Timetable() {
               <ul className="space-y-2 text-gray-400" role="list">
                 <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
                 <li><Link to="/refund-cancellation-policy" className="hover:text-white transition">Refund & Cancellation Policy</Link></li>
-                <li><Link to="/faqs" className="hover:text-white transition">FAQ</Link></li>
+                <li><a href="/#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
             <div>

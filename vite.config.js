@@ -45,12 +45,6 @@ function buildStrategyCallHtml(indexHtml) {
 
 const LEGAL_ROUTES = [
   {
-    path: 'faqs',
-    title: 'FAQs | MySchola GCSE Tuition',
-    description: 'Find answers about MySchola GCSE subjects, live Zoom lessons, sets, homework, resources, billing and student support.',
-    fallback: '<main class="seo-fallback" data-page="faqs"><h1>MySchola GCSE Tuition FAQs</h1><p>Find answers about our subjects, live lessons, sets, homework, resources, billing and student support.</p><p><a href="/booking">Book a free consultation</a> to discuss your child\'s needs.</p></main>',
-  },
-  {
     path: 'privacy-policy',
     title: 'Privacy Policy | MySchola',
     description: 'Read the MySchola privacy policy and learn how personal information is collected, used and protected.',
