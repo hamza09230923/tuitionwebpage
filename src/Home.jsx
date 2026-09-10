@@ -184,7 +184,7 @@ function Home() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex justify-center">
-              <div className="flex items-center space-x-8 text-sm">
+              <div className="flex items-center space-x-8 text-base font-medium">
                 <a href="#home" className="text-gray-700 hover:text-blue-600 transition">Home</a>
                 <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
                 <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
