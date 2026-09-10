@@ -1,4 +1,4 @@
-import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CalInlineEmbed from './components/CalInlineEmbed'
@@ -91,7 +91,6 @@ function Home() {
   const loopStartIndex = totalTestimonialVideos
   const loopEndIndex = totalTestimonialVideos * 2
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [openFAQ, setOpenFAQ] = useState(null)
   const [cohortMonth, setCohortMonth] = useState(getCohortMonth)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(loopStartIndex)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
@@ -143,10 +142,6 @@ function Home() {
   }, [activeTestimonialIndex, loopStartIndex, loopEndIndex, totalTestimonialVideos])
 
 
-    const toggleFAQ = (index) => {
-    setOpenFAQ(openFAQ === index ? null : index)
-  }
-
   const goToPreviousTestimonial = () => {
     setActiveTestimonialIndex((prev) => prev - 1)
   }
@@ -194,7 +189,7 @@ function Home() {
                 <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
                 <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
                 <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
-                <a href="#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
+                <Link to="/faqs" className="text-gray-700 hover:text-blue-600 transition">FAQ</Link>
               </div>
             </div>
 
@@ -242,7 +237,7 @@ function Home() {
               <a href="#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">How It Works</a>
               <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
-              <a href="#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
+              <Link to="/faqs" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -845,7 +840,7 @@ function Home() {
         </div>
       </DeferredSection>
 
-      {/* Contact Section */}
+        {/* Contact Section */}
       <DeferredSection id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="contact-heading">
         <div className="max-w-4xl mx-auto">
           <h2 id="contact-heading" className="text-4xl font-bold text-center mb-12">Get in Touch</h2>
@@ -897,7 +892,7 @@ function Home() {
               <ul className="space-y-2 text-gray-400" role="list">
                 <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
                 <li><Link to="/refund-cancellation-policy" className="hover:text-white transition">Refund & Cancellation Policy</Link></li>
-                <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
+                <li><Link to="/faqs" className="hover:text-white transition">FAQ</Link></li>
               </ul>
             </div>
             <div>
