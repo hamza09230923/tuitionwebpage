@@ -31,8 +31,8 @@ const faqGroups = [
       ['Does my child need to be on camera or use a microphone?', 'No. Students can join without either. Camera and microphone use can make discussion easier, but Zoom chat gives students another way to participate.'],
       ['Will my child see the other students?', 'Yes. Students in a group class can see the other participants during the lesson.'],
       ['What is the best way to ask a question?', 'Students can type in the Zoom chat or speak when invited. Tutors make regular pauses for questions, with the teaching assistant helping to pick up anything that might otherwise be missed.'],
-      ['What help is available between lessons?', 'Students receive individual homework feedback and can use their mentor for guidance when they are unsure what to work on next.'],
-      ['What happens if a lesson is missed?', 'For a one-off clash, students can attend another suitable set’s lesson or watch the recording. For a longer absence, contact us so we can arrange a pause rather than charging for lessons they cannot attend.'],
+      ['What help is available between lessons?', 'Students receive personal feedback on their homework and can speak with their mentor when they need help deciding what to work on next.'],
+      ['What happens if a lesson is missed?', 'For an occasional clash, students can watch the recording later. If they will be away for a longer period, contact us so we can arrange a suitable pause.'],
       ['Do classes run through school holidays?', 'In most cases, yes. The regular timetable usually continues and holiday lessons are useful for revision and staying ahead. We can discuss a pause if your family is travelling.'],
       ['Where does my child find the Zoom link?', 'They open the relevant course in the MySchola platform and choose the live lesson link for their subject and set.'],
     ],
@@ -86,7 +86,7 @@ const faqGroups = [
       ['Can a student come back after cancelling?', 'Yes. Get in touch when you are ready and we will check the account and current availability.'],
       ['Are the tutors UK-based?', 'Yes. Our teaching team is UK-based.'],
       ['Will the tutor stay the same each week?', 'Yes. Tutors are assigned consistently rather than changed from lesson to lesson.'],
-      ['How can we get help outside class?', 'Every student has a personal mentor, and parents can contact our team through WhatsApp. Messages are usually answered within 24 hours.'],
+      ['How can we get help outside class?', 'Every student has a personal mentor, and parents can contact our team through WhatsApp when they need support.'],
       ['Can MySchola take the place of school?', 'No. We provide extra academic support and can help students who have missed school, but we are not a substitute for a full education programme.'],
     ],
   },
@@ -139,7 +139,7 @@ export default function FAQs() {
               </Link>
 
               <div className="hidden justify-center md:flex">
-                <div className="flex items-center space-x-8 text-sm">
+                <div className="flex items-center space-x-8 text-base font-medium">
                   <Link to="/" className="text-gray-700 transition hover:text-blue-600">Home</Link>
                   <a href="/#how-it-works" className="text-gray-700 transition hover:text-blue-600">How It Works</a>
                   <a href="/#subjects" className="text-gray-700 transition hover:text-blue-600">Subjects</a>

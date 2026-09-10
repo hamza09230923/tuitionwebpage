@@ -116,7 +116,7 @@ const septemberScheduleData = [
     status: 'active',
     subject: 'English Language',
     time: '6:00 PM - 7:00 PM',
-    board: 'AQA, Edexcel & OCR',
+    board: 'AQA',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
   },
@@ -125,7 +125,7 @@ const septemberScheduleData = [
     status: 'active',
     subject: 'English Literature',
     time: '6:00 PM - 7:00 PM',
-    board: 'AQA, Edexcel & OCR',
+    board: 'AQA',
     level: 'Foundation & Higher',
     color: 'bg-red-500'
   },
