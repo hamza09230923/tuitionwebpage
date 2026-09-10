@@ -1,25 +1,10 @@
 const admin = require('firebase-admin')
 const functions = require('firebase-functions')
-const crypto = require('crypto')
 const { google } = require('googleapis')
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '')
 
 admin.initializeApp()
 
-let db
-
-const getDb = () => {
-  if (!db) {
-    db = admin.firestore()
-  }
-  return db
-}
-
-// The default Gen 1 App Engine service account is unavailable. Use the enabled
-// Compute Engine default service account for these functions until it is restored.
-const runtimeFunctions = functions.runWith({
-  serviceAccount: '927860875256-compute@developer.gserviceaccount.com'
-})
+const db = admin.firestore()
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
@@ -94,190 +79,6 @@ const jsonError = (res, status, message) => {
   res.status(status).json({ error: message })
 }
 
-const sha256 = (value) => crypto
-  .createHash('sha256')
-  .update(String(value).trim().toLowerCase())
-  .digest('hex')
-
-const getStripeWebhookEvent = (req) => {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-  if (!webhookSecret) {
-    return req.body
-  }
-
-  const signature = req.get('stripe-signature')
-  if (!signature) {
-    throw new Error('Missing Stripe signature')
-  }
-
-  return stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret)
-}
-
-const buildMetaUserData = (session) => {
-  const customer = session.customer_details || {}
-  const userData = {}
-
-  if (customer.email) {
-    userData.em = [sha256(customer.email)]
-  }
-
-  if (customer.phone) {
-    userData.ph = [sha256(customer.phone.replace(/\D/g, ''))]
-  }
-
-  if (session.client_reference_id) {
-    userData.external_id = [sha256(session.client_reference_id)]
-  }
-
-  return userData
-}
-
-const buildMetaChargeUserData = (charge) => {
-  const billingDetails = charge.billing_details || {}
-  const userData = {}
-
-  if (billingDetails.email) {
-    userData.em = [sha256(billingDetails.email)]
-  }
-
-  if (billingDetails.phone) {
-    userData.ph = [sha256(billingDetails.phone.replace(/\D/g, ''))]
-  }
-
-  if (charge.customer) {
-    userData.external_id = [sha256(charge.customer)]
-  }
-
-  return userData
-}
-
-const sendMetaPurchaseEvent = async (session) => {
-  const accessToken = process.env.META_ACCESS_TOKEN
-  const pixelId = process.env.META_PIXEL_ID || '2772806336415328'
-  const graphVersion = process.env.META_GRAPH_VERSION || 'v26.0'
-
-  if (!accessToken || !pixelId) {
-    console.warn('Meta CAPI is not configured; skipping Purchase event')
-    return { skipped: true }
-  }
-
-  const amountTotal = Number(session.amount_total)
-  if (!Number.isFinite(amountTotal) || amountTotal <= 0) {
-    console.log('Stripe checkout completed with no paid amount; skipping Meta Purchase event')
-    return { skipped: true }
-  }
-
-  const value = amountTotal / 100
-  const currency = String(session.currency || 'gbp').toUpperCase()
-  const userData = buildMetaUserData(session)
-
-  if (!Object.keys(userData).length) {
-    console.warn('Meta CAPI user_data is empty; skipping Purchase event')
-    return { skipped: true }
-  }
-
-  const payload = {
-    data: [
-      {
-        event_name: 'Purchase',
-        event_time: Math.floor(Date.now() / 1000),
-        event_id: session.payment_intent || session.id,
-        action_source: 'website',
-        event_source_url: process.env.META_EVENT_SOURCE_URL || 'https://myschola.uk/payment-success',
-        user_data: userData,
-        custom_data: {
-          currency,
-          value
-        }
-      }
-    ]
-  }
-
-  const testEventCode = process.env.META_TEST_EVENT_CODE
-  if (testEventCode) {
-    payload.test_event_code = testEventCode
-  }
-
-  const response = await fetch(
-    `https://graph.facebook.com/${graphVersion}/${pixelId}/events?access_token=${encodeURIComponent(accessToken)}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }
-  )
-
-  const result = await response.json()
-  if (!response.ok) {
-    throw new Error(`Meta CAPI request failed: ${JSON.stringify(result)}`)
-  }
-
-  return result
-}
-
-const sendMetaChargePurchaseEvent = async (charge) => {
-  const accessToken = process.env.META_ACCESS_TOKEN
-  const pixelId = process.env.META_PIXEL_ID || '2772806336415328'
-  const graphVersion = process.env.META_GRAPH_VERSION || 'v26.0'
-
-  if (!accessToken || !pixelId) {
-    console.warn('Meta CAPI is not configured; skipping charge Purchase event')
-    return { skipped: true }
-  }
-
-  const amount = Number(charge.amount)
-  if (!Number.isFinite(amount) || amount <= 0 || charge.paid === false) {
-    console.log('Stripe charge is not a paid amount; skipping Meta Purchase event')
-    return { skipped: true }
-  }
-
-  const currency = String(charge.currency || 'gbp').toUpperCase()
-  const userData = buildMetaChargeUserData(charge)
-
-  if (!Object.keys(userData).length) {
-    console.warn('Meta CAPI user_data is empty for charge; skipping Purchase event')
-    return { skipped: true }
-  }
-
-  const payload = {
-    data: [
-      {
-        event_name: 'Purchase',
-        event_time: Math.floor(Date.now() / 1000),
-        event_id: charge.payment_intent || charge.id,
-        action_source: 'website',
-        event_source_url: process.env.META_EVENT_SOURCE_URL || 'https://myschola.uk/payment-success',
-        user_data: userData,
-        custom_data: {
-          currency,
-          value: amount / 100
-        }
-      }
-    ]
-  }
-
-  const testEventCode = process.env.META_TEST_EVENT_CODE
-  if (testEventCode) {
-    payload.test_event_code = testEventCode
-  }
-
-  const response = await fetch(
-    `https://graph.facebook.com/${graphVersion}/${pixelId}/events?access_token=${encodeURIComponent(accessToken)}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }
-  )
-
-  const result = await response.json()
-  if (!response.ok) {
-    throw new Error(`Meta CAPI charge request failed: ${JSON.stringify(result)}`)
-  }
-
-  return result
-}
-
 const getAuthToken = async (req) => {
   const authHeader = req.get('authorization') || ''
   const match = authHeader.match(/^Bearer (.+)$/)
@@ -288,11 +89,11 @@ const getAuthToken = async (req) => {
 }
 
 const getUserRole = async (uid) => {
-  const adminDoc = await getDb().doc(`admins/${uid}`).get()
+  const adminDoc = await db.doc(`admins/${uid}`).get()
   if (adminDoc.exists) {
     return 'admin'
   }
-  const teacherDoc = await getDb().doc(`teachers/${uid}`).get()
+  const teacherDoc = await db.doc(`teachers/${uid}`).get()
   if (teacherDoc.exists) {
     return 'teacher'
   }
@@ -639,7 +440,7 @@ const createShareLink = async (token, hidrivePath) => {
   return shareLink
 }
 
-exports.createHidriveUpload = runtimeFunctions.https.onRequest(async (req, res) => {
+exports.createHidriveUpload = functions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -691,38 +492,7 @@ exports.createHidriveUpload = runtimeFunctions.https.onRequest(async (req, res) 
   }
 })
 
-exports.stripeWebhook = runtimeFunctions.https.onRequest(async (req, res) => {
-  if (req.method !== 'POST') {
-    return jsonError(res, 405, 'Method not allowed')
-  }
-
-  let event
-  try {
-    event = getStripeWebhookEvent(req)
-  } catch (err) {
-    console.error('Stripe webhook verification failed:', err)
-    return jsonError(res, 400, err.message || 'Invalid Stripe webhook')
-  }
-
-  try {
-    if (event.type === 'checkout.session.completed') {
-      await sendMetaPurchaseEvent(event.data.object)
-    } else if (event.type === 'charge.succeeded') {
-      await sendMetaChargePurchaseEvent(event.data.object)
-    }
-
-    res.status(200).json({ received: true })
-  } catch (err) {
-    console.error('stripeWebhook error:', err)
-    res.status(200).json({
-      received: true,
-      metaForwarded: false,
-      error: err.message || 'Meta forwarding failed'
-    })
-  }
-})
-
-exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
+exports.createRecording = functions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -769,7 +539,7 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
         return jsonError(res, 403, 'Only admins can create student-specific recordings')
       }
 
-      const studentSnapshot = await getDb().doc(`students/${studentId}`).get()
+      const studentSnapshot = await db.doc(`students/${studentId}`).get()
       if (!studentSnapshot.exists) {
         return jsonError(res, 400, 'Student profile was not found')
       }
@@ -798,7 +568,7 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
 
     const approvalStatus = role === 'admin' ? 'approved' : 'pending'
     const collectionName = recordingVisibility === 'student' ? 'studentRecordings' : 'recordings'
-    const docRef = await getDb().collection(collectionName).add({
+    const docRef = await db.collection(collectionName).add({
       subjectId,
       title,
       videoUrl: finalVideoUrl,
@@ -835,7 +605,7 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
+exports.createHomework = functions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -866,7 +636,6 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       hidriveFileId,
       visibility = 'subject',
       studentId = null,
-      studentIds = [],
       studentName = null,
       studentEmail = null
     } = req.body || {}
@@ -875,62 +644,23 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       return jsonError(res, 400, 'subjectId and title are required')
     }
 
-    if (!['subject', 'student', 'students'].includes(visibility)) {
-      return jsonError(res, 400, 'visibility must be subject, student, or students')
-    }
-
-    const isStudentSpecificRequest = visibility === 'student' || visibility === 'students'
-    const rawStudentIds = visibility === 'students'
-      ? studentIds
-      : visibility === 'student'
-        ? [studentId]
-        : []
-
-    if (isStudentSpecificRequest && !Array.isArray(rawStudentIds)) {
-      return jsonError(res, 400, 'Student IDs must be provided as a list')
-    }
-
-    if (isStudentSpecificRequest && rawStudentIds.some((id) => (
-      typeof id !== 'string' || !id.trim() || id.includes('/')
-    ))) {
-      return jsonError(res, 400, 'One or more student IDs are invalid')
-    }
-
-    const requestedStudentIds = Array.from(new Set(rawStudentIds.map((id) => id.trim())))
-    if (isStudentSpecificRequest && requestedStudentIds.length === 0) {
-      return jsonError(res, 400, 'Select at least one student for student-specific homework')
-    }
-
-    if (requestedStudentIds.length > 500) {
-      return jsonError(res, 400, 'Select no more than 500 students at a time')
-    }
-
-    const homeworkVisibility = requestedStudentIds.length > 0 ? 'student' : 'subject'
-    const targetStudents = new Map()
-    const db = getDb()
+    const homeworkVisibility = visibility === 'student' && studentId ? 'student' : 'subject'
+    let targetStudent = null
 
     if (homeworkVisibility === 'student') {
       if (role !== 'admin') {
         return jsonError(res, 403, 'Only admins can create student-specific homework')
       }
 
-      const studentSnapshots = await Promise.all(
-        requestedStudentIds.map((id) => db.doc(`students/${id}`).get())
-      )
-      for (let index = 0; index < studentSnapshots.length; index += 1) {
-        const studentSnapshot = studentSnapshots[index]
-        const targetStudentId = requestedStudentIds[index]
-        if (!studentSnapshot.exists) {
-          return jsonError(res, 400, 'Student profile was not found')
-        }
+      const studentSnapshot = await db.doc(`students/${studentId}`).get()
+      if (!studentSnapshot.exists) {
+        return jsonError(res, 400, 'Student profile was not found')
+      }
 
-        const targetStudent = studentSnapshot.data() || {}
-        const subjectIds = Array.isArray(targetStudent.subjects) ? targetStudent.subjects : []
-        if (!subjectIds.includes(subjectId)) {
-          return jsonError(res, 400, 'A selected student is not enrolled in this subject')
-        }
-
-        targetStudents.set(targetStudentId, targetStudent)
+      targetStudent = studentSnapshot.data() || {}
+      const subjectIds = Array.isArray(targetStudent.subjects) ? targetStudent.subjects : []
+      if (!subjectIds.includes(subjectId)) {
+        return jsonError(res, 400, 'Student is not enrolled in this subject')
       }
     }
 
@@ -967,12 +697,21 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       storageProvider = hidrivePath ? 'hidrive' : 'external'
     }
 
-    const homeworkData = {
+    const collectionName = homeworkVisibility === 'student' ? 'studentHomeworks' : 'homeworks'
+    const docRef = await db.collection(collectionName).add({
       subjectId,
       title,
       description: description || '',
       dueDate: normalizeDueDate(dueDate),
       questions: sanitizedQuestions,
+      visibility: homeworkVisibility,
+      studentId: homeworkVisibility === 'student' ? studentId : null,
+      studentName: homeworkVisibility === 'student'
+        ? studentName || targetStudent.name || targetStudent.displayName || targetStudent.studentName || null
+        : null,
+      studentEmail: homeworkVisibility === 'student'
+        ? studentEmail || targetStudent.email || null
+        : null,
       attachmentUrl: finalAttachmentUrl,
       attachmentName: attachmentName || null,
       attachmentContentType: attachmentContentType || null,
@@ -983,48 +722,11 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       createdBy: decoded.uid,
       createdByRole: role
-    }
-
-    if (homeworkVisibility === 'student') {
-      const batch = db.batch()
-      const docRefs = requestedStudentIds.map((targetStudentId) => {
-        const targetStudent = targetStudents.get(targetStudentId) || {}
-        const docRef = db.collection('studentHomeworks').doc()
-        batch.set(docRef, {
-          ...homeworkData,
-          visibility: 'student',
-          studentId: targetStudentId,
-          studentName: requestedStudentIds.length === 1
-            ? studentName || targetStudent.name || targetStudent.displayName || targetStudent.studentName || null
-            : targetStudent.name || targetStudent.displayName || targetStudent.studentName || null,
-          studentEmail: requestedStudentIds.length === 1
-            ? studentEmail || targetStudent.email || null
-            : targetStudent.email || null
-        })
-        return docRef
-      })
-      await batch.commit()
-
-      return res.status(200).json({
-        id: docRefs[0].id,
-        ids: docRefs.map((docRef) => docRef.id),
-        collection: 'studentHomeworks',
-        recipientCount: requestedStudentIds.length,
-        attachmentUrl: finalAttachmentUrl
-      })
-    }
-
-    const docRef = await db.collection('homeworks').add({
-      ...homeworkData,
-      visibility: 'subject',
-      studentId: null,
-      studentName: null,
-      studentEmail: null
     })
 
     res.status(200).json({
       id: docRef.id,
-      collection: 'homeworks',
+      collection: collectionName,
       attachmentUrl: finalAttachmentUrl
     })
   } catch (err) {
@@ -1033,7 +735,7 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
+exports.createResource = functions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -1082,7 +784,7 @@ exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
         return jsonError(res, 403, 'Only admins can create student-specific resources')
       }
 
-      const studentSnapshot = await getDb().doc(`students/${studentId}`).get()
+      const studentSnapshot = await db.doc(`students/${studentId}`).get()
       if (!studentSnapshot.exists) {
         return jsonError(res, 400, 'Student profile was not found')
       }
@@ -1111,7 +813,7 @@ exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
 
     const approvalStatus = role === 'admin' ? 'approved' : 'pending'
     const collectionName = resourceVisibility === 'student' ? 'studentResources' : 'resources'
-    const docRef = await getDb().collection(collectionName).add({
+    const docRef = await db.collection(collectionName).add({
       subjectId,
       title,
       description: description || '',
@@ -1149,7 +851,7 @@ exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.registerWebinar = runtimeFunctions.https.onRequest(async (req, res) => {
+exports.registerWebinar = functions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
@@ -1182,7 +884,7 @@ exports.registerWebinar = runtimeFunctions.https.onRequest(async (req, res) => {
       return jsonError(res, 400, 'Email address is invalid')
     }
 
-    const docRef = await getDb().collection('webinarRegistrations').add({
+    const docRef = await db.collection('webinarRegistrations').add({
       fullName: normalizedName,
       email: normalizedEmail,
       phone: normalizedPhone,
@@ -1215,7 +917,7 @@ exports.registerWebinar = runtimeFunctions.https.onRequest(async (req, res) => {
   }
 })
 
-exports.exportWebinarRegistrations = runtimeFunctions.https.onRequest(async (req, res) => {
+exports.exportWebinarRegistrations = functions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) {
     return
   }
