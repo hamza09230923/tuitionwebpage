@@ -1,4 +1,4 @@
-import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CalInlineEmbed from './components/CalInlineEmbed'
@@ -91,7 +91,6 @@ function Home() {
   const loopStartIndex = totalTestimonialVideos
   const loopEndIndex = totalTestimonialVideos * 2
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [openFAQ, setOpenFAQ] = useState(null)
   const [cohortMonth, setCohortMonth] = useState(getCohortMonth)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(loopStartIndex)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
@@ -143,10 +142,6 @@ function Home() {
   }, [activeTestimonialIndex, loopStartIndex, loopEndIndex, totalTestimonialVideos])
 
 
-    const toggleFAQ = (index) => {
-    setOpenFAQ(openFAQ === index ? null : index)
-  }
-
   const goToPreviousTestimonial = () => {
     setActiveTestimonialIndex((prev) => prev - 1)
   }
@@ -189,7 +184,7 @@ function Home() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex justify-center">
-              <div className="flex items-center space-x-8">
+              <div className="flex items-center space-x-8 text-sm">
                 <a href="#home" className="text-gray-700 hover:text-blue-600 transition">Home</a>
                 <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
                 <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
@@ -801,6 +796,8 @@ function Home() {
         </div>
       </DeferredSection>
 
+      {false && (
+      <>
       {/* FAQ Section */}
       <DeferredSection id="faq" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="faq-heading">
         <div className="max-w-4xl mx-auto">
@@ -844,6 +841,8 @@ function Home() {
           </div>
         </div>
       </DeferredSection>
+      </>
+      )}
 
       {/* Contact Section */}
       <DeferredSection id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="contact-heading">
