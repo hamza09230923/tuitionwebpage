@@ -1,4 +1,4 @@
-import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, HelpCircle, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
+import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CalInlineEmbed from './components/CalInlineEmbed'
@@ -91,7 +91,6 @@ function Home() {
   const loopStartIndex = totalTestimonialVideos
   const loopEndIndex = totalTestimonialVideos * 2
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [openFAQ, setOpenFAQ] = useState(null)
   const [cohortMonth, setCohortMonth] = useState(getCohortMonth)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(loopStartIndex)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
@@ -143,10 +142,6 @@ function Home() {
   }, [activeTestimonialIndex, loopStartIndex, loopEndIndex, totalTestimonialVideos])
 
 
-    const toggleFAQ = (index) => {
-    setOpenFAQ(openFAQ === index ? null : index)
-  }
-
   const goToPreviousTestimonial = () => {
     setActiveTestimonialIndex((prev) => prev - 1)
   }
@@ -194,7 +189,7 @@ function Home() {
                 <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
                 <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
                 <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
-                <a href="#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
+                <Link to="/faqs" className="text-gray-700 hover:text-blue-600 transition">FAQ</Link>
               </div>
             </div>
 
@@ -242,7 +237,7 @@ function Home() {
               <a href="#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">How It Works</a>
               <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
-              <a href="#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
+              <Link to="/faqs" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -801,50 +796,6 @@ function Home() {
         </div>
       </DeferredSection>
 
-      {/* FAQ Section */}
-      <DeferredSection id="faq" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="faq-heading">
-        <div className="max-w-4xl mx-auto">
-          <h2 id="faq-heading" className="text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            {[
-              { q: 'What subjects do you teach?', a: 'MySchola teaches GCSE Maths, English Language, English Literature, Combined Science and Triple Science. Lessons are designed for students in Year 9, Year 10 and Year 11.' },
-              { q: 'Do you cover AQA, Edexcel and OCR?', a: 'Yes. We provide AQA GCSE tuition, Edexcel GCSE tuition and OCR GCSE tuition. During the consultation, we confirm your child\'s exam board so lessons and exam-question practice are relevant to their specification.' },
-              { q: 'Is this suitable for Foundation students?', a: 'Yes. Foundation GCSE tuition helps students strengthen core knowledge, close topic gaps and build confidence with the question styles and skills needed for their target grade.' },
-              { q: 'Is this suitable for Higher students?', a: 'Yes. Higher GCSE tuition supports students with more demanding topics, multi-step questions, exam technique and the accuracy needed to work towards higher grades.' },
-              { q: 'How big are the groups?', a: 'MySchola lessons are taught in small online groups so students can receive focused teaching, ask questions and benefit from hearing how other students approach a problem. We will explain the current group options during your consultation.' },
-              { q: 'Do parents receive updates?', a: 'Yes. Parents receive clear progress updates and monthly Zoom progress calls covering attendance, homework, strengths, concerns and the topics that should be prioritised next.' },
-              { q: 'Is there homework?', a: 'Yes. Weekly homework reinforces lesson content and gives tutors another way to identify misunderstandings. Feedback helps students correct mistakes and prepare for future exam questions.' },
-              { q: 'How does the free consultation work?', a: 'Book a free consultation first so we can understand your child\'s year group, subject, exam board and current needs. We will then explain the suitable lesson options and next steps.' },
-              { q: 'Is tuition online?', a: 'Yes. Lessons are delivered online, making it easier for students to follow a consistent weekly routine from home. A laptop or desktop computer and a reliable internet connection are recommended.' },
-              { q: 'How do I book?', a: 'Use the booking calendar on this page or visit the booking page to choose a free consultation time. There is no card required for the consultation.' }
-            ].map((faq, index) => (
-              <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <button
-                  className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-                  onClick={() => toggleFAQ(index)}
-                  aria-expanded={openFAQ === index}
-                  aria-controls={`faq-answer-${index}`}
-                  id={`faq-question-${index}`}
-                >
-                  <span className="font-semibold text-gray-900 flex items-center">
-                    <HelpCircle className="h-5 w-5 text-blue-600 mr-2" aria-hidden="true" />
-                    {faq.q}
-                  </span>
-                  <span className="text-blue-600" aria-hidden="true" aria-label={openFAQ === index ? "Collapse answer" : "Expand answer"}>
-                    {openFAQ === index ? '−' : '+'}
-                  </span>
-                </button>
-                {openFAQ === index && (
-                  <div id={`faq-answer-${index}`} className="px-6 pb-4 text-gray-600" role="region" aria-labelledby={`faq-question-${index}`}>
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </DeferredSection>
-
       {/* Contact Section */}
       <DeferredSection id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="contact-heading">
         <div className="max-w-4xl mx-auto">
@@ -897,7 +848,7 @@ function Home() {
               <ul className="space-y-2 text-gray-400" role="list">
                 <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
                 <li><Link to="/refund-cancellation-policy" className="hover:text-white transition">Refund & Cancellation Policy</Link></li>
-                <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
+                <li><Link to="/faqs" className="hover:text-white transition">FAQ</Link></li>
               </ul>
             </div>
             <div>

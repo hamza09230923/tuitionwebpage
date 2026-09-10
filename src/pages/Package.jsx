@@ -508,7 +508,7 @@ function Package() {
                 <a href="/#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
                 <a href="/#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
                 <a href="/#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
-                <a href="/#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
+                <Link to="/faqs" className="text-gray-700 hover:text-blue-600 transition">FAQ</Link>
               </div>
             </div>
 
@@ -556,7 +556,7 @@ function Package() {
               <a href="/#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">How It Works</a>
               <a href="/#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="/#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
-              <a href="/#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
+              <Link to="/faqs" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -831,7 +831,7 @@ function Package() {
               <ul className="space-y-2 text-gray-400" role="list">
                 <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
                 <li><Link to="/refund-cancellation-policy" className="hover:text-white transition">Refund & Cancellation Policy</Link></li>
-                <li><a href="/#faq" className="hover:text-white transition">FAQ</a></li>
+                <li><Link to="/faqs" className="hover:text-white transition">FAQ</Link></li>
               </ul>
             </div>
             <div>

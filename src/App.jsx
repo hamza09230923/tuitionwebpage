@@ -24,6 +24,7 @@ const Resources = lazy(() => import('./pages/Resources'))
 const ResourceShareLink = lazy(() => import('./pages/ResourceShareLink'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const RefundCancellationPolicy = lazy(() => import('./pages/RefundCancellationPolicy'))
+const FAQs = lazy(() => import('./pages/FAQs'))
 
 const WEBINAR_ROUTE = '/book-strategy-call'
 const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
@@ -64,6 +65,7 @@ function App() {
           <Route path="/timetable" element={<Timetable />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/refund-cancellation-policy" element={<RefundCancellationPolicy />} />
+          <Route path="/faqs" element={<FAQs />} />
 
           {/* Protected student routes */}
           <Route
