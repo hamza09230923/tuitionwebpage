@@ -316,7 +316,7 @@ function Courses() {
         <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100" aria-label="Courses hero section">
           <div className="max-w-7xl mx-auto text-center">
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-gray-900 mb-12 tracking-tight">
-              Select your <span className="text-blue-600">year group</span>:
+              Select your <span className="font-keyword text-blue-600">year group</span>:
             </h1>
 
             {/* Year Selector - Big Buttons for Parents */}
@@ -334,7 +334,7 @@ function Courses() {
             </div>
 
             {/* Animated Subtitle */}
-            <p className="text-lg sm:text-xl text-blue-600 font-medium min-h-[1.75rem]">
+            <p className="font-keyword text-lg sm:text-xl text-blue-600 font-medium min-h-[1.75rem]">
               {typedText}<span className="animate-pulse">|</span>
             </p>
           </div>

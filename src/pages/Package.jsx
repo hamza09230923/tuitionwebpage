@@ -587,11 +587,11 @@ function Package() {
         {/* Hero Section */}
         <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100" aria-label="Package hero section">
           <div className="max-w-7xl mx-auto text-center">
-            <p className="text-lg sm:text-xl text-blue-600 font-semibold mb-4">
+            <p className="font-keyword text-lg sm:text-xl text-blue-600 font-semibold mb-4">
               Year {year} Course
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
-              Choose Your <span className="text-blue-600">Group Learning Package</span>
+              Choose Your <span className="font-keyword text-blue-600">Group Learning Package</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Flexible pricing options tailored for Year {year} students. All packages include expert tutoring, detailed feedback, and exam preparation.

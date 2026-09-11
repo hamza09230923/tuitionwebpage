@@ -12,7 +12,7 @@ const faqGroups = [
     items: [
       ['What can my child study with MySchola?', 'Our live GCSE teaching covers Maths, English Language, English Literature, Biology, Chemistry and Physics. Science support is available for both Combined Science and Triple Science routes.'],
       ['Which students are the lessons designed for?', 'The programme is built for GCSE students in Years 9, 10 and 11, with teaching adjusted to their stage and current confidence.'],
-      ['Which exam boards are covered?', 'English lessons follow AQA. Maths and Science lessons are available for AQA, Edexcel and OCR specifications.'],
+      ['Which exam boards are covered?', 'English lessons follow AQA. Maths lessons are for the Edexcel specification only. Science lessons are available for AQA, Edexcel and OCR specifications.'],
       ['Is the programme suitable for both Foundation and Higher tiers?', 'Yes. We support both tiers, adapting the focus and question practice to the student’s specification and current working level.'],
       ['What if our school is on a different topic right now?', 'That is not a problem. Schools do not all follow the same order, so our lessons follow a complete GCSE plan while still building the knowledge students need for their exams.'],
       ['Can you teach our English Literature set text?', 'Send us the exact text before enrolling and we will check it for you. Language skills transfer well, but Literature support depends on the text being studied.'],
@@ -180,8 +180,8 @@ export default function FAQs() {
       <main id="main-content">
         <section className="bg-gradient-to-br from-blue-50 to-indigo-100 px-4 pb-16 pt-24 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-blue-600">MySchola parent guide</p>
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">Questions about GCSE tuition?</h1>
+            <p className="font-keyword mb-3 text-sm font-bold uppercase tracking-[0.2em] text-blue-600">MySchola parent guide</p>
+            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">Questions about <span className="font-keyword text-blue-600">GCSE tuition?</span></h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-600">Find clear answers about our subjects, live lessons, student support, progress checks and subscriptions.</p>
           </div>
         </section>
@@ -196,7 +196,7 @@ export default function FAQs() {
           <div className="space-y-10">
             {faqGroups.map((group, groupIndex) => (
               <section key={group.title} aria-labelledby={`faq-group-${groupIndex}`}>
-                <h2 id={`faq-group-${groupIndex}`} className="text-2xl font-bold text-slate-900">{group.title}</h2>
+                <h2 id={`faq-group-${groupIndex}`} className="font-keyword text-2xl font-bold text-blue-800">{group.title}</h2>
                 <p className="mt-2 mb-4 text-slate-600">{group.intro}</p>
                 <div className="space-y-3">
                   {group.items.map(([question, answer], itemIndex) => {

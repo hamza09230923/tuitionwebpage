@@ -80,7 +80,7 @@ const septemberScheduleData = [
     status: 'active',
     subject: 'Mathematics',
     time: '6:00 PM - 7:00 PM',
-    board: 'AQA, Edexcel & OCR',
+    board: 'Edexcel',
     level: 'Foundation Tier',
     color: 'bg-blue-500'
   },
@@ -143,7 +143,7 @@ const septemberScheduleData = [
     status: 'active',
     subject: 'Mathematics',
     time: '10:00 AM - 11:00 AM',
-    board: 'AQA, Edexcel & OCR',
+    board: 'Edexcel',
     level: 'Higher Tier',
     color: 'bg-blue-500'
   },
@@ -313,7 +313,7 @@ function Timetable() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full mb-4">
             <Sparkles className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-700">Weekly Live Lesson Schedule</span>
+            <span className="font-keyword text-sm font-semibold text-blue-700">Weekly Live Lesson Schedule</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
             Your GCSE Learning Timetable
@@ -322,7 +322,7 @@ function Timetable() {
             Structured live sessions for Year 9-11 students. Click any lesson to see details.
           </p>
 
-          <p className="mt-6 text-base font-semibold text-blue-700">
+          <p className="font-keyword mt-6 text-base font-semibold text-blue-700">
             {scheduleMeta.september.label}
           </p>
         </div>

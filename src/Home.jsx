@@ -272,7 +272,7 @@ function Home() {
             <div className="relative inline-block px-2">
               <h1 className="relative z-10 text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
                 GCSE Tuition That Helps Students Close Gaps, Build Confidence and
-                <span className="text-blue-600"> Improve Grades</span>
+                <span className="font-keyword text-blue-600"> Improve Grades</span>
               </h1>
             </div>
             <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-4xl mx-auto px-2">
@@ -312,28 +312,28 @@ function Home() {
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <UserCheck className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">1. Free Consultation</h3>
+              <h3 className="text-xl font-semibold mb-2">1. <span className="font-keyword text-blue-800">Free Consultation</span></h3>
               <p className="text-gray-600">Tell us about your child's current grades, confidence, school targets and the areas causing concern. We will explain how the lessons work and whether MySchola is a suitable fit.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <ZoomIn className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">2. Identify Gaps and Exam Board</h3>
+              <h3 className="text-xl font-semibold mb-2">2. <span className="font-keyword text-blue-800">Identify Gaps and Exam Board</span></h3>
               <p className="text-gray-600">We identify weak topics, confirm whether your child studies AQA, Edexcel or OCR, and consider whether Foundation or Higher content is most relevant.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <Lock className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">3. Join Weekly Small-Group Lessons</h3>
+              <h3 className="text-xl font-semibold mb-2">3. <span className="font-keyword text-blue-800">Join Weekly Small-Group Lessons</span></h3>
               <p className="text-gray-600">Your child joins structured online GCSE group tuition with clear explanations, guided practice, exam questions and opportunities to learn from other students' questions.</p>
             </div>
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <MessageCircle className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">4. Track Progress</h3>
+              <h3 className="text-xl font-semibold mb-2">4. <span className="font-keyword text-blue-800">Track Progress</span></h3>
               <p className="text-gray-600">Homework, tutor feedback and parent updates help everyone see what is improving, which topics need more work and what the next priorities should be.</p>
             </div>
           </div>
@@ -575,7 +575,7 @@ function Home() {
       {/* Subjects/Services Section */}
       <DeferredSection id="subjects" className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="subjects-heading">
         <div className="max-w-7xl mx-auto">
-          <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Online GCSE Tuition for Maths, English and Science</h2>
+          <h2 id="subjects-heading" className="text-4xl font-bold text-center mb-4">Online GCSE Tuition for <span className="font-keyword text-blue-600">Maths, English and Science</span></h2>
           <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
             Our GCSE Maths tuition, GCSE English tuition and GCSE Science tuition combine clear teaching with purposeful exam-question practice. Students receive support that matches their exam board and current needs, whether they are rebuilding foundations or aiming for the highest grades.
           </p>
@@ -598,7 +598,7 @@ function Home() {
                 <div className="flex items-start mb-3">
                   <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" aria-hidden="true" />
                   <div>
-                    <h3 className="text-xl font-semibold mb-3">{subject.name}</h3>
+                    <h3 className="font-keyword text-xl font-semibold mb-3 text-blue-800">{subject.name}</h3>
                     <p className="text-gray-600 leading-relaxed">{subject.description}</p>
                   </div>
                 </div>
@@ -617,15 +617,15 @@ function Home() {
           <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">The right priorities change as GCSE exams get closer. Our Year 9 tuition, Year 10 tuition and Year 11 tuition give students a structured weekly routine while focusing on the work that matters most at their stage.</p>
           <div className="grid lg:grid-cols-3 gap-8">
             <article className="bg-white p-7 rounded-xl shadow-sm">
-              <h3 className="text-2xl font-semibold mb-3 text-blue-800">Year 9 GCSE Tuition</h3>
+              <h3 className="font-keyword text-2xl font-semibold mb-3 text-blue-800">Year 9 GCSE Tuition</h3>
               <p className="text-gray-600 leading-relaxed">Year 9 is the ideal time to build foundations early. Students can strengthen key Maths, English and Science knowledge before gaps become harder to manage. Regular GCSE revision support also helps them settle into more demanding content, develop useful study habits and approach future assessments with confidence.</p>
             </article>
             <article className="bg-white p-7 rounded-xl shadow-sm">
-              <h3 className="text-2xl font-semibold mb-3 text-blue-800">Year 10 GCSE Tuition</h3>
+              <h3 className="font-keyword text-2xl font-semibold mb-3 text-blue-800">Year 10 GCSE Tuition</h3>
               <p className="text-gray-600 leading-relaxed">Year 10 students need to balance learning new content with remembering earlier topics. Tuition helps close gaps before mocks, improve exam technique and keep revision manageable. Weekly lessons and homework provide accountability throughout the year instead of leaving everything until the final months.</p>
             </article>
             <article className="bg-white p-7 rounded-xl shadow-sm">
-              <h3 className="text-2xl font-semibold mb-3 text-blue-800">Year 11 GCSE Tuition</h3>
+              <h3 className="font-keyword text-2xl font-semibold mb-3 text-blue-800">Year 11 GCSE Tuition</h3>
               <p className="text-gray-600 leading-relaxed">Year 11 tuition focuses on targeted revision, intensive exam technique and past-paper preparation. Students learn how to interpret questions, use mark schemes, manage time and prioritise weak topics. The aim is to make the final revision period calmer, clearer and more productive.</p>
             </article>
           </div>
@@ -805,7 +805,7 @@ function Home() {
           <div className="space-y-4">
             {[
               { q: 'What subjects do you teach?', a: 'MySchola teaches GCSE Maths, English Language, English Literature, Combined Science and Triple Science. Lessons are designed for students in Year 9, Year 10 and Year 11.' },
-              { q: 'Do you cover AQA, Edexcel and OCR?', a: 'Yes. We provide AQA GCSE tuition, Edexcel GCSE tuition and OCR GCSE tuition. During the consultation, we confirm your child\'s exam board so lessons and exam-question practice are relevant to their specification.' },
+              { q: 'Which exam boards do you cover?', a: 'English follows AQA, Maths is Edexcel only, and Science is available for AQA, Edexcel and OCR specifications. During the consultation, we confirm your child\'s exam board so lessons and exam-question practice are relevant to their specification.' },
               { q: 'Is this suitable for Foundation students?', a: 'Yes. Foundation GCSE tuition helps students strengthen core knowledge, close topic gaps and build confidence with the question styles and skills needed for their target grade.' },
               { q: 'Is this suitable for Higher students?', a: 'Yes. Higher GCSE tuition supports students with more demanding topics, multi-step questions, exam technique and the accuracy needed to work towards higher grades.' },
               { q: 'How big are the groups?', a: 'MySchola lessons are taught in small online groups so students can receive focused teaching, ask questions and benefit from hearing how other students approach a problem. We will explain the current group options during your consultation.' },
