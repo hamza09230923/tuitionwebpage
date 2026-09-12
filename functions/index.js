@@ -23,6 +23,10 @@ const getDb = () => {
 const runtimeFunctions = functions.runWith({
   serviceAccount: '927860875256-compute@developer.gserviceaccount.com'
 })
+const migrationFunctions = runtimeFunctions.runWith({
+  timeoutSeconds: 540,
+  memory: '1GB'
+})
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
@@ -844,6 +848,14 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
       const studentSnapshot = await getDb().doc(`students/${decoded.uid}`).get()
       if (!studentSnapshot.exists) return jsonError(res, 403, 'Not authorized')
       const student = studentSnapshot.data() || {}
+      const hiddenField = (collection === 'recordings' || collection === 'studentRecordings')
+        ? 'hiddenRecordingIds'
+        : (collection === 'homeworks' || collection === 'studentHomeworks')
+          ? 'hiddenHomeworkIds'
+          : null
+      if (hiddenField && Array.isArray(student[hiddenField]) && student[hiddenField].map(String).includes(String(documentId))) {
+        return jsonError(res, 403, 'This material is hidden for your account')
+      }
       if (material.studentId && material.studentId !== decoded.uid) {
         return jsonError(res, 403, 'Not authorized')
       }
@@ -970,7 +982,7 @@ const migrateLegacyMaterial = async ({ snapshot, definition, dryRun }) => {
 
 // Admin-only, one-time legacy file mover. Dry run is the default so records
 // without a complete subject/board/tier route are reported rather than exposed.
-exports.migrateLegacyMaterialsToR2 = runtimeFunctions.https.onRequest(async (req, res) => {
+exports.migrateLegacyMaterialsToR2 = migrationFunctions.https.onRequest(async (req, res) => {
   if (handleOptions(req, res)) return
   applyCors(req, res)
   if (req.method !== 'POST') return jsonError(res, 405, 'Method not allowed')
@@ -982,7 +994,7 @@ exports.migrateLegacyMaterialsToR2 = runtimeFunctions.https.onRequest(async (req
     const results = { ready: 0, migrated: 0, skipped: [], failed: [], alreadyInR2: 0 }
 
     for (const definition of LEGACY_MATERIALS) {
-      const snapshot = await getDb().collection(definition.collection).limit(500).get()
+      const snapshot = await getDb().collection(definition.collection).get()
       for (const documentSnapshot of snapshot.docs) {
         const result = await migrateLegacyMaterial({ snapshot: documentSnapshot, definition, dryRun })
         const entry = { collection: definition.collection, id: documentSnapshot.id, reason: result.reason || null }
