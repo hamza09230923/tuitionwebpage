@@ -91,7 +91,6 @@ const writeAccessList = (list) => {
 
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 const SCIENCE_SUBJECTS = ['biology', 'chemistry', 'physics']
-const BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK = 'https://us06web.zoom.us/s/81775136769?pwd=VxunmI72c7rCcPotVtzobCSZuuAESW.1#success'
 const FOUNDATION_TIER_ZOOM_LINKS = {
   biology: 'https://us06web.zoom.us/j/89459404457',
   chemistry: 'https://us06web.zoom.us/j/87681117103',
@@ -667,15 +666,6 @@ function StudentDashboard() {
     !crashCourseSubjectIds.has(subject.id)
   )
   const assignedSubjectIds = getStudentSubjectIds(student)
-  const scienceAccessKeys = new Set(
-    assignedSubjectIds
-      .map((subjectId) => getSubjectBaseKey(subjectId))
-      .filter((key) => SCIENCE_SUBJECTS.includes(key))
-  )
-  const hasBiologyChemistryCrashCourse =
-    scienceAccessKeys.has('biology') &&
-    scienceAccessKeys.has('chemistry') &&
-    !scienceAccessKeys.has('physics')
   const studentYearLabel = getStudentYearLabel(student)
   const overviewCards = [
     {
@@ -982,56 +972,6 @@ function StudentDashboard() {
           </div>
         )}
 
-        {hasBiologyChemistryCrashCourse && (
-          <section
-            className="mb-8 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-teal-50 p-6 shadow-sm"
-            aria-labelledby="crash-course-heading"
-          >
-            <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-emerald-600 p-3 text-white">
-                <FlaskConical className="h-6 w-6" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-                  Crash Course
-                </p>
-                <h3 id="crash-course-heading" className="text-xl font-semibold text-gray-900 mt-1">
-                  Biology and Chemistry
-                </h3>
-                <p className="text-gray-700 mt-2">
-                  Your crash course runs on <span className="font-semibold">Sunday from 5:00 PM to 7:00 PM</span>.
-                </p>
-                <a
-                  href={BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition"
-                >
-                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                  Join Your Lesson
-                </a>
-                <p className="mt-3 text-sm text-emerald-800 break-all">
-                  Zoom link:{' '}
-                  <a
-                    href={BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium underline hover:text-emerald-900"
-                  >
-                    {BIOLOGY_CHEMISTRY_CRASH_COURSE_ZOOM_LINK}
-                  </a>
-                </p>
-                <p className="mt-2 text-sm text-emerald-800">
-                  Meeting ID: <span className="font-medium">817 7513 6769</span>
-                </p>
-                <p className="mt-1 text-sm text-emerald-800">
-                  Passcode: <span className="font-medium">119761</span>
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
-
         {subjects.length === 0 ? (
           <div 
             className="bg-white rounded-lg shadow p-8 text-center"
@@ -1089,26 +1029,6 @@ function StudentDashboard() {
                       sourceLabel: card.sourceLabel
                     })
                   ))}
-                </div>
-              </section>
-            )}
-
-            {crashCourseSubjects.length > 0 && (
-              <section>
-                <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">Crash Courses</h3>
-                  <p className="text-sm text-gray-600">
-                    Intensive exam preparation courses
-                  </p>
-                </div>
-                <div
-                  className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-                  role="list"
-                  aria-label="Crash course subjects"
-                >
-                  {crashCourseSubjects.map((subject) => renderSubjectCard(subject, {
-                    displayName: subject.name || 'Crash Course'
-                  }))}
                 </div>
               </section>
             )}
