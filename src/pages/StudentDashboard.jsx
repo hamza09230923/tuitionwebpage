@@ -665,7 +665,6 @@ function StudentDashboard() {
     !scienceSubjectIds.has(subject.id) && 
     !crashCourseSubjectIds.has(subject.id)
   )
-  const assignedSubjectIds = getStudentSubjectIds(student)
   const studentYearLabel = getStudentYearLabel(student)
   const overviewCards = [
     {
