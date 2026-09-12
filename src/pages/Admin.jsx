@@ -219,8 +219,8 @@ function Admin() {
       const result = await migrateLegacyMaterialsToR2({ mode })
       setMigrationSummary(result)
       setMessage(mode === 'migrate'
-        ? `Migration complete: ${result.migrated} file(s) moved; ${result.skipped.length + result.failed.length} need attention.`
-        : `Migration check complete: ${result.ready} file(s) are ready to move; ${result.skipped.length + result.failed.length} need attention.`)
+        ? `Migration complete: ${result.migrated} file(s) moved; ${result.excludedCombined || 0} combined and ${result.excludedOlderThan30Days || 0} older file(s) were not moved.`
+        : `Migration check complete: ${result.ready} file(s) are ready to move; ${result.excludedCombined || 0} combined and ${result.excludedOlderThan30Days || 0} older file(s) will not be moved.`)
     } catch (err) {
       setMessage(err?.message || 'Unable to run the legacy migration')
     } finally {
@@ -1385,7 +1385,7 @@ function Admin() {
           {isAdmin && (
             <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
               <p className="font-medium">R2 migration</p>
-              <p className="mt-1">Check old files first. Only materials with a complete subject, exam-board and tier route can be copied privately without changing student access.</p>
+              <p className="mt-1">Check old files first. Only non-combined material uploaded in the last 30 days, with a complete subject, exam-board and tier route, can be copied privately without changing student access.</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -1406,7 +1406,7 @@ function Admin() {
               </div>
               {migrationSummary && (
                 <p className="mt-3 text-blue-900">
-                  {migrationSummary.mode === 'migrate' ? `${migrationSummary.migrated} migrated` : `${migrationSummary.ready} ready`} · {migrationSummary.alreadyInR2} already in R2 · {migrationSummary.skipped.length} skipped · {migrationSummary.failed.length} failed
+                  {migrationSummary.scanned} scanned · {migrationSummary.mode === 'migrate' ? `${migrationSummary.migrated} migrated` : `${migrationSummary.ready} ready`} · {migrationSummary.excludedCombined || 0} combined excluded · {migrationSummary.excludedOlderThan30Days || 0} older excluded · {migrationSummary.skipped.length} skipped · {migrationSummary.failed.length} failed
                 </p>
               )}
             </div>

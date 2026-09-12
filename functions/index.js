@@ -894,6 +894,27 @@ const LEGACY_MATERIALS = [
   { collection: 'studentResources', urlField: 'fileUrl', fileField: 'fileName', uploadType: 'resource' }
 ]
 const MAX_LEGACY_MIGRATION_BYTES = 100 * 1024 * 1024
+const LEGACY_MIGRATION_WINDOW_DAYS = 30
+
+const toMaterialDate = (value) => {
+  if (!value) return null
+  if (typeof value.toDate === 'function') return value.toDate()
+  if (typeof value._seconds === 'number') return new Date(value._seconds * 1000)
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+const getMaterialUploadDate = (material) => toMaterialDate(
+  material.uploadedAt || material.createdAt || material.date || material.updatedAt
+)
+
+const isCombinedLesson = (material) => [
+  material.subjectId,
+  material.title,
+  material.description,
+  material.fileName,
+  material.attachmentName
+].some((value) => String(value || '').toLowerCase().includes('combined'))
 
 const fileNameFromUrl = (url, fallback) => {
   if (fallback) return sanitizeSegment(fallback)
@@ -924,6 +945,11 @@ const getLegacyRoute = async (material) => {
 const migrateLegacyMaterial = async ({ snapshot, definition, dryRun }) => {
   const material = snapshot.data() || {}
   if (material.r2Key) return { status: 'already-in-r2' }
+  if (isCombinedLesson(material)) return { status: 'excluded-combined' }
+  const uploadedAt = getMaterialUploadDate(material)
+  if (!uploadedAt) return { status: 'skipped', reason: 'No upload date is recorded' }
+  const cutoff = new Date(Date.now() - (LEGACY_MIGRATION_WINDOW_DAYS * 24 * 60 * 60 * 1000))
+  if (uploadedAt < cutoff) return { status: 'excluded-old' }
   const sourceUrl = String(material[definition.urlField] || '').trim()
   if (!sourceUrl) return { status: 'skipped', reason: 'No legacy file URL' }
 
@@ -991,16 +1017,28 @@ exports.migrateLegacyMaterialsToR2 = migrationFunctions.https.onRequest(async (r
     const decoded = await getAuthToken(req)
     assertAdminRole(await getUserRole(decoded.uid))
     const dryRun = (req.body || {}).mode !== 'migrate'
-    const results = { ready: 0, migrated: 0, skipped: [], failed: [], alreadyInR2: 0 }
+    const results = {
+      scanned: 0,
+      ready: 0,
+      migrated: 0,
+      alreadyInR2: 0,
+      excludedCombined: 0,
+      excludedOlderThan30Days: 0,
+      skipped: [],
+      failed: []
+    }
 
     for (const definition of LEGACY_MATERIALS) {
       const snapshot = await getDb().collection(definition.collection).get()
       for (const documentSnapshot of snapshot.docs) {
+        results.scanned += 1
         const result = await migrateLegacyMaterial({ snapshot: documentSnapshot, definition, dryRun })
         const entry = { collection: definition.collection, id: documentSnapshot.id, reason: result.reason || null }
         if (result.status === 'ready') results.ready += 1
         else if (result.status === 'migrated') results.migrated += 1
         else if (result.status === 'already-in-r2') results.alreadyInR2 += 1
+        else if (result.status === 'excluded-combined') results.excludedCombined += 1
+        else if (result.status === 'excluded-old') results.excludedOlderThan30Days += 1
         else if (result.status === 'skipped') results.skipped.push(entry)
         else results.failed.push(entry)
       }
