@@ -19,6 +19,30 @@ service cloud.firestore {
       return isAdmin() || isTeacher();
     }
 
+    // A tutor may only see a student where an admin has created this
+    // membership document: teachers/{tutorId}/students/{studentId}.
+    function isAssignedTutor(studentId) {
+      return isTeacher() &&
+        exists(/databases/$(database)/documents/teachers/$(request.auth.uid)/students/$(studentId));
+    }
+
+    // A class document contains tutorIds and studentIds arrays.  Keeping the
+    // membership check here makes the same permission apply to homework,
+    // videos, resources and submitted work.
+    function isClassTutor(classId) {
+      return isTeacher() &&
+        request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.tutorIds;
+    }
+
+    function isClassStudent(classId) {
+      return signedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.studentIds;
+    }
+
+    function isClassMember(classId) {
+      return isAdmin() || isClassTutor(classId) || isClassStudent(classId);
+    }
+
     function isOwnStudent(uid) {
       return signedIn() &&
         request.auth.uid == uid &&
@@ -35,6 +59,18 @@ service cloud.firestore {
         subjectId in studentSubjects();
     }
 
+    // Every material carries its academic route. This makes Foundation/Higher
+    // separation enforceable before a student can read its metadata or obtain
+    // a private R2 download URL.
+    function matchesMaterialRoute(material) {
+      return get(/databases/$(database)/documents/students/$(request.auth.uid))
+        .data.subjectSettings[material.subjectId].examBoard == material.examBoard && (
+        material.tier == 'all-levels' ||
+        get(/databases/$(database)/documents/students/$(request.auth.uid))
+          .data.subjectSettings[material.subjectId].tier == material.tier
+      );
+    }
+
     match /admins/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;
       allow write: if isAdmin();
@@ -46,8 +82,39 @@ service cloud.firestore {
     }
 
     match /students/{uid} {
-      allow read: if isOwnStudent(uid) || isStaff();
-      allow write: if isStaff();
+      allow read: if isOwnStudent(uid) || isAdmin() || isAssignedTutor(uid);
+      allow write: if isAdmin();
+    }
+
+    // Admins create classes and enrol tutors and students.  Tutors can only
+    // access the classes in which their UID appears in tutorIds.
+    match /classes/{classId} {
+      allow read: if isClassMember(classId);
+      allow create, update, delete: if isAdmin();
+
+      match /students/{studentId} {
+        allow read: if isClassTutor(classId) ||
+          (signedIn() && request.auth.uid == studentId && isClassStudent(classId));
+        allow write: if isAdmin();
+      }
+    }
+
+    // Metadata only: the R2 key is never a public URL. The R2 access service
+    // checks the same class membership before issuing any upload or download.
+    match /classMaterials/{materialId} {
+      allow read: if isClassMember(resource.data.classId);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /classSubmissions/{submissionId} {
+      allow read: if isClassTutor(resource.data.classId) ||
+        (signedIn() && resource.data.studentId == request.auth.uid && isClassStudent(resource.data.classId));
+      allow create: if (signedIn() && request.resource.data.studentId == request.auth.uid &&
+          isClassStudent(request.resource.data.classId)) ||
+        isClassTutor(request.resource.data.classId);
+      allow update: if isClassTutor(resource.data.classId) ||
+        (signedIn() && resource.data.studentId == request.auth.uid && isClassStudent(resource.data.classId));
+      allow delete: if isClassTutor(resource.data.classId) || isAdmin();
     }
 
     match /subjects/{subjectId} {
@@ -61,9 +128,9 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        )
+        ) && matchesMaterialRoute(resource.data)
       );
-      allow create, update: if isStaff();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -75,24 +142,24 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        )
+        ) && matchesMaterialRoute(resource.data)
       );
-      allow create, update: if isStaff();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     match /homeworks/{homeworkId} {
-      allow read: if isStaff() || isEnrolledIn(resource.data.subjectId);
-      allow create, update, delete: if isStaff();
+      allow read: if isStaff() || (isEnrolledIn(resource.data.subjectId) && matchesMaterialRoute(resource.data));
+      allow create, update, delete: if isAdmin();
     }
 
     match /studentHomeworks/{homeworkId} {
       allow read: if isStaff() || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
-        isEnrolledIn(resource.data.subjectId)
+        isEnrolledIn(resource.data.subjectId) && matchesMaterialRoute(resource.data)
       );
-      allow create, update: if isStaff();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -102,9 +169,9 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        )
+        ) && matchesMaterialRoute(resource.data)
       );
-      allow create, update: if isStaff();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -116,9 +183,9 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        )
+        ) && matchesMaterialRoute(resource.data)
       );
-      allow create, update: if isStaff();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 

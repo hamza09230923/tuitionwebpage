@@ -9,8 +9,6 @@ const StudentDashboard = lazy(() => import('./pages/StudentDashboard'))
 const Recordings = lazy(() => import('./pages/Recordings'))
 const Homework = lazy(() => import('./pages/Homework'))
 const Admin = lazy(() => import('./pages/Admin'))
-const ShareLink = lazy(() => import('./pages/ShareLink'))
-const HomeworkShareLink = lazy(() => import('./pages/HomeworkShareLink'))
 const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'))
 const PaymentConfirmation = lazy(() => import('./pages/PaymentConfirmation'))
 const BookingSuccess = lazy(() => import('./pages/BookingSuccess'))
@@ -21,7 +19,6 @@ const Courses = lazy(() => import('./pages/Courses'))
 const Package = lazy(() => import('./pages/Package'))
 const Timetable = lazy(() => import('./pages/Timetable'))
 const Resources = lazy(() => import('./pages/Resources'))
-const ResourceShareLink = lazy(() => import('./pages/ResourceShareLink'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const RefundCancellationPolicy = lazy(() => import('./pages/RefundCancellationPolicy'))
 const FAQs = lazy(() => import('./pages/FAQs'))
@@ -53,9 +50,6 @@ function App() {
           <Route path="/payment-confirmation" element={<PaymentConfirmation />} />
           <Route path="/booking-success" element={<BookingSuccess />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/share-link" element={<ShareLink />} />
-          <Route path="/admin/homework-share-link" element={<HomeworkShareLink />} />
-          <Route path="/admin/resource-share-link" element={<ResourceShareLink />} />
           <Route path={WEBINAR_ROUTE} element={<Webinar />} />
           <Route path={WEBINAR_THANKS_ROUTE} element={<WebinarThanks />} />
           <Route path={LEGACY_WEBINAR_ROUTE} element={<Webinar />} />

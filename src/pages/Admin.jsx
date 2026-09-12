@@ -4,7 +4,7 @@ import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, 
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc } from 'firebase/firestore'
-import { createHidriveUpload } from '../api/functionsClient'
+import { createR2AdminUpload, createRecording, createHomework, createResource, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 
 const getStudentDisplayName = (student) => (
@@ -164,6 +164,7 @@ function Admin() {
   const [homeworkDueDate, setHomeworkDueDate] = useState('')
   const [homeworkFile, setHomeworkFile] = useState(null)
   const [homeworkUploadProgress, setHomeworkUploadProgress] = useState(0)
+  const [homeworkUploadStage, setHomeworkUploadStage] = useState('')
   const [homeworkAudience, setHomeworkAudience] = useState('subject')
   const [selectedHomeworkStudentIds, setSelectedHomeworkStudentIds] = useState([])
   const [managedHomeworks, setManagedHomeworks] = useState([])
@@ -177,7 +178,7 @@ function Admin() {
   const [resourceFile, setResourceFile] = useState(null)
   const [resourceUploadProgress, setResourceUploadProgress] = useState(0)
   const [resourceAudience, setResourceAudience] = useState('subject')
-  const [selectedResourceStudentId, setSelectedResourceStudentId] = useState('')
+  const [selectedResourceStudentIds, setSelectedResourceStudentIds] = useState([])
 
   // Student submissions
   const [submissions, setSubmissions] = useState([])
@@ -192,6 +193,8 @@ function Admin() {
   
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [migrationLoading, setMigrationLoading] = useState(false)
+  const [migrationSummary, setMigrationSummary] = useState(null)
   const isAdmin = userRole === 'admin'
   const selectedHomeworkStudents = enrolledStudents.filter((student) => (
     selectedHomeworkStudentIds.includes(student.id)
@@ -199,12 +202,45 @@ function Admin() {
   const allHomeworkStudentsSelected = enrolledStudents.length > 0 && (
     selectedHomeworkStudents.length === enrolledStudents.length
   )
+  const selectedResourceStudents = enrolledStudents.filter((student) => (
+    selectedResourceStudentIds.includes(student.id)
+  ))
+  const allResourceStudentsSelected = enrolledStudents.length > 0 && (
+    selectedResourceStudents.length === enrolledStudents.length
+  )
+
+  const runLegacyMigration = async (mode) => {
+    if (!isAdmin || migrationLoading) return
+    if (mode === 'migrate' && !window.confirm('Copy every eligible legacy file into private R2 storage now? Records missing a subject route will be skipped.')) return
+
+    setMigrationLoading(true)
+    setMessage('')
+    try {
+      const result = await migrateLegacyMaterialsToR2({ mode })
+      setMigrationSummary(result)
+      setMessage(mode === 'migrate'
+        ? `Migration complete: ${result.migrated} file(s) moved; ${result.skipped.length + result.failed.length} need attention.`
+        : `Migration check complete: ${result.ready} file(s) are ready to move; ${result.skipped.length + result.failed.length} need attention.`)
+    } catch (err) {
+      setMessage(err?.message || 'Unable to run the legacy migration')
+    } finally {
+      setMigrationLoading(false)
+    }
+  }
 
   const toggleHomeworkStudent = (studentId) => {
     setSelectedHomeworkStudentIds((currentIds) => (
       currentIds.includes(studentId)
         ? currentIds.filter((id) => id !== studentId)
         : [...currentIds, studentId]
+    ))
+  }
+
+  const toggleResourceStudent = (studentId) => {
+    setSelectedResourceStudentIds((currentIds) => (
+      currentIds.includes(studentId)
+        ? currentIds.filter((id) => id !== studentId)
+      : [...currentIds, studentId]
     ))
   }
 
@@ -586,7 +622,7 @@ function Admin() {
     setTier('')
     setSelectedRecordingStudentId('')
     setSelectedHomeworkStudentIds([])
-    setSelectedResourceStudentId('')
+    setSelectedResourceStudentIds([])
   }, [selectedSubject, subjects])
 
   // Check if subject is English (no tier needed)
@@ -609,7 +645,11 @@ function Admin() {
 
     const xhr = new XMLHttpRequest()
     xhr.open(uploadConfig.method || 'PUT', uploadConfig.uploadUrl, true)
-    xhr.responseType = 'json'
+    // Keep the response as text so responseText is available for both success
+    // and error responses. Reading responseText is invalid when responseType is
+    // "json" and causes a second InvalidStateError that hides the real upload
+    // failure.
+    xhr.responseType = 'text'
     xhr.timeout = timeoutMs
 
     if (uploadConfig.headers) {
@@ -634,8 +674,8 @@ function Admin() {
         if (onProgress) {
           onProgress(100)
         }
-        let responseData = xhr.response
-        if (!responseData && xhr.responseText) {
+        let responseData = null
+        if (xhr.responseText) {
           try {
             responseData = JSON.parse(xhr.responseText)
           } catch {
@@ -662,6 +702,10 @@ function Admin() {
 
   const handleSubmitRecording = async (e) => {
     e.preventDefault()
+    if (!isAdmin) {
+      setMessage('Only admins can upload lessons, homework, or learning resources')
+      return
+    }
     if (!selectedSubject || !recordingTitle || !examBoard) {
       setMessage('Please fill in all required fields')
       return
@@ -684,14 +728,18 @@ function Admin() {
 
     setLoading(true)
     setMessage('')
+    setHomeworkUploadStage('Preparing a secure R2 upload…')
     try {
       const selectedRecordingStudent = enrolledStudents.find((student) => student.id === selectedRecordingStudentId)
       setUploadProgress(0)
-      const uploadConfig = await createHidriveUpload({
+      const uploadConfig = await createR2AdminUpload({
         subjectId: selectedSubject,
+        examBoard,
+        tier: isEnglishSubject() ? 'all-levels' : tier,
         fileName: recordingFile.name,
         contentType: recordingFile.type,
-        uploadType: 'recording'
+        uploadType: 'recording',
+        studentIds: recordingAudience === 'student' ? [selectedRecordingStudentId] : []
       })
 
       const uploadResult = await uploadFileWithProgress(
@@ -700,20 +748,12 @@ function Admin() {
         setUploadProgress,
         RECORDING_UPLOAD_TIMEOUT_MS
       )
-      const uploadResponse = uploadResult?.response
-      const hidriveFileId =
-        uploadResponse?.id ||
-        uploadResponse?.pid ||
-        uploadResponse?.file_id ||
-        null
-
       const pendingRecording = {
         subjectId: selectedSubject,
         title: recordingTitle,
         examBoard: examBoard,
         tier: isEnglishSubject() ? null : tier,
-        hidrivePath: uploadConfig.hidrivePath,
-        hidriveFileId,
+        r2Key: uploadConfig.r2Key,
         fileName: recordingFile.name,
         visibility: recordingAudience,
         studentId: recordingAudience === 'student' ? selectedRecordingStudentId : null,
@@ -721,7 +761,7 @@ function Admin() {
         studentEmail: recordingAudience === 'student' ? selectedRecordingStudent?.email || null : null
       }
 
-      sessionStorage.setItem('pendingRecording', JSON.stringify(pendingRecording))
+      await createRecording(pendingRecording)
 
       setRecordingTitle('')
       setRecordingFile(null)
@@ -731,7 +771,7 @@ function Admin() {
       setRecordingAudience('subject')
       setSelectedRecordingStudentId('')
 
-      navigate('/admin/share-link', { state: { pendingRecording } })
+      setMessage('Recording uploaded and published successfully!')
     } catch (err) {
       console.error('Error adding recording:', err)
       setMessage(err?.message || 'Failed to upload recording')
@@ -1112,6 +1152,10 @@ function Admin() {
 
   const handleSubmitHomework = async (e) => {
     e.preventDefault()
+    if (!isAdmin) {
+      setMessage('Only admins can upload lessons, homework, or learning resources')
+      return
+    }
     if (!selectedSubject || !homeworkTitle) {
       setMessage('Please fill in all required fields')
       return
@@ -1119,6 +1163,11 @@ function Admin() {
 
     if (!homeworkFile) {
       setMessage('Please upload a homework file')
+      return
+    }
+
+    if (!examBoard || (!isEnglishSubject() && !tier)) {
+      setMessage('Select the exam board and Foundation or Higher tier before uploading')
       return
     }
 
@@ -1135,34 +1184,32 @@ function Admin() {
     setLoading(true)
     setMessage('')
     try {
-      let hidrivePath = null
-      let hidriveFileId = null
+      let r2Key = null
       let attachmentName = null
       let attachmentContentType = null
       let attachmentSize = null
 
       if (homeworkFile) {
         setHomeworkUploadProgress(0)
-        const uploadConfig = await createHidriveUpload({
+        const uploadConfig = await createR2AdminUpload({
           subjectId: selectedSubject,
+          examBoard,
+          tier: isEnglishSubject() ? 'all-levels' : tier,
           fileName: homeworkFile.name,
           contentType: homeworkFile.type,
-          uploadType: 'homework'
+          uploadType: 'homework',
+          studentIds: homeworkAudience === 'students'
+            ? selectedHomeworkStudents.map((student) => student.id)
+            : []
         })
 
-        const uploadResult = await uploadFileWithProgress(
+        setHomeworkUploadStage('Uploading homework to R2…')
+        await uploadFileWithProgress(
           homeworkFile,
           uploadConfig,
           setHomeworkUploadProgress
         )
-        const uploadResponse = uploadResult?.response
-        hidriveFileId =
-          uploadResponse?.id ||
-          uploadResponse?.pid ||
-          uploadResponse?.file_id ||
-          null
-
-        hidrivePath = uploadConfig.hidrivePath
+        r2Key = uploadConfig.r2Key
         attachmentName = homeworkFile.name
         attachmentContentType = homeworkFile.type
         attachmentSize = homeworkFile.size
@@ -1176,8 +1223,9 @@ function Admin() {
         attachmentName,
         attachmentContentType,
         attachmentSize,
-        hidrivePath,
-        hidriveFileId,
+        r2Key,
+        examBoard,
+        tier: isEnglishSubject() ? null : tier,
         fileName: homeworkFile.name,
         visibility: homeworkAudience,
         studentIds: homeworkAudience === 'students'
@@ -1191,18 +1239,23 @@ function Admin() {
         studentEmail: null
       }
 
-      sessionStorage.setItem('pendingHomework', JSON.stringify(pendingHomework))
+      await createHomework(pendingHomework)
       setHomeworkTitle('')
       setHomeworkDescription('')
       setHomeworkDueDate('')
       setHomeworkFile(null)
       setHomeworkUploadProgress(0)
+      setHomeworkUploadStage('Upload complete and published.')
       setHomeworkAudience('subject')
       setSelectedHomeworkStudentIds([])
-      navigate('/admin/homework-share-link', { state: { pendingHomework } })
+      setMessage('Homework uploaded and published successfully!')
     } catch (err) {
       console.error('Error adding homework:', err)
-      setMessage(err?.message || 'Failed to add homework')
+      const errorMessage = err?.message === 'Upload timed out'
+        ? 'R2 did not finish the upload within 3 minutes. Check your connection, then try again.'
+        : err?.message || 'Failed to add homework'
+      setMessage(errorMessage)
+      setHomeworkUploadStage('')
     } finally {
       setLoading(false)
     }
@@ -1210,6 +1263,10 @@ function Admin() {
 
   const handleSubmitResource = async (e) => {
     e.preventDefault()
+    if (!isAdmin) {
+      setMessage('Only admins can upload lessons, homework, or learning resources')
+      return
+    }
     if (!selectedSubject || !resourceTitle) {
       setMessage('Please fill in all required fields')
       return
@@ -1220,35 +1277,42 @@ function Admin() {
       return
     }
 
-    if (resourceAudience === 'student' && !selectedResourceStudentId) {
-      setMessage('Please select the student who should receive this resource')
+    if (!examBoard || (!isEnglishSubject() && !tier)) {
+      setMessage('Select the exam board and Foundation or Higher tier before uploading')
+      return
+    }
+
+    if (resourceAudience === 'students' && selectedResourceStudents.length === 0) {
+      setMessage('Please select at least one student who should receive this resource')
+      return
+    }
+
+    if (resourceAudience === 'students' && selectedResourceStudents.length !== selectedResourceStudentIds.length) {
+      setMessage('One or more selected students are no longer enrolled in this subject')
       return
     }
 
     setLoading(true)
     setMessage('')
     try {
-      const selectedResourceStudent = enrolledStudents.find((student) => student.id === selectedResourceStudentId)
       setResourceUploadProgress(0)
-      const uploadConfig = await createHidriveUpload({
+      const uploadConfig = await createR2AdminUpload({
         subjectId: selectedSubject,
+        examBoard,
+        tier: isEnglishSubject() ? 'all-levels' : tier,
         fileName: resourceFile.name,
         contentType: resourceFile.type,
-        uploadType: 'resource'
+        uploadType: 'resource',
+        studentIds: resourceAudience === 'students'
+          ? selectedResourceStudents.map((student) => student.id)
+          : []
       })
 
-      const uploadResult = await uploadFileWithProgress(
+      await uploadFileWithProgress(
         resourceFile,
         uploadConfig,
         setResourceUploadProgress
       )
-      const uploadResponse = uploadResult?.response
-      const hidriveFileId =
-        uploadResponse?.id ||
-        uploadResponse?.pid ||
-        uploadResponse?.file_id ||
-        null
-
       const pendingResource = {
         subjectId: selectedSubject,
         title: resourceTitle,
@@ -1256,22 +1320,29 @@ function Admin() {
         fileName: resourceFile.name,
         fileContentType: resourceFile.type,
         fileSize: resourceFile.size,
-        hidrivePath: uploadConfig.hidrivePath,
-        hidriveFileId,
+        r2Key: uploadConfig.r2Key,
+        examBoard,
+        tier: isEnglishSubject() ? null : tier,
         visibility: resourceAudience,
-        studentId: resourceAudience === 'student' ? selectedResourceStudentId : null,
-        studentName: resourceAudience === 'student' ? getStudentDisplayName(selectedResourceStudent) : null,
-        studentEmail: resourceAudience === 'student' ? selectedResourceStudent?.email || null : null
+        studentIds: resourceAudience === 'students'
+          ? selectedResourceStudents.map((student) => student.id)
+          : [],
+        studentNames: resourceAudience === 'students'
+          ? selectedResourceStudents.map((student) => getStudentDisplayName(student))
+          : [],
+        studentId: null,
+        studentName: null,
+        studentEmail: null
       }
 
-      sessionStorage.setItem('pendingResource', JSON.stringify(pendingResource))
+      await createResource(pendingResource)
       setResourceTitle('')
       setResourceDescription('')
       setResourceFile(null)
       setResourceUploadProgress(0)
       setResourceAudience('subject')
-      setSelectedResourceStudentId('')
-      navigate('/admin/resource-share-link', { state: { pendingResource } })
+      setSelectedResourceStudentIds([])
+      setMessage('Resource uploaded and published successfully!')
     } catch (err) {
       console.error('Error adding resource:', err)
       setMessage(err?.message || 'Failed to add resource')
@@ -1311,6 +1382,35 @@ function Admin() {
               Sign out
             </button>
           </div>
+          {isAdmin && (
+            <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
+              <p className="font-medium">R2 migration</p>
+              <p className="mt-1">Check old files first. Only materials with a complete subject, exam-board and tier route can be copied privately without changing student access.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => runLegacyMigration('dry-run')}
+                  disabled={migrationLoading}
+                  className="rounded-md border border-blue-300 bg-white px-3 py-2 font-medium text-blue-800 disabled:opacity-50"
+                >
+                  {migrationLoading ? 'Checking…' : 'Check legacy files'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => runLegacyMigration('migrate')}
+                  disabled={migrationLoading || (migrationSummary && migrationSummary.ready === 0)}
+                  className="rounded-md bg-blue-700 px-3 py-2 font-medium text-white disabled:opacity-50"
+                >
+                  Migrate eligible files to R2
+                </button>
+              </div>
+              {migrationSummary && (
+                <p className="mt-3 text-blue-900">
+                  {migrationSummary.mode === 'migrate' ? `${migrationSummary.migrated} migrated` : `${migrationSummary.ready} ready`} · {migrationSummary.alreadyInR2} already in R2 · {migrationSummary.skipped.length} skipped · {migrationSummary.failed.length} failed
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -1419,6 +1519,7 @@ function Admin() {
             onChange={(e) => {
               setSelectedSubject(e.target.value)
               setSelectedHomeworkStudentIds([])
+              setSelectedResourceStudentIds([])
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -1553,7 +1654,7 @@ function Admin() {
               )}
               
               <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
-                After upload, you will be taken to a new page to paste the HiDrive share link.
+                Your video is stored privately in R2; save it on the next page to publish it.
               </div>
 
               <div>
@@ -2066,6 +2167,25 @@ function Admin() {
                 />
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Exam Board *</label>
+                  <select value={examBoard} onChange={(e) => setExamBoard(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <option value="">Select Exam Board</option>
+                    <option value="AQA">AQA</option>
+                    <option value="Edexcel">Edexcel</option>
+                  </select>
+                </div>
+                {!isEnglishSubject() && <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tier *</label>
+                  <select value={tier} onChange={(e) => setTier(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <option value="">Select Tier</option>
+                    <option value="Foundation">Foundation</option>
+                    <option value="Higher">Higher</option>
+                  </select>
+                </div>}
+              </div>
+
               {isAdmin && (
                 <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
                   <div>
@@ -2161,16 +2281,22 @@ function Admin() {
                     const file = e.target.files?.[0] || null
                     setHomeworkFile(file)
                     setHomeworkUploadProgress(0)
+                    setHomeworkUploadStage('')
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
-                {homeworkUploadProgress > 0 && homeworkUploadProgress < 100 && (
-                  <p className="text-sm text-gray-600 mt-2">Uploading... {homeworkUploadProgress}%</p>
+                {loading && homeworkUploadStage && (
+                  <p className="text-sm text-gray-600 mt-2" role="status">
+                    {homeworkUploadStage}
+                    {homeworkUploadProgress > 0 && homeworkUploadProgress < 100
+                      ? ` ${homeworkUploadProgress}%`
+                      : ''}
+                  </p>
                 )}
               </div>
 
               <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
-                After upload, you will be taken to a new page to paste the HiDrive share link.
+                Your file is stored privately in R2 and will publish automatically when the upload finishes.
               </div>
 
             </div>
@@ -2181,7 +2307,11 @@ function Admin() {
               className="mt-6 w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <Save className="h-4 w-4" />
-              {loading ? 'Adding...' : 'Add Homework'}
+              {loading
+                ? homeworkUploadStage.startsWith('Preparing')
+                  ? 'Preparing upload…'
+                  : 'Uploading to R2…'
+                : 'Add Homework'}
             </button>
           </form>
         )}
@@ -2222,6 +2352,25 @@ function Admin() {
                 />
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Exam Board *</label>
+                  <select value={examBoard} onChange={(e) => setExamBoard(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <option value="">Select Exam Board</option>
+                    <option value="AQA">AQA</option>
+                    <option value="Edexcel">Edexcel</option>
+                  </select>
+                </div>
+                {!isEnglishSubject() && <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tier *</label>
+                  <select value={tier} onChange={(e) => setTier(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <option value="">Select Tier</option>
+                    <option value="Foundation">Foundation</option>
+                    <option value="Higher">Higher</option>
+                  </select>
+                </div>}
+              </div>
+
               {isAdmin && (
                 <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
                   <div>
@@ -2233,43 +2382,75 @@ function Admin() {
                       onChange={(e) => {
                         setResourceAudience(e.target.value)
                         if (e.target.value === 'subject') {
-                          setSelectedResourceStudentId('')
+                          setSelectedResourceStudentIds([])
                         }
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                     >
                       <option value="subject">All students enrolled in this subject</option>
-                      <option value="student">One specific student only</option>
+                      <option value="students">Selected students only</option>
                     </select>
                   </div>
 
-                  {resourceAudience === 'student' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Student *
-                      </label>
-                      <select
-                        value={selectedResourceStudentId}
-                        onChange={(e) => setSelectedResourceStudentId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                        required
-                        disabled={subjectStudentsLoading}
-                      >
-                        <option value="">
-                          {subjectStudentsLoading ? 'Loading students...' : 'Select student'}
-                        </option>
-                        {enrolledStudents.map((student) => (
-                          <option key={student.id} value={student.id}>
-                            {getStudentDisplayName(student)}{student.email ? ` (${student.email})` : ''}
-                          </option>
-                        ))}
-                      </select>
-                      {!subjectStudentsLoading && enrolledStudents.length === 0 && (
-                        <p className="mt-2 text-sm text-red-600">
-                          No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
-                        </p>
-                      )}
-                    </div>
+                  {resourceAudience === 'students' && (
+                    <fieldset>
+                      <legend className="block text-sm font-medium text-gray-700 mb-2">
+                        Students *
+                      </legend>
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                        <span className="text-xs font-medium text-gray-600">
+                          {selectedResourceStudents.length} selected
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Choose one or more students enrolled in this subject.
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedResourceStudentIds(enrolledStudents.map((student) => student.id))}
+                          disabled={subjectStudentsLoading || enrolledStudents.length === 0 || allResourceStudentsSelected}
+                          className="px-3 py-1.5 text-sm font-medium text-purple-700 border border-purple-200 rounded-md hover:bg-purple-50 disabled:opacity-50"
+                        >
+                          Select all
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedResourceStudentIds([])}
+                          disabled={selectedResourceStudentIds.length === 0}
+                          className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-white disabled:opacity-50"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-gray-300 bg-white p-3">
+                        {subjectStudentsLoading ? (
+                          <p className="text-sm text-gray-600">Loading students...</p>
+                        ) : enrolledStudents.length === 0 ? (
+                          <p className="text-sm text-red-600">
+                            No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
+                          </p>
+                        ) : (
+                          enrolledStudents.map((student) => (
+                            <label
+                              key={student.id}
+                              className="flex cursor-pointer items-start gap-3 rounded-md px-2 py-2 hover:bg-purple-50"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedResourceStudentIds.includes(student.id)}
+                                onChange={() => toggleResourceStudent(student.id)}
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                              />
+                              <span className="text-sm text-gray-800">
+                                {getStudentDisplayName(student)}
+                                {student.email ? ` (${student.email})` : ''}
+                              </span>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </fieldset>
                   )}
                 </div>
               )}
@@ -2295,7 +2476,7 @@ function Admin() {
               </div>
 
               <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
-                After upload, you will be taken to a new page to paste the HiDrive share link.
+                Your file is stored privately in R2; save it on the next page to publish it.
               </div>
             </div>
 

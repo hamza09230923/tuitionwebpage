@@ -5,6 +5,7 @@ import { auth, db } from '../firebase'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { getAuthorizedStudentSubject } from '../utils/studentAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
+import { openR2Material } from '../utils/r2MaterialAccess'
 
 const getHiddenResourceIds = (studentData) => {
   const hiddenIds = Array.isArray(studentData?.hiddenResourceIds)
@@ -219,9 +220,15 @@ function Resources() {
                       {resource.description && (
                         <p className="text-gray-600 text-sm">{resource.description}</p>
                       )}
-                      {resource.fileUrl ? (
+                      {resource.fileUrl || resource.r2Key ? (
                         <a
-                          href={resource.fileUrl}
+                          href={resource.r2Key ? '#' : resource.fileUrl}
+                          onClick={(event) => {
+                            if (resource.r2Key) {
+                              event.preventDefault()
+                              openR2Material(resource.sourceCollection || 'resources', resource.id)
+                            }
+                          }}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-purple-700 hover:text-purple-800 text-sm font-medium"

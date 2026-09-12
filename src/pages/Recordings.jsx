@@ -5,6 +5,7 @@ import { auth, db } from '../firebase'
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
 import { getAuthorizedStudentSubject, isTutorialStudent } from '../utils/studentAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
+import { getR2MaterialUrl } from '../utils/r2MaterialAccess'
 
 const ACCESS_STORAGE_KEY = 'subjectAccess'
 
@@ -70,6 +71,42 @@ function Recordings() {
   const [accessList, setAccessList] = useState(readAccessList())
   const [reloadKey, setReloadKey] = useState(0)
   const [accessDenied, setAccessDenied] = useState(false)
+  const [activeVideo, setActiveVideo] = useState(null)
+  const [videoLoading, setVideoLoading] = useState(false)
+
+  const matchesStudentCourseRoute = (recording, student) => {
+    const settings = student?.subjectSettings?.[recording.subjectId]
+    const board = String(recording.examBoard || '').trim().toLowerCase()
+    const recordingTier = String(recording.tier || '').trim().toLowerCase()
+    const studentBoard = String(settings?.examBoard || '').trim().toLowerCase()
+    const studentTier = String(settings?.tier || '').trim().toLowerCase()
+
+    // Every R2 lesson must have an explicit matching student course route.
+    // Legacy uploads without a route keep their existing visibility.
+    if (recording.r2Key && (!settings || !studentBoard || (board && board !== studentBoard))) return false
+    if (recording.r2Key && recordingTier && recordingTier !== 'all-levels' && recordingTier !== studentTier) return false
+    if (!recording.r2Key && board && studentBoard && board !== studentBoard) return false
+    if (!recording.r2Key && recordingTier && recordingTier !== 'all-levels' && studentTier && recordingTier !== studentTier) return false
+    return true
+  }
+
+  const handleWatch = async (recording) => {
+    if (!recording.r2Key) {
+      window.open(recording.videoUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    setError('')
+    setVideoLoading(true)
+    try {
+      const videoUrl = await getR2MaterialUrl(recording.sourceCollection || 'recordings', recording.id)
+      setActiveVideo({ title: recording.title, videoUrl })
+    } catch (err) {
+      setError(err?.message || 'You do not have access to this lesson.')
+    } finally {
+      setVideoLoading(false)
+    }
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -152,7 +189,8 @@ function Recordings() {
           })
 
         const visibleRecordings = recordingsData.filter(
-          (recording) => !isRecordingHiddenForStudent(recording, access.student)
+          (recording) => !isRecordingHiddenForStudent(recording, access.student) &&
+            matchesStudentCourseRoute(recording, access.student)
         )
 
         setFilteredRecordings(visibleRecordings)
@@ -348,6 +386,24 @@ function Recordings() {
           </div>
         )}
 
+        {activeVideo && (
+          <div className="bg-black rounded-lg overflow-hidden mb-6" onContextMenu={(event) => event.preventDefault()}>
+            <div className="flex items-center justify-between gap-4 px-4 py-3 bg-gray-900 text-white">
+              <p className="font-medium truncate">{activeVideo.title}</p>
+              <button type="button" onClick={() => setActiveVideo(null)} className="text-sm text-gray-200 hover:text-white">Close</button>
+            </div>
+            <video
+              src={activeVideo.videoUrl}
+              controls
+              controlsList="nodownload noplaybackrate"
+              disablePictureInPicture
+              className="w-full max-h-[70vh]"
+            >
+              Your browser cannot play this lesson video.
+            </video>
+          </div>
+        )}
+
         {filteredRecordings.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
             <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -392,15 +448,15 @@ function Recordings() {
                             {formatDate(recording.date)}
                           </p>
                         </div>
-                        <a
-                          href={recording.videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => handleWatch(recording)}
+                          disabled={videoLoading}
                           className="ml-4 inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
                         >
                           <Play className="h-4 w-4" />
-                          Watch
-                        </a>
+                          {videoLoading ? 'Opening…' : 'Watch'}
+                        </button>
                       </div>
                     </div>
                   ))}

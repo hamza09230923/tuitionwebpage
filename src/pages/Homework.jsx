@@ -6,6 +6,7 @@ import { auth, db } from '../firebase'
 import { collection, query, where, getDocs, addDoc, updateDoc, serverTimestamp, doc } from 'firebase/firestore'
 import { getAuthorizedStudentSubject } from '../utils/studentAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
+import { openR2Material } from '../utils/r2MaterialAccess'
 
 const getHiddenHomeworkIds = (studentData) => {
   const hiddenIds = Array.isArray(studentData?.hiddenHomeworkIds)
@@ -393,9 +394,15 @@ function Homework() {
               Due: {formatDate(selectedHomework.dueDate)}
             </p>
 
-            {selectedHomework.attachmentUrl && (
+            {(selectedHomework.attachmentUrl || selectedHomework.r2Key) && (
               <a
-                href={selectedHomework.attachmentUrl}
+                href={selectedHomework.r2Key ? '#' : selectedHomework.attachmentUrl}
+                onClick={(event) => {
+                  if (selectedHomework.r2Key) {
+                    event.preventDefault()
+                    openR2Material(selectedHomework.sourceCollection || 'homeworks', selectedHomework.id)
+                  }
+                }}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 mb-6"
@@ -405,7 +412,7 @@ function Homework() {
               </a>
             )}
 
-            {!selectedHomework.attachmentUrl && (
+            {!selectedHomework.attachmentUrl && !selectedHomework.r2Key && (
               <p className="text-gray-600">No homework file attached.</p>
             )}
           </div>
@@ -501,9 +508,15 @@ function Homework() {
                         {homework.description && (
                           <p className="text-gray-600 text-sm">{homework.description}</p>
                         )}
-                        {homework.attachmentUrl && (
+                        {(homework.attachmentUrl || homework.r2Key) && (
                           <a
-                            href={homework.attachmentUrl}
+                            href={homework.r2Key ? '#' : homework.attachmentUrl}
+                            onClick={(event) => {
+                              if (homework.r2Key) {
+                                event.preventDefault()
+                                openR2Material(homework.sourceCollection || 'homeworks', homework.id)
+                              }
+                            }}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 text-sm"

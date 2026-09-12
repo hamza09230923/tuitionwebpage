@@ -243,13 +243,17 @@ const createOrUpdateWithAdminSdk = async (
       continue
     }
 
-    await db.collection('subjects').doc(subjectId).set(
-      {
-        ...subject,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      },
-      { merge: true }
-    )
+    const subjectRef = db.collection('subjects').doc(subjectId)
+    const subjectSnapshot = await subjectRef.get()
+    if (!subjectSnapshot.exists) {
+      await subjectRef.set(
+        {
+          ...subject,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        },
+        { merge: true }
+      )
+    }
   }
 
   let userRecord
@@ -358,14 +362,18 @@ const createOrUpdateWithClientSdk = async (
         continue
       }
 
-      await setDoc(
-        doc(db, 'subjects', subjectId),
-        {
-          ...subject,
-          updatedAt: serverTimestamp()
-        },
-        { merge: true }
-      )
+      const subjectRef = doc(db, 'subjects', subjectId)
+      const subjectSnapshot = await getDoc(subjectRef)
+      if (!subjectSnapshot.exists()) {
+        await setDoc(
+          subjectRef,
+          {
+            ...subject,
+            updatedAt: serverTimestamp()
+          },
+          { merge: true }
+        )
+      }
     }
 
     const studentAuth = getAuth(studentApp)

@@ -59,8 +59,14 @@ const callPublicFunction = async (path, payload) => {
   return response.json()
 }
 
-export const createHidriveUpload = (payload) =>
-  callFunction('createHidriveUpload', payload)
+export const createR2AdminUpload = (payload) =>
+  callFunction('createR2AdminUpload', payload)
+
+export const getR2DownloadUrl = (payload) =>
+  callFunction('getR2DownloadUrl', payload)
+
+export const migrateLegacyMaterialsToR2 = (payload) =>
+  callFunction('migrateLegacyMaterialsToR2', payload)
 
 export const createRecording = (payload) =>
   callFunction('createRecording', payload)

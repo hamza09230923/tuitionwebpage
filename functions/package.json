@@ -6,6 +6,8 @@
     "node": "20"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1131.0",
+    "@aws-sdk/s3-request-presigner": "^3.1131.0",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^5.1.1",
     "googleapis": "^133.0.0",

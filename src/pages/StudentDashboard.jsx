@@ -186,7 +186,7 @@ const renderZoomJoinButton = (zoomLink, displayName, tierLabel = '') => (
   </a>
 )
 
-const renderSubjectZoomActions = (subject, displayName) => {
+const renderSubjectZoomActions = (subject, displayName, student) => {
   const zoomLink = subject.zoomLink || ''
   const tieredSubjectKey = getTieredSubjectKey(subject)
   const foundationLink = tieredSubjectKey ? FOUNDATION_TIER_ZOOM_LINKS[tieredSubjectKey] : ''
@@ -214,43 +214,29 @@ const renderSubjectZoomActions = (subject, displayName) => {
     )
   }
 
+  const enrolledTier = String(student?.subjectSettings?.[subject.id]?.tier || '').trim().toLowerCase()
+  if (!['foundation', 'higher'].includes(enrolledTier)) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        Your course tier has not been set yet. Please contact MySchola support.
+      </div>
+    )
+  }
+  const isFoundation = enrolledTier === 'foundation'
+  const selectedLink = isFoundation ? foundationLink : zoomLink
+  const tierLabel = isFoundation ? 'Foundation Tier' : 'Higher Tier'
+
+  if (!selectedLink) return null
+
   return (
     <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm">
       <p className="font-medium text-blue-900">Zoom meeting link</p>
-      <div className="mt-2 space-y-2">
-        {zoomLink && (
-          <div>
-            <span className="inline-flex rounded-full bg-yellow-300 px-2 py-0.5 text-[11px] font-semibold text-slate-900">
-              Higher Tier
-            </span>
-            <a
-              href={zoomLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-1 block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
-            >
-              {zoomLink}
-            </a>
-          </div>
-        )}
-        <div>
-          <span className="inline-flex rounded-full border border-red-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-red-700">
-            Foundation Tier
-          </span>
-          <a
-            href={foundationLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1 block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
-          >
-            {foundationLink}
-          </a>
-        </div>
+      <div className="mt-2">
+        <span className="inline-flex rounded-full bg-yellow-300 px-2 py-0.5 text-[11px] font-semibold text-slate-900">
+          {tierLabel}
+        </span>
       </div>
-      <div className="mt-2 space-y-1.5">
-        {zoomLink && renderZoomJoinButton(zoomLink, displayName, 'Higher Tier')}
-        {renderZoomJoinButton(foundationLink, displayName, 'Foundation Tier')}
-      </div>
+      <div className="mt-2">{renderZoomJoinButton(selectedLink, displayName, tierLabel)}</div>
     </div>
   )
 }
@@ -751,7 +737,7 @@ function StudentDashboard() {
         <div className="space-y-3">
           {isUnlocked(subject) ? (
             <>
-              {renderSubjectZoomActions(subject, displayName)}
+               {renderSubjectZoomActions(subject, displayName, student)}
 
               <div className="grid grid-cols-2 gap-2">
                 <Link
