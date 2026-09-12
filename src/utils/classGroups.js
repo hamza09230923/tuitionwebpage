@@ -4,7 +4,18 @@ export const FOUNDATION_TIER_ZOOM_LINKS = {
   biology: 'https://us06web.zoom.us/j/81397109206',
   chemistry: 'https://us06web.zoom.us/j/89250640537',
   physics: 'https://us06web.zoom.us/j/89820960530',
-  maths: 'https://us06web.zoom.us/j/88584874798'
+  maths: 'https://us06web.zoom.us/j/88584874798',
+  english_lang: 'https://us06web.zoom.us/j/89020463558',
+  english_lit: 'https://us06web.zoom.us/j/83496181405'
+}
+
+export const HIGHER_TIER_ZOOM_LINKS = {
+  biology: 'https://us06web.zoom.us/j/89121648473',
+  chemistry: 'https://us06web.zoom.us/j/82539769232',
+  physics: 'https://us06web.zoom.us/j/89245151127',
+  maths: 'https://us06web.zoom.us/j/84989135376',
+  english_lang: 'https://us06web.zoom.us/j/89020463558',
+  english_lit: 'https://us06web.zoom.us/j/83496181405'
 }
 
 const TIERED_PREFIXES = ['maths_', 'biology_', 'chemistry_', 'physics_']
@@ -19,12 +30,20 @@ export const isTieredSubjectId = (subjectId) => (
   TIERED_PREFIXES.some((prefix) => String(subjectId || '').startsWith(prefix))
 )
 
-const getTieredSubjectKey = (subjectId) => {
-  const id = String(subjectId || '').toLowerCase()
-  if (id.startsWith('biology_')) return 'biology'
-  if (id.startsWith('chemistry_')) return 'chemistry'
-  if (id.startsWith('physics_')) return 'physics'
-  if (id.startsWith('maths_')) return 'maths'
+export const getZoomSubjectKey = (subjectOrId) => {
+  const id = String(
+    typeof subjectOrId === 'string' ? subjectOrId : (subjectOrId?.id || '')
+  ).toLowerCase()
+  const name = String(
+    typeof subjectOrId === 'string' ? '' : (subjectOrId?.name || '')
+  ).toLowerCase()
+
+  if (id.startsWith('biology_') || id === 'biology' || name.includes('biology')) return 'biology'
+  if (id.startsWith('chemistry_') || id === 'chemistry' || name.includes('chemistry')) return 'chemistry'
+  if (id.startsWith('physics_') || id === 'physics' || name.includes('physics')) return 'physics'
+  if (id.startsWith('maths_') || id === 'maths' || name.includes('math')) return 'maths'
+  if (id.startsWith('english_lang') || (name.includes('english') && name.includes('language'))) return 'english_lang'
+  if (id.startsWith('english_lit') || (name.includes('english') && name.includes('literature'))) return 'english_lit'
   return null
 }
 
@@ -43,18 +62,69 @@ export const getClassGroupId = (subjectId, tierLabel) => {
 }
 
 export const resolveClassZoomLink = (subject, subjectId, tierLabel) => {
-  if (isEnglishSubjectId(subjectId) || !tierLabel || tierLabel === 'All') {
-    return String(subject?.zoomLink || '').trim() || null
+  const key = getZoomSubjectKey(subjectId) || getZoomSubjectKey(subject)
+  if (isEnglishSubjectId(subjectId) || key === 'english_lang' || key === 'english_lit' || !tierLabel || tierLabel === 'All') {
+    return FOUNDATION_TIER_ZOOM_LINKS[key]
+      || String(subject?.zoomLink || '').trim()
+      || null
   }
   if (tierLabel === 'Foundation') {
-    return String(subject?.foundationZoomLink || '').trim()
-      || FOUNDATION_TIER_ZOOM_LINKS[getTieredSubjectKey(subjectId)]
+    return FOUNDATION_TIER_ZOOM_LINKS[key]
+      || String(subject?.foundationZoomLink || '').trim()
       || null
   }
   if (tierLabel === 'Higher') {
-    return String(subject?.zoomLink || '').trim() || null
+    return HIGHER_TIER_ZOOM_LINKS[key]
+      || String(subject?.zoomLink || '').trim()
+      || null
   }
   return null
+}
+
+export const resolveStudentZoomLink = (subject, student) => {
+  const key = getZoomSubjectKey(subject)
+  const subjectId = subject?.id
+  const tier = String(student?.subjectSettings?.[subjectId]?.tier || '').trim().toLowerCase()
+  const foundationLink = FOUNDATION_TIER_ZOOM_LINKS[key]
+    || String(subject?.foundationZoomLink || '').trim()
+    || ''
+  const higherLink = HIGHER_TIER_ZOOM_LINKS[key]
+    || String(subject?.zoomLink || '').trim()
+    || ''
+
+  if (key === 'english_lang' || key === 'english_lit' || isEnglishSubjectId(subjectId)) {
+    return {
+      link: foundationLink || higherLink,
+      tierLabel: '',
+      needsTier: false
+    }
+  }
+
+  if (tier === 'foundation') {
+    return {
+      link: foundationLink,
+      tierLabel: 'Foundation Tier',
+      needsTier: false
+    }
+  }
+
+  if (tier === 'higher') {
+    return {
+      link: higherLink,
+      tierLabel: 'Higher Tier',
+      needsTier: false
+    }
+  }
+
+  if (key && (foundationLink || higherLink)) {
+    return { link: '', tierLabel: '', needsTier: true }
+  }
+
+  return {
+    link: higherLink || foundationLink,
+    tierLabel: '',
+    needsTier: false
+  }
 }
 
 export const buildClassGroupRecords = (students, subjects) => {

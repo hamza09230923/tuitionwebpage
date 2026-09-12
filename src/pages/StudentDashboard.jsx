@@ -22,7 +22,7 @@ import { signOut } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { getStudentSubjectIds, isTutorialStudent } from '../utils/studentAccess'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
-import { FOUNDATION_TIER_ZOOM_LINKS } from '../utils/classGroups'
+import { resolveStudentZoomLink } from '../utils/classGroups'
 
 // Function to get subject icon based on subject name
 const getSubjectIcon = (subjectName) => {
@@ -144,24 +144,6 @@ const getSubjectBaseKey = (subjectOrId) => {
 
 const getScienceCardTitle = (key) => key.charAt(0).toUpperCase() + key.slice(1)
 
-const isEnglishSubject = (subject) => {
-  const name = normalizeSubjectName(subject?.name)
-  const id = normalizeSubjectId(subject?.id)
-
-  return name.includes('english') || id.startsWith('english_lang') || id.startsWith('english_lit')
-}
-
-const getTieredSubjectKey = (subject) => {
-  const baseKey = getSubjectBaseKey(subject)
-  if (SCIENCE_SUBJECTS.includes(baseKey)) {
-    return baseKey
-  }
-
-  const name = normalizeSubjectName(subject?.name)
-  const id = normalizeSubjectId(subject?.id)
-  return name.includes('math') || name.includes('maths') || id.startsWith('maths') ? 'maths' : null
-}
-
 const renderZoomJoinButton = (zoomLink, displayName, tierLabel = '') => (
   <a
     href={zoomLink}
@@ -176,57 +158,41 @@ const renderZoomJoinButton = (zoomLink, displayName, tierLabel = '') => (
 )
 
 const renderSubjectZoomActions = (subject, displayName, student) => {
-  const zoomLink = subject.zoomLink || ''
-  const tieredSubjectKey = getTieredSubjectKey(subject)
-  const foundationLink = subject.foundationZoomLink
-    || (tieredSubjectKey ? FOUNDATION_TIER_ZOOM_LINKS[tieredSubjectKey] : '')
+  const { link, tierLabel, needsTier } = resolveStudentZoomLink(subject, student)
 
-  if (!zoomLink && !foundationLink) {
-    return null
-  }
-
-  if (!tieredSubjectKey || isEnglishSubject(subject)) {
-    return (
-      <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm">
-        <p className="font-medium text-blue-900">Zoom meeting link</p>
-        <a
-          href={zoomLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-1 block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
-        >
-          {zoomLink}
-        </a>
-        <div className="mt-2">
-          {renderZoomJoinButton(zoomLink, displayName)}
-        </div>
-      </div>
-    )
-  }
-
-  const enrolledTier = String(student?.subjectSettings?.[subject.id]?.tier || '').trim().toLowerCase()
-  if (!['foundation', 'higher'].includes(enrolledTier)) {
+  if (needsTier) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
         Your course tier has not been set yet. Please contact MySchola support.
       </div>
     )
   }
-  const isFoundation = enrolledTier === 'foundation'
-  const selectedLink = isFoundation ? foundationLink : zoomLink
-  const tierLabel = isFoundation ? 'Foundation Tier' : 'Higher Tier'
 
-  if (!selectedLink) return null
+  if (!link) {
+    return null
+  }
 
   return (
     <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm">
       <p className="font-medium text-blue-900">Zoom meeting link</p>
+      {tierLabel && (
+        <div className="mt-2">
+          <span className="inline-flex rounded-full bg-yellow-300 px-2 py-0.5 text-[11px] font-semibold text-slate-900">
+            {tierLabel}
+          </span>
+        </div>
+      )}
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-1 block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900"
+      >
+        {link}
+      </a>
       <div className="mt-2">
-        <span className="inline-flex rounded-full bg-yellow-300 px-2 py-0.5 text-[11px] font-semibold text-slate-900">
-          {tierLabel}
-        </span>
+        {renderZoomJoinButton(link, displayName, tierLabel)}
       </div>
-      <div className="mt-2">{renderZoomJoinButton(selectedLink, displayName, tierLabel)}</div>
     </div>
   )
 }

@@ -437,7 +437,7 @@ function Homework() {
                     statusBadge = (
                       <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Marked
+                        {submission.completedByAdmin && !submission.googleDocsUrl ? 'Done' : 'Marked'}
                       </span>
                     )
                   } else {
@@ -547,7 +547,9 @@ function Homework() {
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <p className={`text-sm font-medium ${submission.marked ? 'text-green-800' : 'text-yellow-800'}`}>
-                                    {submission.marked ? 'Marked by Teacher' : 'Pending Review'}
+                                    {submission.completedByAdmin && !submission.googleDocsUrl
+                                      ? 'Marked as done by your teacher'
+                                      : submission.marked ? 'Marked by Teacher' : 'Pending Review'}
                                   </p>
                                   <p className="text-sm text-gray-600 mt-1">
                                     Submitted: {submission.submittedAt?.toDate
@@ -562,18 +564,19 @@ function Homework() {
                                     </p>
                                   )}
                                   
-                                  {/* Show current link and open button */}
-                                  <div className="flex items-center gap-2 mt-3">
-                                    <a
-                                      href={submission.googleDocsUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
-                                    >
-                                      <ExternalLink className="h-4 w-4" />
-                                      Open Your Work
-                                    </a>
-                                  </div>
+                                  {submission.googleDocsUrl && (
+                                    <div className="flex items-center gap-2 mt-3">
+                                      <a
+                                        href={submission.googleDocsUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                      >
+                                        <ExternalLink className="h-4 w-4" />
+                                        Open Your Work
+                                      </a>
+                                    </div>
+                                  )}
 
                                   {/* Update link option - only if not marked and not overdue */}
                                   {!submission.marked && !overdue && (

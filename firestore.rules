@@ -202,6 +202,8 @@ service cloud.firestore {
       allow read: if signedIn() && resource.data.studentId == request.auth.uid;
       // Students can create submissions for themselves only
       allow create: if signedIn() && request.resource.data.studentId == request.auth.uid;
+      // Staff can mark a student as done even if they did not submit a file
+      allow create: if isStaff();
       // Students can update their own submission (to change link)
       allow update: if signedIn() && resource.data.studentId == request.auth.uid;
       // Only staff can read all submissions

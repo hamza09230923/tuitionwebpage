@@ -20,7 +20,9 @@ const FOUNDATION_ZOOM_LINKS = {
   biology_001: 'https://us06web.zoom.us/j/81397109206',
   chemistry_001: 'https://us06web.zoom.us/j/89250640537',
   physics_001: 'https://us06web.zoom.us/j/89820960530',
-  maths_001: 'https://us06web.zoom.us/j/88584874798'
+  maths_001: 'https://us06web.zoom.us/j/88584874798',
+  english_lang_001: 'https://us06web.zoom.us/j/89020463558',
+  english_lit_001: 'https://us06web.zoom.us/j/83496181405'
 }
 
 const loadEnvFile = () => {

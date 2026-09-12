@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder, Search } from 'lucide-react'
+import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder, Search, XCircle } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
-import { arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
+import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
 import { createR2AdminUpload, createRecording, createHomework, createResource, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import { buildClassGroupRecords, buildStudentClassLists } from '../utils/classGroups'
@@ -139,6 +139,61 @@ const getHomeworkTargetStudents = (homework, students) => {
   }]
 }
 
+const getHomeworkDueKey = (dueDate) => {
+  if (!dueDate) return 'no-due'
+  const date = dueDate.toDate ? dueDate.toDate() : new Date(dueDate)
+  if (Number.isNaN(date.getTime())) return 'no-due'
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+const getHomeworkGroupKey = (homework) => {
+  const sourceId = homework.sourceHomeworkId || homework.parentHomeworkId || homework.originalHomeworkId
+  if (sourceId) return `source:${sourceId}`
+  const title = String(homework.title || 'untitled').trim().toLowerCase().replace(/\s+/g, ' ')
+  return `title:${title}|due:${getHomeworkDueKey(homework.dueDate)}`
+}
+
+const groupHomeworksForSubmissions = (homeworks) => {
+  const groups = new Map()
+  for (const homework of homeworks) {
+    const key = getHomeworkGroupKey(homework)
+    const existing = groups.get(key)
+    if (!existing) {
+      groups.set(key, {
+        key,
+        items: [homework],
+        title: homework.title || 'Untitled Homework',
+        dueDate: homework.dueDate || null
+      })
+    } else {
+      existing.items.push(homework)
+      if (!existing.dueDate && homework.dueDate) existing.dueDate = homework.dueDate
+    }
+  }
+  return Array.from(groups.values())
+}
+
+const getGroupedHomeworkStudents = (group, students) => {
+  const studentMap = new Map()
+  group.items.forEach((homework) => {
+    getHomeworkTargetStudents(homework, students).forEach((student) => {
+      if (isHomeworkHiddenForStudent(homework, student)) return
+      if (!studentMap.has(student.id)) studentMap.set(student.id, student)
+    })
+  })
+  return Array.from(studentMap.values()).sort((a, b) => (
+    String(a.displayName || a.name || '').localeCompare(String(b.displayName || b.name || ''))
+  ))
+}
+
+const getHomeworkForStudentInGroup = (group, studentId) => {
+  const personal = group.items.find((item) => (
+    String(item.studentId || '') === String(studentId)
+  ))
+  if (personal) return personal
+  return group.items.find((item) => item.sourceCollection !== 'studentHomeworks') || group.items[0] || null
+}
+
 function Admin() {
   const navigate = useNavigate()
   const [authenticated, setAuthenticated] = useState(false)
@@ -195,7 +250,7 @@ function Admin() {
   const [subjectStudentsLoading, setSubjectStudentsLoading] = useState(false)
   const [submissionsLoading, setSubmissionsLoading] = useState(false)
   const [markingSubmissionId, setMarkingSubmissionId] = useState(null)
-  const [deletingSubmissionId, setDeletingSubmissionId] = useState(null)
+  const [togglingHomeworkCompletionKey, setTogglingHomeworkCompletionKey] = useState('')
   const [submissionFilter, setSubmissionFilter] = useState('all') // 'all', 'pending', 'marked'
   const [rosterFilter, setRosterFilter] = useState('all') // 'all', 'submitted', 'missing'
   const [expandedHomework, setExpandedHomework] = useState({})
@@ -224,6 +279,7 @@ function Admin() {
   const allResourceStudentsSelected = enrolledStudents.length > 0 && (
     selectedResourceStudents.length === enrolledStudents.length
   )
+  const groupedHomeworks = groupHomeworksForSubmissions(homeworks)
 
   const runLegacyMigration = async (mode) => {
     if (!isAdmin || migrationLoading) return
@@ -1188,6 +1244,20 @@ function Admin() {
     return date < new Date()
   }
 
+  const refreshSubmissions = async () => {
+    if (!selectedSubject) return
+    const submissionsQuery = query(
+      collection(db, 'submissions'),
+      where('subjectId', '==', selectedSubject)
+    )
+    const submissionsSnapshot = await getDocs(submissionsQuery)
+    const submissionsData = submissionsSnapshot.docs.map((submissionDoc) => ({
+      id: submissionDoc.id,
+      ...submissionDoc.data()
+    }))
+    setSubmissions(submissionsData)
+  }
+
   const handleMarkSubmission = async (submissionId) => {
     setMarkingSubmissionId(submissionId)
     try {
@@ -1196,19 +1266,7 @@ function Admin() {
         markedAt: serverTimestamp(),
         markedBy: auth.currentUser?.uid || null
       })
-      
-      // Refresh submissions
-      const submissionsQuery = query(
-        collection(db, 'submissions'),
-        where('subjectId', '==', selectedSubject)
-      )
-      const submissionsSnapshot = await getDocs(submissionsQuery)
-      const submissionsData = submissionsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setSubmissions(submissionsData)
-      
+      await refreshSubmissions()
       setMessage('Submission marked successfully')
     } catch (err) {
       console.error('Error marking submission:', err)
@@ -1218,33 +1276,62 @@ function Admin() {
     }
   }
 
-  const handleDeleteSubmission = async (submissionId) => {
-    if (!window.confirm('Are you sure you want to delete this student submission? This cannot be undone.')) {
+  const handleMarkStudentHomeworkDone = async (student, group) => {
+    const homework = getHomeworkForStudentInGroup(group, student.id)
+    if (!selectedSubject || !homework?.id) {
+      setMessage('Could not find this homework for the student')
       return
     }
-    
-    setDeletingSubmissionId(submissionId)
+
+    const completionKey = `done:${group.key}:${student.id}`
+    setTogglingHomeworkCompletionKey(completionKey)
     try {
-      await deleteDoc(doc(db, 'submissions', submissionId))
-      
-      // Refresh submissions
-      const submissionsQuery = query(
-        collection(db, 'submissions'),
-        where('subjectId', '==', selectedSubject)
-      )
-      const submissionsSnapshot = await getDocs(submissionsQuery)
-      const submissionsData = submissionsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setSubmissions(submissionsData)
-      
-      setMessage('Submission deleted successfully')
+      await addDoc(collection(db, 'submissions'), {
+        studentId: student.id,
+        studentName: getStudentDisplayName(student),
+        subjectId: selectedSubject,
+        homeworkId: homework.id,
+        homeworkTitle: group.title || homework.title || 'Untitled Homework',
+        googleDocsUrl: '',
+        submittedAt: serverTimestamp(),
+        completedByAdmin: true,
+        marked: true,
+        markedAt: serverTimestamp(),
+        markedBy: auth.currentUser?.uid || null
+      })
+      await refreshSubmissions()
+      setMessage(`${getStudentDisplayName(student)} marked as done`)
     } catch (err) {
-      console.error('Error deleting submission:', err)
-      setMessage('Failed to delete submission')
+      console.error('Error marking homework as done:', err)
+      setMessage('Failed to mark homework as done')
     } finally {
-      setDeletingSubmissionId(null)
+      setTogglingHomeworkCompletionKey('')
+    }
+  }
+
+  const handleMarkStudentHomeworkNotDone = async (student, submission) => {
+    if (!submission?.id) return
+
+    const hasFile = Boolean(String(submission.googleDocsUrl || '').trim())
+    const confirmMessage = hasFile
+      ? `Mark ${getStudentDisplayName(student)} as not done? This will also remove their submitted file link.`
+      : `Mark ${getStudentDisplayName(student)} as not done?`
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    const completionKey = `undone:${submission.id}`
+    setTogglingHomeworkCompletionKey(completionKey)
+    try {
+      await deleteDoc(doc(db, 'submissions', submission.id))
+      await refreshSubmissions()
+      setMessage(`${getStudentDisplayName(student)} marked as not done`)
+    } catch (err) {
+      console.error('Error marking homework as not done:', err)
+      setMessage('Failed to mark homework as not done')
+    } finally {
+      setTogglingHomeworkCompletionKey('')
     }
   }
 
@@ -2645,7 +2732,7 @@ function Admin() {
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">Homework submissions</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    For this subject only: see who has submitted each homework and who has not.
+                    For this subject only: see who has done each homework, and mark a student as done or not done.
                   </p>
                 </div>
               </div>
@@ -2659,7 +2746,7 @@ function Admin() {
                       : 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
                   }`}
                 >
-                  <p className="text-2xl font-bold text-blue-600">{homeworks.length}</p>
+                  <p className="text-2xl font-bold text-blue-600">{groupedHomeworks.length}</p>
                   <p className="text-sm text-gray-600">Homework in this subject</p>
                 </button>
                 <button 
@@ -2716,14 +2803,13 @@ function Admin() {
                 }
 
                 // Helper to get submission for a student and homework
-                const getSubmission = (studentId, homeworkId) => {
-                  return submissions.find(s => s.studentId === studentId && s.homeworkId === homeworkId)
+                const getSubmission = (studentId, homeworkIds) => {
+                  return submissions.find((s) => s.studentId === studentId && homeworkIds.has(String(s.homeworkId)))
                 }
 
-                // Helper to get student status
-                const getStudentStatus = (student, homework) => {
-                  const submission = getSubmission(student.id, homework.id)
-                  const overdue = isHomeworkOverdue(homework.dueDate)
+                const getStudentStatus = (student, homeworkIds, dueDate) => {
+                  const submission = getSubmission(student.id, homeworkIds)
+                  const overdue = isHomeworkOverdue(dueDate)
                   
                   if (!submission) {
                     return { 
@@ -2751,8 +2837,7 @@ function Admin() {
                   }
                 }
 
-                // If no homeworks at all
-                if (homeworks.length === 0) {
+                if (groupedHomeworks.length === 0) {
                   return (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
                       <Folder className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -2761,19 +2846,19 @@ function Admin() {
                   )
                 }
 
-                return homeworks.map((homework) => {
-                  const hwId = `${getHomeworkCollection(homework)}-${homework.id}`
-                  const isExpanded = expandedHomework[hwId] === true
-                  const overdue = isHomeworkOverdue(homework.dueDate)
-                  const homeworkStudents = getHomeworkTargetStudents(homework, enrolledStudents)
-                    .filter((student) => !isHomeworkHiddenForStudent(homework, student))
+                return groupedHomeworks.map((group) => {
+                  const homeworkIds = new Set(group.items.map((item) => String(item.id)))
+                  const hwId = group.key
+                  const isExpanded = expandedHomework[hwId] !== false
+                  const overdue = isHomeworkOverdue(group.dueDate)
+                  const homeworkStudents = getGroupedHomeworkStudents(group, enrolledStudents)
                   
                   let submittedCount = 0
                   let markedCount = 0
                   let overdueCount = 0
                   
                   homeworkStudents.forEach(student => {
-                    const status = getStudentStatus(student, homework)
+                    const status = getStudentStatus(student, homeworkIds, group.dueDate)
                     if (status.status === 'marked') markedCount++
                     else if (status.status === 'submitted') submittedCount++
                     else if (status.status === 'overdue') overdueCount++
@@ -2782,7 +2867,7 @@ function Admin() {
                   const notSubmittedCount = homeworkStudents.length - submittedCount - markedCount
                   const studentsWithStatus = homeworkStudents.map((student) => ({
                     student,
-                    ...getStudentStatus(student, homework)
+                    ...getStudentStatus(student, homeworkIds, group.dueDate)
                   }))
                   const submittedStudents = studentsWithStatus.filter((item) => {
                     if (item.status !== 'submitted' && item.status !== 'marked') return false
@@ -2798,6 +2883,11 @@ function Admin() {
 
                   const renderStudentRow = (item) => {
                     const { student, submission } = item
+                    const hasFile = Boolean(String(submission?.googleDocsUrl || '').trim())
+                    const doneKey = `done:${hwId}:${student.id}`
+                    const undoneKey = submission ? `undone:${submission.id}` : ''
+                    const isTogglingDone = togglingHomeworkCompletionKey === doneKey
+                    const isTogglingNotDone = togglingHomeworkCompletionKey === undoneKey
                     const statusColors = {
                       'marked': 'bg-green-50',
                       'submitted': 'bg-yellow-50',
@@ -2827,7 +2917,9 @@ function Admin() {
                           {submission && (
                             <div className="space-y-1 text-sm text-gray-600">
                               <p>
-                                <span className="font-medium text-gray-700">Submitted:</span>{' '}
+                                <span className="font-medium text-gray-700">
+                                  {submission.completedByAdmin && !hasFile ? 'Marked done:' : 'Submitted:'}
+                                </span>{' '}
                                 {submission.submittedAt?.toDate
                                   ? submission.submittedAt.toDate().toLocaleString('en-GB')
                                   : 'Pending'}
@@ -2843,18 +2935,20 @@ function Admin() {
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
                           {submission ? (
                             <>
-                              <a
-                                href={submission.googleDocsUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                                Open Doc
-                              </a>
+                              {hasFile && (
+                                <a
+                                  href={submission.googleDocsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  Open Doc
+                                </a>
+                              )}
                               {!submission.marked && (
                                 <button
                                   onClick={() => handleMarkSubmission(submission.id)}
@@ -2875,25 +2969,41 @@ function Admin() {
                                 </button>
                               )}
                               <button
-                                onClick={() => handleDeleteSubmission(submission.id)}
-                                disabled={deletingSubmissionId === submission.id}
-                                className="inline-flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
+                                onClick={() => handleMarkStudentHomeworkNotDone(student, submission)}
+                                disabled={isTogglingNotDone}
+                                className="inline-flex items-center gap-2 bg-white text-rose-700 border border-rose-200 px-3 py-2 rounded-lg hover:bg-rose-50 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
                               >
-                                {deletingSubmissionId === submission.id ? (
+                                {isTogglingNotDone ? (
                                   <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    Deleting...
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-700"></div>
+                                    Updating...
                                   </>
                                 ) : (
                                   <>
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete
+                                    <XCircle className="h-4 w-4" />
+                                    Mark as not done
                                   </>
                                 )}
                               </button>
                             </>
                           ) : (
-                            <span className="text-sm text-gray-400 italic">No submission</span>
+                            <button
+                              onClick={() => handleMarkStudentHomeworkDone(student, group)}
+                              disabled={isTogglingDone}
+                              className="inline-flex items-center gap-2 bg-emerald-600 text-white px-3 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
+                            >
+                              {isTogglingDone ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  Updating...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-4 w-4" />
+                                  Mark as done
+                                </>
+                              )}
+                            </button>
                           )}
                         </div>
                       </div>
@@ -2916,10 +3026,10 @@ function Admin() {
                           </div>
                           <div className="text-left flex-1 min-w-0">
                             <h3 className={`font-semibold truncate ${isExpanded ? 'text-blue-900' : 'text-gray-900'}`}>
-                              {homework.title || 'Untitled Homework'}
+                              {group.title}
                             </h3>
                             <p className="text-sm text-gray-500">
-                              {selectedSubjectData ? getCanonicalSubjectName(selectedSubjectData) : 'This subject'} · Due: {homework.dueDate ? new Date(homework.dueDate.toDate ? homework.dueDate.toDate() : homework.dueDate).toLocaleDateString('en-GB') : 'No due date'}
+                              {selectedSubjectData ? getCanonicalSubjectName(selectedSubjectData) : 'This subject'} · Due: {group.dueDate ? new Date(group.dueDate.toDate ? group.dueDate.toDate() : group.dueDate).toLocaleDateString('en-GB') : 'No due date'}
                               {overdue && ' • Overdue'}
                             </p>
                           </div>

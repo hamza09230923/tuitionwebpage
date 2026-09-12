@@ -14,6 +14,7 @@ import {
 } from 'firebase/auth'
 import {
   collection,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -104,6 +105,9 @@ const parseArgs = () => {
     } else if (arg === '--school-year') {
       parsed.schoolYear = next
       i += 1
+    } else if (arg === '--tier') {
+      parsed.tier = next
+      i += 1
     } else if (arg === '--subjects') {
       parsed.subjectIds = String(next || '')
         .split(',')
@@ -187,17 +191,26 @@ const normalizeHiddenTitleKeywords = (keywords) => (
     .filter(Boolean)
 )
 
-const buildSubjectSettings = (subjectIds, existingSettings = {}) => {
-  const settings = { ...existingSettings }
+const normalizeTier = (tier) => {
+  const value = String(tier || '').trim().toLowerCase()
+  if (value === 'foundation') return 'Foundation'
+  if (value === 'higher') return 'Higher'
+  return ''
+}
+
+const buildSubjectSettings = (subjectIds, existingSettings = {}, options = {}) => {
+  const settings = {}
+  const explicitTier = normalizeTier(options.defaultTier)
 
   subjectIds.forEach((subjectId) => {
     const subject = SUBJECTS[subjectId] || {}
     const isEnglish = String(subject.name || subjectId).toLowerCase().includes('english')
     const isMaths = String(subject.name || subjectId).toLowerCase().includes('math')
       || String(subjectId).startsWith('maths_')
+    const current = existingSettings[subjectId] || {}
     settings[subjectId] = {
-      examBoard: settings[subjectId]?.examBoard || (isMaths ? 'Edexcel' : 'AQA'),
-      tier: isEnglish ? null : (settings[subjectId]?.tier || 'Higher')
+      examBoard: current.examBoard || (isMaths ? 'Edexcel' : 'AQA'),
+      tier: isEnglish ? null : (explicitTier || current.tier || 'Higher')
     }
   })
 
@@ -216,9 +229,6 @@ const validateStudent = (student) => {
   if (student.password.length < 6) {
     throw new Error('Firebase passwords must be at least 6 characters long.')
   }
-  if (student.password.length > 8) {
-    throw new Error('Password must be 8 characters or fewer.')
-  }
 }
 
 const createOrUpdateWithAdminSdk = async (
@@ -227,7 +237,8 @@ const createOrUpdateWithAdminSdk = async (
   hiddenTitleKeywords,
   hideExistingRecordings,
   hideExistingHomeworks,
-  hideHomeworkGuide
+  hideHomeworkGuide,
+  defaultTier
 ) => {
   const serviceAccountPath = join(process.cwd(), 'serviceAccountKey.json')
   const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'))
@@ -314,7 +325,7 @@ const createOrUpdateWithAdminSdk = async (
       schoolYear: student.schoolYear,
       ...(shouldSetSchoolYearAnchor ? { schoolYearSetAt: admin.firestore.FieldValue.serverTimestamp() } : {}),
       subjects: subjectIds,
-      subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
+      subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings, { defaultTier }),
       hiddenRecordingIds,
       hiddenRecordingTitleKeywords: hiddenTitleKeywords,
       ...(hideExistingHomeworks ? { hiddenHomeworkIds } : {}),
@@ -339,7 +350,8 @@ const createOrUpdateWithClientSdk = async (
   hideExistingRecordings,
   hideExistingHomeworks,
   hideHomeworkGuide,
-  adminCredentials
+  adminCredentials,
+  defaultTier
 ) => {
   const firebaseConfig = getFirebaseConfig()
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
@@ -436,6 +448,14 @@ const createOrUpdateWithClientSdk = async (
     const shouldSetSchoolYearAnchor = !existingStudent.exists() ||
       existingData.schoolYear !== student.schoolYear
 
+    const existingSettings = existingData.subjectSettings || {}
+    const subjectSettings = buildSubjectSettings(subjectIds, existingSettings, { defaultTier })
+    Object.keys(existingSettings).forEach((subjectId) => {
+      if (!subjectIds.includes(subjectId)) {
+        subjectSettings[subjectId] = deleteField()
+      }
+    })
+
     await setDoc(
       studentRef,
       {
@@ -444,7 +464,7 @@ const createOrUpdateWithClientSdk = async (
         schoolYear: student.schoolYear,
         ...(shouldSetSchoolYearAnchor ? { schoolYearSetAt: serverTimestamp() } : {}),
         subjects: subjectIds,
-        subjectSettings: buildSubjectSettings(subjectIds, existingData.subjectSettings),
+        subjectSettings,
         hiddenRecordingIds,
         hiddenRecordingTitleKeywords: hiddenTitleKeywords,
         ...(hideExistingHomeworks ? { hiddenHomeworkIds } : {}),
@@ -495,7 +515,8 @@ const main = async () => {
       hiddenTitleKeywords,
       args.hideExistingRecordings,
       args.hideExistingHomeworks,
-      args.hideHomeworkGuide
+      args.hideHomeworkGuide,
+      args.tier
     )
     : await createOrUpdateWithClientSdk(
       student,
@@ -507,7 +528,8 @@ const main = async () => {
       {
         email: args.adminEmail || process.env.MYSCHOLA_ADMIN_EMAIL || 'admin@myschola.com',
         password: args.adminPassword || process.env.MYSCHOLA_ADMIN_PASSWORD || 'Admin123!'
-      }
+      },
+      args.tier
     )
 
   console.log('Student account ready')
@@ -515,7 +537,9 @@ const main = async () => {
   console.log(`Name: ${student.name}`)
   console.log(`Email: ${student.email}`)
   console.log(`Password: ${student.password}`)
+  console.log(`School year: ${student.schoolYear}`)
   console.log(`Subjects: ${subjectIds.join(', ')}`)
+  console.log(`Tier: ${normalizeTier(args.tier) || 'default Higher for tiered subjects'}`)
   console.log(`Hidden title keywords: ${hiddenTitleKeywords.join(', ') || 'none'}`)
   console.log(`Matching hidden recording IDs: ${result.hiddenRecordingIds.join(', ') || 'none found'}`)
   console.log(`Hidden homework IDs: ${result.hiddenHomeworkIds.join(', ') || 'none found'}`)
