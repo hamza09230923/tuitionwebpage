@@ -59,27 +59,11 @@ service cloud.firestore {
         subjectId in studentSubjects();
     }
 
-    // Every material carries its academic route. This makes Foundation/Higher
-    // separation enforceable before a student can read its metadata or obtain
-    // a private R2 download URL.
-    function matchesMaterialRoute(material) {
-      return get(/databases/$(database)/documents/students/$(request.auth.uid))
-        .data.subjectSettings[material.subjectId].examBoard == material.examBoard && (
-        material.tier == 'all-levels' ||
-        get(/databases/$(database)/documents/students/$(request.auth.uid))
-          .data.subjectSettings[material.subjectId].tier == material.tier
-      );
-    }
-
-    function recordingIsVisible(recordingId) {
-      return !('hiddenRecordingIds' in get(/databases/$(database)/documents/students/$(request.auth.uid)).data) ||
-        !(recordingId in get(/databases/$(database)/documents/students/$(request.auth.uid)).data.hiddenRecordingIds);
-    }
-
-    function homeworkIsVisible(homeworkId) {
-      return !('hiddenHomeworkIds' in get(/databases/$(database)/documents/students/$(request.auth.uid)).data) ||
-        !(homeworkId in get(/databases/$(database)/documents/students/$(request.auth.uid)).data.hiddenHomeworkIds);
-    }
+    // List queries are by subjectId only. Route and hidden-file checks cannot
+    // live here: if one matching document is hidden or on another board/tier,
+    // Firestore rejects the entire query and students see "Failed to load".
+    // The app filters hidden items and course routes after the list returns.
+    // Private R2 downloads still enforce hidden IDs and academic route.
 
     match /admins/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;
@@ -138,7 +122,7 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        ) && matchesMaterialRoute(resource.data) && recordingIsVisible(recordingId)
+        )
       );
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
@@ -152,14 +136,14 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        ) && matchesMaterialRoute(resource.data) && recordingIsVisible(recordingId)
+        )
       );
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     match /homeworks/{homeworkId} {
-      allow read: if isStaff() || (isEnrolledIn(resource.data.subjectId) && matchesMaterialRoute(resource.data) && homeworkIsVisible(homeworkId));
+      allow read: if isStaff() || isEnrolledIn(resource.data.subjectId);
       allow create, update, delete: if isAdmin();
     }
 
@@ -167,7 +151,7 @@ service cloud.firestore {
       allow read: if isStaff() || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
-        isEnrolledIn(resource.data.subjectId) && matchesMaterialRoute(resource.data) && homeworkIsVisible(homeworkId)
+        isEnrolledIn(resource.data.subjectId)
       );
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
@@ -179,7 +163,7 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        ) && matchesMaterialRoute(resource.data)
+        )
       );
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
@@ -193,7 +177,7 @@ service cloud.firestore {
         (
           !('approvalStatus' in resource.data) ||
           resource.data.approvalStatus == 'approved'
-        ) && matchesMaterialRoute(resource.data)
+        )
       );
       allow create, update: if isAdmin();
       allow delete: if isAdmin();

@@ -137,22 +137,21 @@ function Recordings() {
           return
         }
 
-        let recordingsQuery
+        let recordingsSnapshot
         try {
-          recordingsQuery = query(
+          recordingsSnapshot = await getDocs(query(
             collection(db, 'recordings'),
             where('subjectId', '==', subjectId),
             orderBy('date', 'desc')
-          )
+          ))
         } catch (err) {
-          console.warn('OrderBy failed, using simple query:', err)
-          recordingsQuery = query(
+          console.warn('Ordered recordings query failed, using subject filter only:', err)
+          recordingsSnapshot = await getDocs(query(
             collection(db, 'recordings'),
             where('subjectId', '==', subjectId)
-          )
+          ))
         }
 
-        const recordingsSnapshot = await getDocs(recordingsQuery)
         const subjectRecordingsData = recordingsSnapshot.docs
           .map(doc => ({
             id: doc.id,

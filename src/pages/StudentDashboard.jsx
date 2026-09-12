@@ -21,7 +21,7 @@ import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { getStudentSubjectIds, isTutorialStudent } from '../utils/studentAccess'
-import { getCanonicalSubjectName } from '../utils/subjectMetadata'
+import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 
 // Function to get subject icon based on subject name
 const getSubjectIcon = (subjectName) => {
@@ -101,11 +101,6 @@ const NEW_RECORDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
 const normalizeSubjectName = (subjectName) => String(subjectName || '').toLowerCase()
 const normalizeSubjectId = (subjectId) => String(subjectId || '').toLowerCase()
-const isCrashCourseSubject = (subject) => {
-  const id = normalizeSubjectId(subject?.id)
-  const name = normalizeSubjectName(subject?.name)
-  return id.includes('crash') || name.includes('crash')
-}
 
 const isStandaloneScienceSubject = (subject) => {
   const id = normalizeSubjectId(subject?.id)

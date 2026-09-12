@@ -5,7 +5,7 @@ import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc } from 'firebase/firestore'
 import { createR2AdminUpload, createRecording, createHomework, createResource, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
-import { getCanonicalSubjectName } from '../utils/subjectMetadata'
+import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 
 const getStudentDisplayName = (student) => (
   student?.displayName || student?.name || student?.studentName || student?.email || student?.id || 'Unknown student'
@@ -288,6 +288,7 @@ function Admin() {
             id: doc.id,
             ...doc.data()
           }))
+          .filter((subject) => !isCrashCourseSubject(subject))
           .sort((a, b) => {
             const nameSort = getCanonicalSubjectName(a).localeCompare(getCanonicalSubjectName(b))
             return nameSort || a.id.localeCompare(b.id)

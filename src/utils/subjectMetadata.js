@@ -9,8 +9,21 @@ const SUBJECT_NAME_BY_PREFIX = {
   triple_science: 'Triple Science'
 }
 
+export function isCrashCourseSubject(subjectOrId) {
+  if (typeof subjectOrId === 'string') {
+    return String(subjectOrId).toLowerCase().includes('crash')
+  }
+
+  const id = String(subjectOrId?.id || '').toLowerCase()
+  const name = String(subjectOrId?.name || '').toLowerCase()
+  return id.includes('crash') || name.includes('crash')
+}
+
 const getSubjectPrefix = (subjectId) => {
   const normalizedId = String(subjectId || '').toLowerCase()
+  if (normalizedId.includes('crash')) {
+    return null
+  }
 
   return Object.keys(SUBJECT_NAME_BY_PREFIX).find((prefix) =>
     normalizedId === `${prefix}_001` || normalizedId.startsWith(`${prefix}_`)
