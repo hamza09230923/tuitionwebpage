@@ -189,6 +189,7 @@ function Admin() {
   const [markingSubmissionId, setMarkingSubmissionId] = useState(null)
   const [deletingSubmissionId, setDeletingSubmissionId] = useState(null)
   const [submissionFilter, setSubmissionFilter] = useState('all') // 'all', 'pending', 'marked'
+  const [rosterFilter, setRosterFilter] = useState('all') // 'all', 'submitted', 'missing'
   const [expandedHomework, setExpandedHomework] = useState({})
   
   const [loading, setLoading] = useState(false)
@@ -539,6 +540,8 @@ function Admin() {
       }
 
       setSubmissionsLoading(true)
+      setHomeworks([])
+      setSubmissions([])
       try {
         // Load homeworks for this subject
         const homeworksQuery = query(
@@ -624,6 +627,8 @@ function Admin() {
     setSelectedRecordingStudentId('')
     setSelectedHomeworkStudentIds([])
     setSelectedResourceStudentIds([])
+    setRosterFilter('all')
+    setSubmissionFilter('all')
   }, [selectedSubject, subjects])
 
   // Check if subject is English (no tier needed)
@@ -1511,9 +1516,15 @@ function Admin() {
         )}
 
         {/* Subject Selection */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Subject
+        <div className={`rounded-lg shadow-sm border p-6 mb-6 ${
+          activeTab === 'view-submissions'
+            ? 'bg-purple-50 border-purple-200'
+            : 'bg-white border-gray-200'
+        }`}>
+          <label className={`block text-sm font-medium mb-2 ${
+            activeTab === 'view-submissions' ? 'text-purple-900' : 'text-gray-700'
+          }`}>
+            {activeTab === 'view-submissions' ? 'Homework subject' : 'Select Subject'}
           </label>
           <select
             value={selectedSubject}
@@ -1522,7 +1533,11 @@ function Admin() {
               setSelectedHomeworkStudentIds([])
               setSelectedResourceStudentIds([])
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+              activeTab === 'view-submissions'
+                ? 'border-purple-300 bg-white focus:ring-purple-500 font-semibold'
+                : 'border-gray-300 focus:ring-blue-500'
+            }`}
           >
             {subjects.filter((subject) => !isCrashCourseSubject(subject)).map(subject => (
               <option key={subject.id} value={subject.id}>
@@ -1530,11 +1545,15 @@ function Admin() {
               </option>
             ))}
           </select>
-          {selectedSubject && (
+          {activeTab === 'view-submissions' ? (
+            <p className="mt-2 text-sm text-purple-800">
+              Showing who submitted and who has not for <strong>{selectedSubjectData ? getCanonicalSubjectName(selectedSubjectData) : 'this subject'}</strong> only. Switch subjects here to review another class.
+            </p>
+          ) : selectedSubject ? (
             <p className="mt-2 text-xs text-gray-500">
               Selected subject ID: <code>{selectedSubject}</code>
             </p>
-          )}
+          ) : null}
         </div>
 
         {/* Recording Form */}
@@ -2495,32 +2514,61 @@ function Admin() {
         {/* View Submissions */}
         {activeTab === 'view-submissions' && (
           <div className="space-y-6">
-            {/* Header with Stats & Filters */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">Selected subject</p>
+                <p className="mt-1 text-lg font-bold text-purple-950">
+                  {selectedSubjectData ? getCanonicalSubjectName(selectedSubjectData) : 'Choose a subject above'}
+                </p>
+                <p className="text-sm text-purple-800">
+                  {enrolledStudents.length} enrolled student{enrolledStudents.length === 1 ? '' : 's'} in this subject
+                </p>
+              </div>
               <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Student Submissions</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Homework submissions</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Homework folders containing student submissions. Track and mark work.
+                    For this subject only: see who has submitted each homework and who has not.
                   </p>
                 </div>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <button 
-                  onClick={() => setSubmissionFilter('all')}
+                  onClick={() => { setSubmissionFilter('all'); setRosterFilter('all') }}
                   className={`rounded-lg p-4 text-center transition ${
-                    submissionFilter === 'all' 
+                    submissionFilter === 'all' && rosterFilter === 'all'
                       ? 'bg-blue-100 border-2 border-blue-400' 
                       : 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
                   }`}
                 >
-                  <p className="text-2xl font-bold text-blue-600">{submissions.length}</p>
-                  <p className="text-sm text-gray-600">All Submissions</p>
+                  <p className="text-2xl font-bold text-blue-600">{homeworks.length}</p>
+                  <p className="text-sm text-gray-600">Homework in this subject</p>
                 </button>
                 <button 
-                  onClick={() => setSubmissionFilter('pending')}
+                  onClick={() => { setRosterFilter('submitted'); setSubmissionFilter('all') }}
+                  className={`rounded-lg p-4 text-center transition ${
+                    rosterFilter === 'submitted'
+                      ? 'bg-emerald-100 border-2 border-emerald-400' 
+                      : 'bg-emerald-50 border border-emerald-200 hover:bg-emerald-100'
+                  }`}
+                >
+                  <p className="text-2xl font-bold text-emerald-700">{submissions.length}</p>
+                  <p className="text-sm text-gray-600">Submitted</p>
+                </button>
+                <button 
+                  onClick={() => { setRosterFilter('missing'); setSubmissionFilter('all') }}
+                  className={`rounded-lg p-4 text-center transition ${
+                    rosterFilter === 'missing'
+                      ? 'bg-rose-100 border-2 border-rose-400' 
+                      : 'bg-rose-50 border border-rose-200 hover:bg-rose-100'
+                  }`}
+                >
+                  <p className="text-2xl font-bold text-rose-700">Missing</p>
+                  <p className="text-sm text-gray-600">Not submitted</p>
+                </button>
+                <button 
+                  onClick={() => { setSubmissionFilter('pending'); setRosterFilter('submitted') }}
                   className={`rounded-lg p-4 text-center transition ${
                     submissionFilter === 'pending' 
                       ? 'bg-yellow-100 border-2 border-yellow-400' 
@@ -2530,34 +2578,8 @@ function Admin() {
                   <p className="text-2xl font-bold text-yellow-600">
                     {submissions.filter(s => !s.marked).length}
                   </p>
-                  <p className="text-sm text-gray-600">Pending Review</p>
+                  <p className="text-sm text-gray-600">Pending review</p>
                 </button>
-                <button 
-                  onClick={() => setSubmissionFilter('marked')}
-                  className={`rounded-lg p-4 text-center transition ${
-                    submissionFilter === 'marked' 
-                      ? 'bg-green-100 border-2 border-green-400' 
-                      : 'bg-green-50 border border-green-200 hover:bg-green-100'
-                  }`}
-                >
-                  <p className="text-2xl font-bold text-green-600">
-                    {submissions.filter(s => s.marked).length}
-                  </p>
-                  <p className="text-sm text-gray-600">Marked</p>
-                </button>
-              </div>
-
-              {/* Filter indicator */}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="font-medium">Showing:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  submissionFilter === 'all' ? 'bg-blue-100 text-blue-700' :
-                  submissionFilter === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-green-100 text-green-700'
-                }`}>
-                  {submissionFilter === 'all' ? 'All Submissions' :
-                   submissionFilter === 'pending' ? 'Pending Review' : 'Marked'}
-                </span>
               </div>
             </div>
 
@@ -2629,7 +2651,6 @@ function Admin() {
                   const homeworkStudents = getHomeworkTargetStudents(homework, enrolledStudents)
                     .filter((student) => !isHomeworkHiddenForStudent(homework, student))
                   
-                  // Count stats
                   let submittedCount = 0
                   let markedCount = 0
                   let overdueCount = 0
@@ -2642,10 +2663,128 @@ function Admin() {
                   })
                   
                   const notSubmittedCount = homeworkStudents.length - submittedCount - markedCount
+                  const studentsWithStatus = homeworkStudents.map((student) => ({
+                    student,
+                    ...getStudentStatus(student, homework)
+                  }))
+                  const submittedStudents = studentsWithStatus.filter((item) => {
+                    if (item.status !== 'submitted' && item.status !== 'marked') return false
+                    if (submissionFilter === 'pending') return item.status === 'submitted'
+                    if (submissionFilter === 'marked') return item.status === 'marked'
+                    return true
+                  })
+                  const missingStudents = studentsWithStatus.filter((item) => (
+                    item.status === 'not-submitted' || item.status === 'overdue'
+                  ))
+                  const showSubmittedColumn = rosterFilter !== 'missing'
+                  const showMissingColumn = rosterFilter !== 'submitted'
+
+                  const renderStudentRow = (item) => {
+                    const { student, submission } = item
+                    const statusColors = {
+                      'marked': 'bg-green-50',
+                      'submitted': 'bg-yellow-50',
+                      'overdue': 'bg-red-50',
+                      'not-submitted': 'bg-gray-50'
+                    }
+                    const badgeColors = {
+                      'marked': 'bg-green-100 text-green-700',
+                      'submitted': 'bg-yellow-100 text-yellow-700',
+                      'overdue': 'bg-red-100 text-red-700',
+                      'not-submitted': 'bg-gray-100 text-gray-600'
+                    }
+
+                    return (
+                      <div
+                        key={student.id}
+                        className={`p-4 flex items-start justify-between gap-4 ${statusColors[item.status]}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <p className="text-sm font-medium text-gray-900">{student.displayName}</p>
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badgeColors[item.status]}`}>
+                              {item.status === 'marked' && <CheckCircle className="h-3 w-3 mr-1" />}
+                              {item.label}
+                            </span>
+                          </div>
+                          {submission && (
+                            <div className="space-y-1 text-sm text-gray-600">
+                              <p>
+                                <span className="font-medium text-gray-700">Submitted:</span>{' '}
+                                {submission.submittedAt?.toDate
+                                  ? submission.submittedAt.toDate().toLocaleString('en-GB')
+                                  : 'Pending'}
+                              </p>
+                              {submission.markedAt && (
+                                <p className="text-green-600">
+                                  <span className="font-medium">Marked:</span>{' '}
+                                  {submission.markedAt?.toDate
+                                    ? submission.markedAt.toDate().toLocaleString('en-GB')
+                                    : 'Yes'}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {submission ? (
+                            <>
+                              <a
+                                href={submission.googleDocsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                Open Doc
+                              </a>
+                              {!submission.marked && (
+                                <button
+                                  onClick={() => handleMarkSubmission(submission.id)}
+                                  disabled={markingSubmissionId === submission.id}
+                                  className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
+                                >
+                                  {markingSubmissionId === submission.id ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                      Marking...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="h-4 w-4" />
+                                      Mark Done
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteSubmission(submission.id)}
+                                disabled={deletingSubmissionId === submission.id}
+                                className="inline-flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
+                              >
+                                {deletingSubmissionId === submission.id ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    Deleting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete
+                                  </>
+                                )}
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">No submission</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  }
 
                   return (
                     <div key={hwId} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                      {/* Dropdown Header - Click to expand/collapse */}
                       <button
                         onClick={() => setExpandedHomework(prev => ({ ...prev, [hwId]: !isExpanded }))}
                         className={`w-full p-4 transition flex items-center justify-between ${
@@ -2663,18 +2802,20 @@ function Admin() {
                               {homework.title || 'Untitled Homework'}
                             </h3>
                             <p className="text-sm text-gray-500">
-                              Due: {homework.dueDate ? new Date(homework.dueDate.toDate ? homework.dueDate.toDate() : homework.dueDate).toLocaleDateString('en-GB') : 'No due date'}
+                              {selectedSubjectData ? getCanonicalSubjectName(selectedSubjectData) : 'This subject'} · Due: {homework.dueDate ? new Date(homework.dueDate.toDate ? homework.dueDate.toDate() : homework.dueDate).toLocaleDateString('en-GB') : 'No due date'}
                               {overdue && ' • Overdue'}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 ml-3">
-                          {/* Status badges */}
+                        <div className="flex items-center gap-2 ml-3 flex-wrap justify-end">
                           <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700">
                             {homeworkStudents.length} students
                           </span>
+                          <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800">
+                            {submittedCount + markedCount} submitted
+                          </span>
                           {notSubmittedCount > 0 && (
-                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600">
+                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-rose-100 text-rose-700">
                               {notSubmittedCount} not submitted
                             </span>
                           )}
@@ -2703,131 +2844,51 @@ function Admin() {
                         </div>
                       </button>
 
-                      {/* Dropdown Content - All Enrolled Students */}
                       <div 
                         className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                          isExpanded ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0'
+                          isExpanded ? 'max-h-[4000px] opacity-100' : 'max-h-0 opacity-0'
                         }`}
                       >
-                        <div className="divide-y divide-gray-200">
-                          {homeworkStudents.length === 0 ? (
-                            <div className="p-4 text-center text-gray-500">
-                              No students currently have access to this homework.
-                            </div>
-                          ) : (
-                            homeworkStudents.map((student) => {
-                              const status = getStudentStatus(student, homework)
-                              const submission = status.submission
-                              
-                              const statusColors = {
-                                'marked': 'bg-green-50',
-                                'submitted': 'bg-yellow-50',
-                                'overdue': 'bg-red-50',
-                                'not-submitted': 'bg-gray-50'
-                              }
-                              
-                              const badgeColors = {
-                                'marked': 'bg-green-100 text-green-700',
-                                'submitted': 'bg-yellow-100 text-yellow-700',
-                                'overdue': 'bg-red-100 text-red-700',
-                                'not-submitted': 'bg-gray-100 text-gray-600'
-                              }
-
-                              return (
-                                <div
-                                  key={student.id}
-                                  className={`p-4 flex items-start justify-between gap-4 ${statusColors[status.status]}`}
-                                >
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <p className="text-sm text-gray-900">
-                                        <span className="font-medium">Student Name:</span>{' '}
-                                        {student.displayName}
-                                      </p>
-                                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badgeColors[status.status]}`}>
-                                        {status.status === 'marked' && <CheckCircle className="h-3 w-3 mr-1" />}
-                                        {status.label}
-                                      </span>
-                                    </div>
-                                    
-                                    {submission && (
-                                      <div className="space-y-1 text-sm text-gray-600">
-                                        <p>
-                                          <span className="font-medium text-gray-700">Submitted:</span>{' '}
-                                          {submission.submittedAt?.toDate
-                                            ? submission.submittedAt.toDate().toLocaleString('en-GB')
-                                            : 'Pending'}
-                                        </p>
-                                        {submission.markedAt && (
-                                          <p className="text-green-600">
-                                            <span className="font-medium">Marked:</span>{' '}
-                                            {submission.markedAt?.toDate
-                                              ? submission.markedAt.toDate().toLocaleString('en-GB')
-                                              : 'Yes'}
-                                          </p>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center gap-2">
-                                    {submission ? (
-                                      <>
-                                        <a
-                                          href={submission.googleDocsUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap"
-                                        >
-                                          <ExternalLink className="h-4 w-4" />
-                                          Open Doc
-                                        </a>
-                                        {!submission.marked && (
-                                          <button
-                                            onClick={() => handleMarkSubmission(submission.id)}
-                                            disabled={markingSubmissionId === submission.id}
-                                            className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
-                                          >
-                                            {markingSubmissionId === submission.id ? (
-                                              <>
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                                Marking...
-                                              </>
-                                            ) : (
-                                              <>
-                                                <CheckCircle className="h-4 w-4" />
-                                                Mark Done
-                                              </>
-                                            )}
-                                          </button>
-                                        )}
-                                        <button
-                                          onClick={() => handleDeleteSubmission(submission.id)}
-                                          disabled={deletingSubmissionId === submission.id}
-                                          className="inline-flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium whitespace-nowrap disabled:opacity-50"
-                                        >
-                                          {deletingSubmissionId === submission.id ? (
-                                            <>
-                                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                              Deleting...
-                                            </>
-                                          ) : (
-                                            <>
-                                              <Trash2 className="h-4 w-4" />
-                                              Delete
-                                            </>
-                                          )}
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <span className="text-sm text-gray-400 italic">No submission</span>
-                                    )}
-                                  </div>
+                        {homeworkStudents.length === 0 ? (
+                          <div className="p-4 text-center text-gray-500">
+                            No students currently have access to this homework.
+                          </div>
+                        ) : (
+                          <div className={`grid gap-0 ${showSubmittedColumn && showMissingColumn ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                            {showSubmittedColumn && (
+                              <div className="border-t border-gray-200 lg:border-r">
+                                <div className="bg-emerald-50 px-4 py-2 border-b border-emerald-100">
+                                  <p className="text-sm font-semibold text-emerald-900">
+                                    Submitted ({submittedStudents.length})
+                                  </p>
                                 </div>
-                              )
-                            })
-                          )}
-                        </div>
+                                <div className="divide-y divide-gray-200">
+                                  {submittedStudents.length === 0 ? (
+                                    <p className="p-4 text-sm text-gray-500">Nobody in this subject has submitted this homework yet.</p>
+                                  ) : (
+                                    submittedStudents.map(renderStudentRow)
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {showMissingColumn && (
+                              <div className="border-t border-gray-200">
+                                <div className="bg-rose-50 px-4 py-2 border-b border-rose-100">
+                                  <p className="text-sm font-semibold text-rose-900">
+                                    Not submitted ({missingStudents.length})
+                                  </p>
+                                </div>
+                                <div className="divide-y divide-gray-200">
+                                  {missingStudents.length === 0 ? (
+                                    <p className="p-4 text-sm text-gray-500">Everyone in this subject has submitted.</p>
+                                  ) : (
+                                    missingStudents.map(renderStudentRow)
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
