@@ -378,7 +378,7 @@ function Webinar() {
             Don&apos;t leave your child&apos;s GCSE grades to chance.
           </h1>
           <p className="mx-auto max-w-3xl text-lg font-bold text-slate-100 sm:text-2xl">
-            Give them a clear plan to aim for <strong className="text-blue-400">grades 7-9.</strong>
+            Give them a clear plan to aim for <strong className="font-keyword text-blue-400">grades 7-9.</strong>
           </p>
 
           <a
@@ -390,7 +390,7 @@ function Webinar() {
           </a>
 
           <p className="mt-6 text-xl sm:text-2xl font-black text-white mb-3">
-            👇🏼 <span className="text-blue-400">Watch this now.</span>
+            👇🏼 <span className="font-keyword text-blue-400">Watch this now.</span>
           </p>
 
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">

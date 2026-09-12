@@ -866,6 +866,7 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       hidriveFileId,
       visibility = 'subject',
       studentId = null,
+      studentIds = [],
       studentName = null,
       studentEmail = null
     } = req.body || {}
@@ -874,23 +875,62 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       return jsonError(res, 400, 'subjectId and title are required')
     }
 
-    const homeworkVisibility = visibility === 'student' && studentId ? 'student' : 'subject'
-    let targetStudent = null
+    if (!['subject', 'student', 'students'].includes(visibility)) {
+      return jsonError(res, 400, 'visibility must be subject, student, or students')
+    }
+
+    const isStudentSpecificRequest = visibility === 'student' || visibility === 'students'
+    const rawStudentIds = visibility === 'students'
+      ? studentIds
+      : visibility === 'student'
+        ? [studentId]
+        : []
+
+    if (isStudentSpecificRequest && !Array.isArray(rawStudentIds)) {
+      return jsonError(res, 400, 'Student IDs must be provided as a list')
+    }
+
+    if (isStudentSpecificRequest && rawStudentIds.some((id) => (
+      typeof id !== 'string' || !id.trim() || id.includes('/')
+    ))) {
+      return jsonError(res, 400, 'One or more student IDs are invalid')
+    }
+
+    const requestedStudentIds = Array.from(new Set(rawStudentIds.map((id) => id.trim())))
+    if (isStudentSpecificRequest && requestedStudentIds.length === 0) {
+      return jsonError(res, 400, 'Select at least one student for student-specific homework')
+    }
+
+    if (requestedStudentIds.length > 500) {
+      return jsonError(res, 400, 'Select no more than 500 students at a time')
+    }
+
+    const homeworkVisibility = requestedStudentIds.length > 0 ? 'student' : 'subject'
+    const targetStudents = new Map()
+    const db = getDb()
 
     if (homeworkVisibility === 'student') {
       if (role !== 'admin') {
         return jsonError(res, 403, 'Only admins can create student-specific homework')
       }
 
-      const studentSnapshot = await getDb().doc(`students/${studentId}`).get()
-      if (!studentSnapshot.exists) {
-        return jsonError(res, 400, 'Student profile was not found')
-      }
+      const studentSnapshots = await Promise.all(
+        requestedStudentIds.map((id) => db.doc(`students/${id}`).get())
+      )
+      for (let index = 0; index < studentSnapshots.length; index += 1) {
+        const studentSnapshot = studentSnapshots[index]
+        const targetStudentId = requestedStudentIds[index]
+        if (!studentSnapshot.exists) {
+          return jsonError(res, 400, 'Student profile was not found')
+        }
 
-      targetStudent = studentSnapshot.data() || {}
-      const subjectIds = Array.isArray(targetStudent.subjects) ? targetStudent.subjects : []
-      if (!subjectIds.includes(subjectId)) {
-        return jsonError(res, 400, 'Student is not enrolled in this subject')
+        const targetStudent = studentSnapshot.data() || {}
+        const subjectIds = Array.isArray(targetStudent.subjects) ? targetStudent.subjects : []
+        if (!subjectIds.includes(subjectId)) {
+          return jsonError(res, 400, 'A selected student is not enrolled in this subject')
+        }
+
+        targetStudents.set(targetStudentId, targetStudent)
       }
     }
 
@@ -927,21 +967,12 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       storageProvider = hidrivePath ? 'hidrive' : 'external'
     }
 
-    const collectionName = homeworkVisibility === 'student' ? 'studentHomeworks' : 'homeworks'
-    const docRef = await getDb().collection(collectionName).add({
+    const homeworkData = {
       subjectId,
       title,
       description: description || '',
       dueDate: normalizeDueDate(dueDate),
       questions: sanitizedQuestions,
-      visibility: homeworkVisibility,
-      studentId: homeworkVisibility === 'student' ? studentId : null,
-      studentName: homeworkVisibility === 'student'
-        ? studentName || targetStudent.name || targetStudent.displayName || targetStudent.studentName || null
-        : null,
-      studentEmail: homeworkVisibility === 'student'
-        ? studentEmail || targetStudent.email || null
-        : null,
       attachmentUrl: finalAttachmentUrl,
       attachmentName: attachmentName || null,
       attachmentContentType: attachmentContentType || null,
@@ -952,11 +983,48 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       createdBy: decoded.uid,
       createdByRole: role
+    }
+
+    if (homeworkVisibility === 'student') {
+      const batch = db.batch()
+      const docRefs = requestedStudentIds.map((targetStudentId) => {
+        const targetStudent = targetStudents.get(targetStudentId) || {}
+        const docRef = db.collection('studentHomeworks').doc()
+        batch.set(docRef, {
+          ...homeworkData,
+          visibility: 'student',
+          studentId: targetStudentId,
+          studentName: requestedStudentIds.length === 1
+            ? studentName || targetStudent.name || targetStudent.displayName || targetStudent.studentName || null
+            : targetStudent.name || targetStudent.displayName || targetStudent.studentName || null,
+          studentEmail: requestedStudentIds.length === 1
+            ? studentEmail || targetStudent.email || null
+            : targetStudent.email || null
+        })
+        return docRef
+      })
+      await batch.commit()
+
+      return res.status(200).json({
+        id: docRefs[0].id,
+        ids: docRefs.map((docRef) => docRef.id),
+        collection: 'studentHomeworks',
+        recipientCount: requestedStudentIds.length,
+        attachmentUrl: finalAttachmentUrl
+      })
+    }
+
+    const docRef = await db.collection('homeworks').add({
+      ...homeworkData,
+      visibility: 'subject',
+      studentId: null,
+      studentName: null,
+      studentEmail: null
     })
 
     res.status(200).json({
       id: docRef.id,
-      collection: collectionName,
+      collection: 'homeworks',
       attachmentUrl: finalAttachmentUrl
     })
   } catch (err) {

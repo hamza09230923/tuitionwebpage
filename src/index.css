@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bricolage Grotesque preview for selected blue keywords only. */
+.font-keyword {
+  font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.04em;
+  letter-spacing: -0.025em;
+}
+
 .deferred-section {
   content-visibility: auto;
   contain-intrinsic-size: auto 800px;
