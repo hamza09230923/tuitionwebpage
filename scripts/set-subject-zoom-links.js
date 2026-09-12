@@ -16,6 +16,13 @@ const SUBJECT_ZOOM_LINKS = {
   physics_001: 'https://us06web.zoom.us/j/89245151127'
 }
 
+const FOUNDATION_ZOOM_LINKS = {
+  biology_001: 'https://us06web.zoom.us/j/81397109206',
+  chemistry_001: 'https://us06web.zoom.us/j/89250640537',
+  physics_001: 'https://us06web.zoom.us/j/89820960530',
+  maths_001: 'https://us06web.zoom.us/j/88584874798'
+}
+
 const loadEnvFile = () => {
   const envPath = join(process.cwd(), '.env')
   if (!existsSync(envPath)) return
@@ -64,6 +71,7 @@ const main = async () => {
     const batch = writeBatch(db)
     ids.forEach((id) => batch.update(doc(db, 'subjects', id), {
       zoomLink: SUBJECT_ZOOM_LINKS[id],
+      ...(FOUNDATION_ZOOM_LINKS[id] ? { foundationZoomLink: FOUNDATION_ZOOM_LINKS[id] } : {}),
       updatedAt: serverTimestamp()
     }))
     await batch.commit()

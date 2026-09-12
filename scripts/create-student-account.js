@@ -193,8 +193,10 @@ const buildSubjectSettings = (subjectIds, existingSettings = {}) => {
   subjectIds.forEach((subjectId) => {
     const subject = SUBJECTS[subjectId] || {}
     const isEnglish = String(subject.name || subjectId).toLowerCase().includes('english')
+    const isMaths = String(subject.name || subjectId).toLowerCase().includes('math')
+      || String(subjectId).startsWith('maths_')
     settings[subjectId] = {
-      examBoard: settings[subjectId]?.examBoard || 'AQA',
+      examBoard: settings[subjectId]?.examBoard || (isMaths ? 'Edexcel' : 'AQA'),
       tier: isEnglish ? null : (settings[subjectId]?.tier || 'Higher')
     }
   })

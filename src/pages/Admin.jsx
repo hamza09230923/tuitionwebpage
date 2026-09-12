@@ -16,6 +16,13 @@ const getRecordingDeleteKey = (recordingId, collectionName = 'recordings') => `$
 const getHomeworkCollection = (homework) => homework?.sourceCollection || 'homeworks'
 const getHomeworkDeleteKey = (homeworkId, collectionName = 'homeworks') => `${collectionName}:${homeworkId}`
 const getSubjectOptionLabel = (subject) => `${getCanonicalSubjectName(subject)} (${subject.id})`
+const getLockedExamBoard = (subject) => {
+  const id = String(subject?.id || '').toLowerCase()
+  const name = String(subject?.name || '').toLowerCase()
+  if (name.includes('english') || id.startsWith('english_')) return 'AQA'
+  if (name.includes('math') || name.includes('maths') || id.startsWith('maths')) return 'Edexcel'
+  return ''
+}
 const getRecordingAccessKey = (recordingId, studentId, action) => `${action}:${recordingId}:${studentId}`
 const getHomeworkAccessKey = (homeworkId, studentId, action) => `${action}:${homeworkId}:${studentId}`
 const DEFAULT_UPLOAD_TIMEOUT_MS = 3 * 60 * 1000
@@ -621,8 +628,7 @@ function Admin() {
     // Update selected subject data when subject changes
     const subject = subjects.find(s => s.id === selectedSubject)
     setSelectedSubjectData(subject || null)
-    // Reset form fields when subject changes
-    setExamBoard('')
+    setExamBoard(getLockedExamBoard(subject) || '')
     setTier('')
     setSelectedRecordingStudentId('')
     setSelectedHomeworkStudentIds([])
@@ -637,6 +643,8 @@ function Admin() {
     const name = selectedSubjectData.name?.toLowerCase() || ''
     return name.includes('english')
   }
+  const lockedExamBoard = getLockedExamBoard(selectedSubjectData)
+  const examBoardOptions = lockedExamBoard ? [lockedExamBoard] : ['AQA', 'Edexcel']
 
   const uploadFileWithProgress = (
     file,
@@ -1589,10 +1597,14 @@ function Admin() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">Select Exam Board</option>
-                  <option value="AQA">AQA</option>
-                  <option value="Edexcel">Edexcel</option>
+                  {!lockedExamBoard && <option value="">Select Exam Board</option>}
+                  {examBoardOptions.map((board) => (
+                    <option key={board} value={board}>{board}</option>
+                  ))}
                 </select>
+                {lockedExamBoard && (
+                  <p className="mt-1 text-xs text-gray-500">{lockedExamBoard} is the only exam board for this subject.</p>
+                )}
               </div>
 
               {!isEnglishSubject() && (
@@ -2191,10 +2203,14 @@ function Admin() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Exam Board *</label>
                   <select value={examBoard} onChange={(e) => setExamBoard(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                    <option value="">Select Exam Board</option>
-                    <option value="AQA">AQA</option>
-                    <option value="Edexcel">Edexcel</option>
+                    {!lockedExamBoard && <option value="">Select Exam Board</option>}
+                    {examBoardOptions.map((board) => (
+                      <option key={board} value={board}>{board}</option>
+                    ))}
                   </select>
+                  {lockedExamBoard && (
+                    <p className="mt-1 text-xs text-gray-500">{lockedExamBoard} is the only exam board for this subject.</p>
+                  )}
                 </div>
                 {!isEnglishSubject() && <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tier *</label>
@@ -2376,10 +2392,14 @@ function Admin() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Exam Board *</label>
                   <select value={examBoard} onChange={(e) => setExamBoard(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                    <option value="">Select Exam Board</option>
-                    <option value="AQA">AQA</option>
-                    <option value="Edexcel">Edexcel</option>
+                    {!lockedExamBoard && <option value="">Select Exam Board</option>}
+                    {examBoardOptions.map((board) => (
+                      <option key={board} value={board}>{board}</option>
+                    ))}
                   </select>
+                  {lockedExamBoard && (
+                    <p className="mt-1 text-xs text-gray-500">{lockedExamBoard} is the only exam board for this subject.</p>
+                  )}
                 </div>
                 {!isEnglishSubject() && <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tier *</label>

@@ -92,10 +92,10 @@ const writeAccessList = (list) => {
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 const SCIENCE_SUBJECTS = ['biology', 'chemistry', 'physics']
 const FOUNDATION_TIER_ZOOM_LINKS = {
-  biology: 'https://us06web.zoom.us/j/89459404457',
-  chemistry: 'https://us06web.zoom.us/j/87681117103',
-  physics: 'https://us06web.zoom.us/j/89595206121',
-  maths: 'https://us06web.zoom.us/j/86423040533'
+  biology: 'https://us06web.zoom.us/j/81397109206',
+  chemistry: 'https://us06web.zoom.us/j/89250640537',
+  physics: 'https://us06web.zoom.us/j/89820960530',
+  maths: 'https://us06web.zoom.us/j/88584874798'
 }
 const NEW_RECORDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -183,7 +183,8 @@ const renderZoomJoinButton = (zoomLink, displayName, tierLabel = '') => (
 const renderSubjectZoomActions = (subject, displayName, student) => {
   const zoomLink = subject.zoomLink || ''
   const tieredSubjectKey = getTieredSubjectKey(subject)
-  const foundationLink = tieredSubjectKey ? FOUNDATION_TIER_ZOOM_LINKS[tieredSubjectKey] : ''
+  const foundationLink = subject.foundationZoomLink
+    || (tieredSubjectKey ? FOUNDATION_TIER_ZOOM_LINKS[tieredSubjectKey] : '')
 
   if (!zoomLink && !foundationLink) {
     return null
