@@ -22,6 +22,7 @@ import { signOut } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { getStudentSubjectIds, isTutorialStudent } from '../utils/studentAccess'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
+import { FOUNDATION_TIER_ZOOM_LINKS } from '../utils/classGroups'
 
 // Function to get subject icon based on subject name
 const getSubjectIcon = (subjectName) => {
@@ -91,12 +92,6 @@ const writeAccessList = (list) => {
 
 const getSubjectPin = (subject) => subject?.pin || subject?.accessPin || ''
 const SCIENCE_SUBJECTS = ['biology', 'chemistry', 'physics']
-const FOUNDATION_TIER_ZOOM_LINKS = {
-  biology: 'https://us06web.zoom.us/j/81397109206',
-  chemistry: 'https://us06web.zoom.us/j/89250640537',
-  physics: 'https://us06web.zoom.us/j/89820960530',
-  maths: 'https://us06web.zoom.us/j/88584874798'
-}
 const NEW_RECORDING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
 const normalizeSubjectName = (subjectName) => String(subjectName || '').toLowerCase()

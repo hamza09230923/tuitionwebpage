@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder } from 'lucide-react'
+import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder, Search } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
-import { arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc } from 'firebase/firestore'
+import { arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
 import { createR2AdminUpload, createRecording, createHomework, createResource, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
+import { buildClassGroupRecords, buildStudentClassLists } from '../utils/classGroups'
 
 const getStudentDisplayName = (student) => (
   student?.displayName || student?.name || student?.studentName || student?.email || student?.id || 'Unknown student'
@@ -198,6 +199,13 @@ function Admin() {
   const [submissionFilter, setSubmissionFilter] = useState('all') // 'all', 'pending', 'marked'
   const [rosterFilter, setRosterFilter] = useState('all') // 'all', 'submitted', 'missing'
   const [expandedHomework, setExpandedHomework] = useState({})
+  const [classGroups, setClassGroups] = useState([])
+  const [studentClassLists, setStudentClassLists] = useState([])
+  const [classGroupsLoading, setClassGroupsLoading] = useState(false)
+  const [classGroupsSaving, setClassGroupsSaving] = useState(false)
+  const [classGroupSearch, setClassGroupSearch] = useState('')
+  const [classGroupTierFilter, setClassGroupTierFilter] = useState('all')
+  const [expandedClassGroups, setExpandedClassGroups] = useState({})
   
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -623,6 +631,82 @@ function Admin() {
 
     loadSubmissions()
   }, [activeTab, authenticated, selectedSubject])
+
+  const persistClassDirectory = async (groups, lists) => {
+    const ops = []
+    const [existingGroups, existingLists] = await Promise.all([
+      getDocs(collection(db, 'classGroups')),
+      getDocs(collection(db, 'studentClassLists'))
+    ])
+    const nextGroupIds = new Set(groups.map((group) => group.id))
+    const nextListIds = new Set(lists.map((student) => student.id))
+    existingGroups.docs.forEach((snap) => {
+      if (!nextGroupIds.has(snap.id)) ops.push({ type: 'delete', ref: snap.ref })
+    })
+    existingLists.docs.forEach((snap) => {
+      if (!nextListIds.has(snap.id)) ops.push({ type: 'delete', ref: snap.ref })
+    })
+    groups.forEach((group) => {
+      ops.push({
+        type: 'set',
+        ref: doc(db, 'classGroups', group.id),
+        data: { ...group, updatedAt: serverTimestamp() }
+      })
+    })
+    lists.forEach((student) => {
+      ops.push({
+        type: 'set',
+        ref: doc(db, 'studentClassLists', student.id),
+        data: { ...student, updatedAt: serverTimestamp() }
+      })
+    })
+    for (let i = 0; i < ops.length; i += 400) {
+      const batch = writeBatch(db)
+      ops.slice(i, i + 400).forEach((op) => {
+        if (op.type === 'delete') batch.delete(op.ref)
+        else batch.set(op.ref, op.data)
+      })
+      await batch.commit()
+    }
+  }
+
+  const loadClassDirectory = async (persist = true) => {
+    setClassGroupsLoading(true)
+    try {
+      const [studentsSnap, subjectsSnap] = await Promise.all([
+        getDocs(collection(db, 'students')),
+        getDocs(collection(db, 'subjects'))
+      ])
+      const studentsData = studentsSnap.docs.map((snap) => ({ id: snap.id, ...snap.data() }))
+      const subjectsData = subjectsSnap.docs.map((snap) => ({ id: snap.id, ...snap.data() }))
+      const groups = buildClassGroupRecords(studentsData, subjectsData)
+      const lists = buildStudentClassLists(studentsData, subjectsData)
+      setClassGroups(groups)
+      setStudentClassLists(lists)
+      setExpandedClassGroups((current) => {
+        const next = { ...current }
+        groups.forEach((group) => {
+          if (next[group.id] === undefined) next[group.id] = true
+        })
+        return next
+      })
+      if (persist) {
+        setClassGroupsSaving(true)
+        await persistClassDirectory(groups, lists)
+      }
+    } catch (err) {
+      console.error('Error loading class groups:', err)
+      setMessage(err?.message || 'Failed to load class groups')
+    } finally {
+      setClassGroupsLoading(false)
+      setClassGroupsSaving(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab !== 'class-groups' || !authenticated) return
+    loadClassDirectory(true)
+  }, [activeTab, authenticated])
 
   useEffect(() => {
     // Update selected subject data when subject changes
@@ -1511,6 +1595,17 @@ function Admin() {
             <Users className="h-4 w-4" />
             View Submissions
           </button>
+          <button
+            onClick={() => setActiveTab('class-groups')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              activeTab === 'class-groups'
+                ? 'bg-indigo-700 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            Class groups
+          </button>
         </div>
 
         {message && (
@@ -1524,6 +1619,7 @@ function Admin() {
         )}
 
         {/* Subject Selection */}
+        {activeTab !== 'class-groups' && (
         <div className={`rounded-lg shadow-sm border p-6 mb-6 ${
           activeTab === 'view-submissions'
             ? 'bg-purple-50 border-purple-200'
@@ -1563,6 +1659,7 @@ function Admin() {
             </p>
           ) : null}
         </div>
+        )}
 
         {/* Recording Form */}
         {activeTab === 'recording' && (
@@ -2917,6 +3014,205 @@ function Admin() {
             )}
           </div>
         )}
+
+        {activeTab === 'class-groups' && (() => {
+          const queryText = classGroupSearch.trim().toLowerCase()
+          const matchingStudents = queryText
+            ? studentClassLists.filter((student) => (
+              student.name.toLowerCase().includes(queryText)
+              || student.email.toLowerCase().includes(queryText)
+            ))
+            : []
+          const visibleGroups = classGroups.filter((group) => {
+            if (classGroupTierFilter === 'foundation' && group.tier !== 'Foundation') return false
+            if (classGroupTierFilter === 'higher' && group.tier !== 'Higher') return false
+            if (classGroupTierFilter === 'english' && group.tier) return false
+            if (!queryText) return true
+            if (group.subjectName.toLowerCase().includes(queryText)) return true
+            return group.students.some((student) => (
+              student.name.toLowerCase().includes(queryText)
+              || student.email.toLowerCase().includes(queryText)
+            ))
+          })
+
+          return (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Class groups</h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Every group student, their subject, Higher/Foundation, and the Zoom link for that class. This is stored in Firestore for recall.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => loadClassDirectory(true)}
+                    disabled={classGroupsLoading || classGroupsSaving}
+                    className="inline-flex items-center justify-center rounded-lg bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-800 disabled:opacity-50"
+                  >
+                    {classGroupsSaving ? 'Saving…' : classGroupsLoading ? 'Loading…' : 'Refresh and save'}
+                  </button>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <label className="relative sm:col-span-2">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="search"
+                      value={classGroupSearch}
+                      onChange={(e) => setClassGroupSearch(e.target.value)}
+                      placeholder="Search student, email, or subject"
+                      className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </label>
+                  <select
+                    value={classGroupTierFilter}
+                    onChange={(e) => setClassGroupTierFilter(e.target.value)}
+                    className="rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="all">All classes</option>
+                    <option value="foundation">Foundation only</option>
+                    <option value="higher">Higher only</option>
+                    <option value="english">English (no tier)</option>
+                  </select>
+                </div>
+              </div>
+
+              {classGroupsLoading && classGroups.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-2">Loading class groups...</p>
+                </div>
+              ) : (
+                <>
+                  {matchingStudents.length > 0 && (
+                    <div className="space-y-4">
+                      {matchingStudents.map((student) => (
+                        <div key={student.id} className="bg-indigo-50 border border-indigo-200 rounded-lg p-5">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Student lookup</p>
+                          <h3 className="mt-1 text-lg font-semibold text-indigo-950">{student.name}</h3>
+                          <p className="text-sm text-indigo-800">{student.email}</p>
+                          <div className="mt-3 overflow-x-auto">
+                            <table className="min-w-full text-sm">
+                              <thead>
+                                <tr className="text-left text-indigo-800">
+                                  <th className="py-2 pr-4">Subject</th>
+                                  <th className="py-2 pr-4">Tier</th>
+                                  <th className="py-2 pr-4">Exam board</th>
+                                  <th className="py-2">Zoom</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {student.classes.map((item) => (
+                                  <tr key={`${student.id}-${item.groupId}`} className="border-t border-indigo-100">
+                                    <td className="py-2 pr-4 font-medium text-gray-900">{item.subjectName}</td>
+                                    <td className="py-2 pr-4">{item.tier || 'All'}</td>
+                                    <td className="py-2 pr-4">{item.examBoard || '—'}</td>
+                                    <td className="py-2">
+                                      {item.zoomLink ? (
+                                        <a href={item.zoomLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-indigo-700 hover:underline">
+                                          <ExternalLink className="h-3.5 w-3.5" />
+                                          Open Zoom
+                                        </a>
+                                      ) : 'No Zoom link'}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {visibleGroups.length === 0 ? (
+                    <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-600">
+                      No class groups match this search.
+                    </div>
+                  ) : visibleGroups.map((group) => {
+                    const isExpanded = expandedClassGroups[group.id] !== false
+                    return (
+                      <div key={group.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedClassGroups((prev) => ({ ...prev, [group.id]: !isExpanded }))}
+                          className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-gray-50"
+                        >
+                          <div>
+                            <h3 className="font-semibold text-gray-900">
+                              {group.subjectName}
+                              {group.tier ? ` · ${group.tier}` : ''}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              {group.examBoard || 'Exam board not set'} · {group.studentCount} student{group.studentCount === 1 ? '' : 's'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {group.tier && (
+                              <span className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                group.tier === 'Foundation' ? 'bg-amber-100 text-amber-800' :
+                                group.tier === 'Higher' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {group.tier}
+                              </span>
+                            )}
+                            {isExpanded ? <ChevronUp className="h-5 w-5 text-gray-500" /> : <ChevronDown className="h-5 w-5 text-gray-500" />}
+                          </div>
+                        </button>
+                        {isExpanded && (
+                          <div className="border-t border-gray-200 p-4 space-y-4">
+                            <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Zoom link</p>
+                              {group.zoomLink ? (
+                                <div className="mt-1 flex flex-wrap items-center gap-3">
+                                  <a href={group.zoomLink} target="_blank" rel="noopener noreferrer" className="break-all text-sm font-medium text-indigo-700 hover:underline">
+                                    {group.zoomLink}
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => navigator.clipboard.writeText(group.zoomLink)}
+                                    className="text-xs font-medium text-slate-600 hover:text-slate-900"
+                                  >
+                                    Copy
+                                  </button>
+                                </div>
+                              ) : (
+                                <p className="mt-1 text-sm text-rose-700">No Zoom link stored for this class yet.</p>
+                              )}
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full text-sm">
+                                <thead>
+                                  <tr className="text-left text-gray-500">
+                                    <th className="py-2 pr-4">Student</th>
+                                    <th className="py-2 pr-4">Email</th>
+                                    <th className="py-2">Exam board</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {group.students.map((student) => (
+                                    <tr key={student.id} className="border-t border-gray-100">
+                                      <td className="py-2 pr-4 font-medium text-gray-900">{student.name}</td>
+                                      <td className="py-2 pr-4 text-gray-600">{student.email || '—'}</td>
+                                      <td className="py-2 text-gray-600">{student.examBoard || '—'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </>
+              )}
+            </div>
+          )
+        })()}
       </div>
     </div>
   )

@@ -111,6 +111,16 @@ service cloud.firestore {
       allow delete: if isClassTutor(resource.data.classId) || isAdmin();
     }
 
+    match /classGroups/{groupId} {
+      allow read: if isStaff();
+      allow write: if isStaff();
+    }
+
+    match /studentClassLists/{studentId} {
+      allow read: if isStaff() || isOwnStudent(studentId);
+      allow write: if isStaff();
+    }
+
     match /subjects/{subjectId} {
       allow read: if isStaff() || isEnrolledIn(subjectId);
       allow write: if isStaff();
