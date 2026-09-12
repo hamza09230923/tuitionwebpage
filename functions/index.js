@@ -1008,7 +1008,7 @@ const migrateLegacyMaterial = async ({ snapshot, definition, dryRun }) => {
 
 // Admin-only, one-time legacy file mover. Dry run is the default so records
 // without a complete subject/board/tier route are reported rather than exposed.
-exports.migrateLegacyMaterialsToR2 = migrationFunctions.https.onRequest(async (req, res) => {
+const migrateLegacyMaterialsToR2Handler = async (req, res) => {
   if (handleOptions(req, res)) return
   applyCors(req, res)
   if (req.method !== 'POST') return jsonError(res, 405, 'Method not allowed')
@@ -1049,7 +1049,11 @@ exports.migrateLegacyMaterialsToR2 = migrationFunctions.https.onRequest(async (r
     console.error('migrateLegacyMaterialsToR2 error:', err.message)
     jsonError(res, 500, err.message || 'Unable to migrate legacy materials')
   }
-})
+}
+exports.migrateLegacyMaterialsToR2 = migrationFunctions.https.onRequest(migrateLegacyMaterialsToR2Handler)
+// A fresh endpoint avoids waiting on a previous Cloud Functions update while
+// retaining the same admin-only checks and the restricted migration scope.
+exports.migrateRecentLegacyMaterialsToR2 = migrationFunctions.https.onRequest(migrateLegacyMaterialsToR2Handler)
 
 exports.stripeWebhook = runtimeFunctions.https.onRequest(async (req, res) => {
   if (req.method !== 'POST') {

@@ -66,7 +66,7 @@ export const getR2DownloadUrl = (payload) =>
   callFunction('getR2DownloadUrl', payload)
 
 export const migrateLegacyMaterialsToR2 = (payload) =>
-  callFunction('migrateLegacyMaterialsToR2', payload)
+  callFunction('migrateRecentLegacyMaterialsToR2', payload)
 
 export const createRecording = (payload) =>
   callFunction('createRecording', payload)
