@@ -23,6 +23,9 @@ function EnglishTeacher() {
               <a href="https://docs.google.com/forms/d/e/1FAIpQLScnbv90bwET1EGvuiAEy-WUCKXrreBOT-6mWlBnkTUfMcQCOg/viewform?usp=dialog" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-white px-7 py-3 font-bold text-blue-800 shadow-lg transition hover:bg-blue-50">
                 Apply <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </a>
+              <a href="/careers/englishteacher.pdf" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/70 bg-white/10 px-7 py-3 font-bold text-white transition hover:bg-white/20">
+                View Full Role <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </a>
             </div>
           </div>
         </section>
