@@ -38,7 +38,7 @@ function EnglishTeacher() {
               {[
                 ['1', 'Application form', 'Send us your details, experience and availability.'],
                 ['2', 'Trial lesson', 'Deliver a short 30-minute lesson so we can see your teaching in action.'],
-                ['3', 'Hired', 'Join MySchola and start helping GCSE students make progress.']
+                ['3', 'Join MySchola', 'Start helping GCSE students make progress with the MySchola team.']
               ].map(([number, title, description]) => (
                 <div key={number} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">{number}</span>
