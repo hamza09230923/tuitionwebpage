@@ -111,15 +111,19 @@ function EnglishTeacher() {
               </ContentSection>
 
               <ContentSection title="A Tutor Who Wants To Improve The Way Students Learn">
-                <p>We are looking for someone who is always looking for ways to improve. Someone who:</p>
+                <p>We are looking for someone who is always looking for ways to improve and who knows that excellent teaching is both academically strong and genuinely enjoyable. Someone who:</p>
                 <CheckList items={[
                   'Reflects on what works well in lessons',
                   'Finds creative ways to explain difficult concepts',
                   'Adapts their teaching depending on student ability',
                   'Takes ownership of helping students progress',
-                  'Is excited about being part of a growing education company'
+                  'Is excited about being part of a growing education company',
+                  'Brings charisma, warmth and positive energy to every lesson',
+                  'Can make lessons fun and memorable while keeping learning purposeful',
+                  'Uses appropriate humour, light-hearted banter and lively discussion to help students feel comfortable contributing',
+                  'Keeps students engaged and involved from the start of the lesson to the finish'
                 ]} />
-                <p>At MySchola, your ideas matter. If you discover a better way to explain a concept or engage students, we want you to share it.</p>
+                <p>At MySchola, your ideas matter. If you discover a better way to explain a concept, spark a discussion or engage students, we want you to share it. We are especially keen to meet charismatic tutors who can build a positive classroom atmosphere, connect with different personalities and keep every student actively involved throughout the lesson.</p>
               </ContentSection>
 
               <ContentSection title="Growth Mindset">
