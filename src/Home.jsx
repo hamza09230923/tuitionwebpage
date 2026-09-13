@@ -190,6 +190,7 @@ function Home() {
                 <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
                 <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
                 <Link to="/faqs" className="text-gray-700 hover:text-blue-600 transition">FAQ</Link>
+                <Link to="/careers" className="text-gray-700 hover:text-blue-600 transition">Careers</Link>
               </div>
             </div>
 
@@ -238,6 +239,7 @@ function Home() {
               <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
               <Link to="/faqs" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</Link>
+              <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -888,6 +890,7 @@ function Home() {
                   <li><Link to="/courses" className="hover:text-white transition">GCSE Courses</Link></li>
                   <li><Link to="/package" className="hover:text-white transition">Tuition Package</Link></li>
                   <li><Link to="/timetable" className="hover:text-white transition">Lesson Timetable</Link></li>
+                  <li><Link to="/careers" className="hover:text-white transition">Careers</Link></li>
                   <li><Link to="/booking" className="hover:text-white transition">Book a Free Consultation</Link></li>
               </ul>
             </div>

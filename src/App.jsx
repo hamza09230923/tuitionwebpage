@@ -22,6 +22,8 @@ const Resources = lazy(() => import('./pages/Resources'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const RefundCancellationPolicy = lazy(() => import('./pages/RefundCancellationPolicy'))
 const FAQs = lazy(() => import('./pages/FAQs'))
+const Careers = lazy(() => import('./pages/Careers'))
+const EnglishTeacher = lazy(() => import('./pages/EnglishTeacher'))
 
 const WEBINAR_ROUTE = '/book-strategy-call'
 const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
@@ -60,6 +62,8 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/refund-cancellation-policy" element={<RefundCancellationPolicy />} />
           <Route path="/faqs" element={<FAQs />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/english-teacher" element={<EnglishTeacher />} />
 
           {/* Protected student routes */}
           <Route

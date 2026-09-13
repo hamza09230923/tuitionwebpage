@@ -145,6 +145,7 @@ export default function FAQs() {
                   <a href="/#subjects" className="text-gray-700 transition hover:text-blue-600">Subjects</a>
                   <a href="/#testimonials" className="text-gray-700 transition hover:text-blue-600">Testimonials</a>
                   <Link to="/faqs" className="font-semibold text-blue-600">FAQ</Link>
+                  <Link to="/careers" className="text-gray-700 transition hover:text-blue-600">Careers</Link>
                 </div>
               </div>
 
@@ -169,6 +170,7 @@ export default function FAQs() {
                 <a href="/#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
                 <a href="/#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
                 <Link to="/faqs" className="block bg-blue-50 px-3 py-2 font-semibold text-blue-600" role="menuitem">FAQ</Link>
+                <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
                 <Link to="/login" className="block rounded-lg bg-blue-600 px-3 py-2 text-center text-white" role="menuitem">Log In</Link>
                 <a href="https://wa.me/447344193804" target="_blank" rel="noopener noreferrer" onClick={trackLeadWhatsApp} className="block rounded-lg bg-green-500 px-3 py-2 text-center text-white" role="menuitem">Contact Us</a>
               </div>

@@ -236,6 +236,7 @@ function Timetable() {
                 <a href="/courses" className="text-gray-700 hover:text-blue-600 transition">Courses</a>
                 <a href="/package" className="text-gray-700 hover:text-blue-600 transition">Pricing</a>
                 <a href="/#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
+                <Link to="/careers" className="text-gray-700 hover:text-blue-600 transition">Careers</Link>
               </div>
             </div>
 
@@ -283,6 +284,7 @@ function Timetable() {
               <a href="/courses" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Courses</a>
               <a href="/package" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Pricing</a>
               <a href="/#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
+              <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
