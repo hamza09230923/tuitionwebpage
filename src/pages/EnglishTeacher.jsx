@@ -149,7 +149,8 @@ function EnglishTeacher() {
                 <CheckList items={[
                   'UK based, and planning to stay UK based',
                   'Have prepared students for UK exam boards, including AQA, Edexcel or OCR',
-                  'Have completed, or currently be studying at, a top Russell Group university'
+                  'Have completed, or currently be studying at, a top Russell Group university',
+                  'Have achieved at least a Grade 7 in GCSE English Language and English Literature'
                 ]} />
                 <p><strong>Must know:</strong> Macbeth · A Christmas Carol · An Inspector Calls · The Power and Conflict poetry anthology</p>
                 <p><strong>Bonus if you also know:</strong> Romeo and Juliet · Jekyll and Hyde · Blood Brothers · Love and Relationships poetry anthology</p>
