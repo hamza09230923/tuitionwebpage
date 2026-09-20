@@ -37,6 +37,33 @@ const isHomeworkHiddenForStudent = (homework, studentData) => {
     : false
 }
 
+// Keep the assignment list in step with the server-side R2 permission check.
+// Without this, a student could see a Foundation/Higher file in their subject
+// and only discover it is unavailable after opening it.
+const matchesStudentHomeworkRoute = (homework, studentData) => {
+  const settings = studentData?.subjectSettings?.[homework.subjectId]
+  const homeworkBoard = String(homework.examBoard || '').trim().toLowerCase()
+  const homeworkTier = String(homework.tier || '').trim().toLowerCase()
+  const studentBoard = String(settings?.examBoard || '').trim().toLowerCase()
+  const studentTier = String(settings?.tier || '').trim().toLowerCase()
+
+  // R2 homework is always routed by board and, for tiered subjects, tier.
+  // Older non-R2 files retain their existing visibility rules.
+  if (homework.r2Key && (!settings || !studentBoard || (homeworkBoard && homeworkBoard !== studentBoard))) {
+    return false
+  }
+  if (homework.r2Key && homeworkTier && homeworkTier !== 'all-levels' && homeworkTier !== studentTier) {
+    return false
+  }
+  if (!homework.r2Key && homeworkBoard && studentBoard && homeworkBoard !== studentBoard) {
+    return false
+  }
+  if (!homework.r2Key && homeworkTier && homeworkTier !== 'all-levels' && studentTier && homeworkTier !== studentTier) {
+    return false
+  }
+  return true
+}
+
 function HomeworkSubmissionGuide() {
   return (
     <section className="mb-8 rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden">
@@ -149,6 +176,7 @@ function Homework() {
 
         const homeworksData = [...subjectHomeworksData, ...studentHomeworksData]
           .filter((homework) => !isHomeworkHiddenForStudent(homework, access.student))
+          .filter((homework) => matchesStudentHomeworkRoute(homework, access.student))
         
         setHomeworks(homeworksData)
 
