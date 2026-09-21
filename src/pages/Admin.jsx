@@ -24,6 +24,20 @@ const getLockedExamBoard = (subject) => {
   if (name.includes('math') || name.includes('maths') || id.startsWith('maths')) return 'Edexcel'
   return ''
 }
+const isEnglishSubjectData = (subject) => {
+  const id = String(subject?.id || '').toLowerCase()
+  const name = String(subject?.name || '').toLowerCase()
+  return name.includes('english') || id.startsWith('english_')
+}
+const normalizeAcademicRouteValue = (value) => String(value || '').trim().toLowerCase()
+const isStudentOnSelectedRoute = (student, subjectId, examBoard, tier) => {
+  const subjectIds = Array.isArray(student?.subjects) ? student.subjects : []
+  if (!subjectIds.includes(subjectId)) return false
+
+  const settings = student?.subjectSettings?.[subjectId]
+  return normalizeAcademicRouteValue(settings?.examBoard) === normalizeAcademicRouteValue(examBoard) &&
+    normalizeAcademicRouteValue(settings?.tier) === normalizeAcademicRouteValue(tier)
+}
 const getRecordingAccessKey = (recordingId, studentId, action) => `${action}:${recordingId}:${studentId}`
 const getHomeworkAccessKey = (homeworkId, studentId, action) => `${action}:${homeworkId}:${studentId}`
 const DEFAULT_UPLOAD_TIMEOUT_MS = 3 * 60 * 1000
@@ -267,6 +281,9 @@ function Admin() {
   const [migrationLoading, setMigrationLoading] = useState(false)
   const [migrationSummary, setMigrationSummary] = useState(null)
   const isAdmin = userRole === 'admin'
+  const recipientRosterRequiresRoute = ['recording', 'homework', 'resource'].includes(activeTab) &&
+    !isEnglishSubjectData(selectedSubjectData)
+  const recipientRosterReady = !recipientRosterRequiresRoute || Boolean(examBoard && tier)
   const selectedHomeworkStudents = enrolledStudents.filter((student) => (
     selectedHomeworkStudentIds.includes(student.id)
   ))
@@ -517,6 +534,8 @@ function Admin() {
       setSubjectStudentsLoading(true)
       setEnrolledStudents([])
       try {
+        const filterRecipientRosterByRoute = ['recording', 'homework', 'resource'].includes(activeTab) &&
+          !isEnglishSubjectData(selectedSubjectData)
         const studentsQuery = query(
           collection(db, 'students'),
           where('subjects', 'array-contains', selectedSubject)
@@ -531,9 +550,22 @@ function Admin() {
               displayName: data.name || data.displayName || data.email || data.studentName || studentDoc.id
             }
           })
+          .filter((student) => !filterRecipientRosterByRoute || (
+            recipientRosterReady && isStudentOnSelectedRoute(student, selectedSubject, examBoard, tier)
+          ))
           .sort((a, b) => getStudentDisplayName(a).localeCompare(getStudentDisplayName(b)))
 
         setEnrolledStudents(studentsData)
+        const availableStudentIds = new Set(studentsData.map((student) => student.id))
+        setSelectedRecordingStudentId((currentId) => (
+          availableStudentIds.has(currentId) ? currentId : ''
+        ))
+        setSelectedHomeworkStudentIds((currentIds) => (
+          currentIds.filter((id) => availableStudentIds.has(id))
+        ))
+        setSelectedResourceStudentIds((currentIds) => (
+          currentIds.filter((id) => availableStudentIds.has(id))
+        ))
       } catch (err) {
         console.error('Error loading students for subject:', err)
         setMessage('Failed to load students for this subject')
@@ -543,7 +575,7 @@ function Admin() {
     }
 
     loadSubjectStudents()
-  }, [activeTab, authenticated, selectedSubject])
+  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, examBoard, tier, recipientRosterReady])
 
   useEffect(() => {
     const loadManagedHomeworks = async () => {
@@ -779,9 +811,7 @@ function Admin() {
 
   // Check if subject is English (no tier needed)
   const isEnglishSubject = () => {
-    if (!selectedSubjectData) return false
-    const name = selectedSubjectData.name?.toLowerCase() || ''
-    return name.includes('english')
+    return isEnglishSubjectData(selectedSubjectData)
   }
   const lockedExamBoard = getLockedExamBoard(selectedSubjectData)
   const examBoardOptions = lockedExamBoard ? [lockedExamBoard] : ['AQA', 'Edexcel']
@@ -1848,10 +1878,14 @@ function Admin() {
                         onChange={(e) => setSelectedRecordingStudentId(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         required
-                        disabled={subjectStudentsLoading}
+                        disabled={subjectStudentsLoading || !recipientRosterReady}
                       >
                         <option value="">
-                          {subjectStudentsLoading ? 'Loading students...' : 'Select student'}
+                          {subjectStudentsLoading
+                            ? 'Loading students...'
+                            : recipientRosterReady
+                              ? 'Select student'
+                              : 'Select the exam board and tier first'}
                         </option>
                         {enrolledStudents.map((student) => (
                           <option key={student.id} value={student.id}>
@@ -1859,7 +1893,12 @@ function Admin() {
                           </option>
                         ))}
                       </select>
-                      {!subjectStudentsLoading && enrolledStudents.length === 0 && (
+                      {!subjectStudentsLoading && !recipientRosterReady && (
+                        <p className="mt-2 text-sm text-blue-700">
+                          Select the exam board and tier to show only students on that course route.
+                        </p>
+                      )}
+                      {!subjectStudentsLoading && recipientRosterReady && enrolledStudents.length === 0 && (
                         <p className="mt-2 text-sm text-red-600">
                           No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
                         </p>
@@ -2444,7 +2483,7 @@ function Admin() {
                         <button
                           type="button"
                           onClick={() => setSelectedHomeworkStudentIds(enrolledStudents.map((student) => student.id))}
-                          disabled={subjectStudentsLoading || enrolledStudents.length === 0 || allHomeworkStudentsSelected}
+                          disabled={subjectStudentsLoading || !recipientRosterReady || enrolledStudents.length === 0 || allHomeworkStudentsSelected}
                           className="px-3 py-1.5 text-sm font-medium text-green-700 border border-green-200 rounded-md hover:bg-green-50 disabled:opacity-50"
                         >
                           Select all
@@ -2461,6 +2500,10 @@ function Admin() {
                       <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-gray-300 bg-white p-3">
                         {subjectStudentsLoading ? (
                           <p className="text-sm text-gray-600">Loading students...</p>
+                        ) : !recipientRosterReady ? (
+                          <p className="text-sm text-blue-700">
+                            Select the exam board and tier to show only students on that course route.
+                          </p>
                         ) : enrolledStudents.length === 0 ? (
                           <p className="text-sm text-red-600">
                             No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
@@ -2633,7 +2676,7 @@ function Admin() {
                         <button
                           type="button"
                           onClick={() => setSelectedResourceStudentIds(enrolledStudents.map((student) => student.id))}
-                          disabled={subjectStudentsLoading || enrolledStudents.length === 0 || allResourceStudentsSelected}
+                          disabled={subjectStudentsLoading || !recipientRosterReady || enrolledStudents.length === 0 || allResourceStudentsSelected}
                           className="px-3 py-1.5 text-sm font-medium text-purple-700 border border-purple-200 rounded-md hover:bg-purple-50 disabled:opacity-50"
                         >
                           Select all
@@ -2650,6 +2693,10 @@ function Admin() {
                       <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-gray-300 bg-white p-3">
                         {subjectStudentsLoading ? (
                           <p className="text-sm text-gray-600">Loading students...</p>
+                        ) : !recipientRosterReady ? (
+                          <p className="text-sm text-blue-700">
+                            Select the exam board and tier to show only students on that course route.
+                          </p>
                         ) : enrolledStudents.length === 0 ? (
                           <p className="text-sm text-red-600">
                             No students are enrolled in subject ID <code>{selectedSubject}</code> yet.
