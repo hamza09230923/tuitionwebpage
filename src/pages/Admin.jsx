@@ -4,7 +4,7 @@ import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, 
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
-import { createR2AdminUpload, createRecording, createHomework, createResource, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
+import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import { buildClassGroupRecords, buildStudentClassLists } from '../utils/classGroups'
 
@@ -212,6 +212,7 @@ function Admin() {
   const navigate = useNavigate()
   const [authenticated, setAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState(null)
+  const [teacherProfile, setTeacherProfile] = useState(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('')
@@ -280,7 +281,19 @@ function Admin() {
   const [message, setMessage] = useState('')
   const [migrationLoading, setMigrationLoading] = useState(false)
   const [migrationSummary, setMigrationSummary] = useState(null)
+  const [openingMaterialKey, setOpeningMaterialKey] = useState('')
   const isAdmin = userRole === 'admin'
+  const isTeacher = userRole === 'teacher'
+  const teacherSubjects = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
+  const teacherPermissions = Array.isArray(teacherProfile?.permissions) ? teacherProfile.permissions : []
+  const teacherCanUseSubject = (subjectId) => !isTeacher || teacherSubjects.includes(subjectId)
+  const teacherCanUpload = (materialType) => {
+    if (isAdmin) return true
+    if (!isTeacher || !teacherCanUseSubject(selectedSubject)) return false
+    const permission = materialType === 'recording' ? 'upload_recordings' : 'upload_homework'
+    return teacherPermissions.includes(permission) &&
+      String(teacherProfile?.classTiers?.[selectedSubject] || '').toLowerCase() === 'foundation'
+  }
   const recipientRosterRequiresRoute = ['recording', 'homework', 'resource'].includes(activeTab) &&
     !isEnglishSubjectData(selectedSubjectData)
   const recipientRosterReady = !recipientRosterRequiresRoute || Boolean(examBoard && tier)
@@ -297,6 +310,33 @@ function Admin() {
     selectedResourceStudents.length === enrolledStudents.length
   )
   const groupedHomeworks = groupHomeworksForSubmissions(homeworks)
+
+  const openManagedMaterial = async (material, materialType) => {
+    const collectionName = materialType === 'recording'
+      ? getRecordingCollection(material)
+      : getHomeworkCollection(material)
+    const urlField = materialType === 'recording' ? 'videoUrl' : 'attachmentUrl'
+    if (material[urlField]) {
+      window.open(material[urlField], '_blank', 'noopener,noreferrer')
+      return
+    }
+    if (!material.r2Key) {
+      setMessage('This material does not have an available file')
+      return
+    }
+
+    const key = `${materialType}:${collectionName}:${material.id}`
+    setOpeningMaterialKey(key)
+    try {
+      const result = await getR2DownloadUrl({ collection: collectionName, documentId: material.id })
+      if (!result?.downloadUrl) throw new Error('Download link was not returned')
+      window.open(result.downloadUrl, '_blank', 'noopener,noreferrer')
+    } catch (err) {
+      setMessage(err?.message || 'Unable to open this material')
+    } finally {
+      setOpeningMaterialKey('')
+    }
+  }
 
   const runLegacyMigration = async (mode) => {
     if (!isAdmin || migrationLoading) return
@@ -338,6 +378,7 @@ function Admin() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setAuthenticated(false)
+        setTeacherProfile(null)
         setCheckingAuth(false)
         navigate('/login', { replace: true })
         return
@@ -350,15 +391,18 @@ function Admin() {
         if (adminDoc.exists() || teacherDoc?.exists()) {
           setAuthenticated(true)
           setUserRole(adminDoc.exists() ? 'admin' : 'teacher')
+          setTeacherProfile(teacherDoc?.exists() ? teacherDoc.data() : null)
         } else {
           setAuthenticated(false)
           setUserRole(null)
+          setTeacherProfile(null)
           navigate('/login', { replace: true })
         }
       } catch (err) {
         console.error('Error verifying role:', err)
         setAuthenticated(false)
         setUserRole(null)
+        setTeacherProfile(null)
         navigate('/login', { replace: true })
       } finally {
         setCheckingAuth(false)
@@ -371,12 +415,23 @@ function Admin() {
   useEffect(() => {
     const loadSubjects = async () => {
       try {
-        const subjectsSnapshot = await getDocs(collection(db, 'subjects'))
-        const subjectsData = subjectsSnapshot.docs
-          .map(doc => ({
+        let subjectsData
+        if (isTeacher) {
+          const teacherSubjectIds = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
+          const subjectSnapshots = await Promise.all(
+            teacherSubjectIds.map((subjectId) => getDoc(doc(db, 'subjects', subjectId)))
+          )
+          subjectsData = subjectSnapshots
+            .filter((subjectDoc) => subjectDoc.exists())
+            .map((subjectDoc) => ({ id: subjectDoc.id, ...subjectDoc.data() }))
+        } else {
+          const subjectsSnapshot = await getDocs(collection(db, 'subjects'))
+          subjectsData = subjectsSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
           }))
+        }
+        subjectsData = subjectsData
           .filter((subject) => !isCrashCourseSubject(subject))
           .sort((a, b) => {
             const nameSort = getCanonicalSubjectName(a).localeCompare(getCanonicalSubjectName(b))
@@ -396,11 +451,11 @@ function Admin() {
     if (authenticated) {
       loadSubjects()
     }
-  }, [authenticated])
+  }, [authenticated, isTeacher, teacherProfile])
 
   useEffect(() => {
     const loadPendingRecordings = async () => {
-      if (activeTab === 'approve' && authenticated) {
+      if (activeTab === 'approve' && authenticated && isAdmin) {
         setPendingRecordingsLoading(true)
         try {
           const recordingsQuery = query(
@@ -452,7 +507,7 @@ function Admin() {
       }
     }
     loadPendingRecordings()
-  }, [activeTab, authenticated, subjects])
+  }, [activeTab, authenticated, subjects, isAdmin])
 
   useEffect(() => {
     const loadManagedRecordings = async () => {
@@ -467,13 +522,15 @@ function Admin() {
           recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
+            ...(isTeacher ? [where('tier', '==', 'Foundation')] : []),
             orderBy('date', 'desc')
           )
         } catch (err) {
           console.warn('Recordings orderBy failed, using simple query:', err)
           recordingsQuery = query(
             collection(db, 'recordings'),
-            where('subjectId', '==', selectedSubject)
+            where('subjectId', '==', selectedSubject),
+            ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
           )
         }
 
@@ -491,7 +548,8 @@ function Admin() {
         try {
           const studentRecordingsQuery = query(
             collection(db, 'studentRecordings'),
-            where('subjectId', '==', selectedSubject)
+            where('subjectId', '==', selectedSubject),
+            ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
           )
           const studentRecordingsSnapshot = await getDocs(studentRecordingsQuery)
           studentRecordingsData = studentRecordingsSnapshot.docs
@@ -522,10 +580,10 @@ function Admin() {
     }
 
     loadManagedRecordings()
-  }, [activeTab, authenticated, selectedSubject])
+  }, [activeTab, authenticated, selectedSubject, isTeacher])
 
   useEffect(() => {
-    const shouldLoadStudents = ['recording', 'homework', 'resource', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
+    const shouldLoadStudents = isAdmin && ['recording', 'homework', 'resource', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
     if (!authenticated || !selectedSubject || !shouldLoadStudents) {
       return
     }
@@ -575,7 +633,7 @@ function Admin() {
     }
 
     loadSubjectStudents()
-  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, examBoard, tier, recipientRosterReady])
+  }, [activeTab, authenticated, isAdmin, selectedSubject, selectedSubjectData, examBoard, tier, recipientRosterReady])
 
   useEffect(() => {
     const loadManagedHomeworks = async () => {
@@ -587,7 +645,8 @@ function Admin() {
       try {
         const homeworksQuery = query(
           collection(db, 'homeworks'),
-          where('subjectId', '==', selectedSubject)
+          where('subjectId', '==', selectedSubject),
+          ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
         )
 
         const homeworksSnapshot = await getDocs(homeworksQuery)
@@ -603,7 +662,8 @@ function Admin() {
         try {
           const studentHomeworksQuery = query(
             collection(db, 'studentHomeworks'),
-            where('subjectId', '==', selectedSubject)
+            where('subjectId', '==', selectedSubject),
+            ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
           )
           const studentHomeworksSnapshot = await getDocs(studentHomeworksQuery)
           studentHomeworksData = studentHomeworksSnapshot.docs
@@ -634,11 +694,11 @@ function Admin() {
     }
 
     loadManagedHomeworks()
-  }, [activeTab, authenticated, selectedSubject])
+  }, [activeTab, authenticated, selectedSubject, isTeacher])
 
   useEffect(() => {
     const loadSubmissions = async () => {
-      if (activeTab !== 'view-submissions' || !authenticated || !selectedSubject) {
+      if (activeTab !== 'view-submissions' || !authenticated || !isAdmin || !selectedSubject) {
         return
       }
 
@@ -718,7 +778,7 @@ function Admin() {
     }
 
     loadSubmissions()
-  }, [activeTab, authenticated, selectedSubject])
+  }, [activeTab, authenticated, isAdmin, selectedSubject])
 
   const persistClassDirectory = async (groups, lists) => {
     const ops = []
@@ -792,22 +852,22 @@ function Admin() {
   }
 
   useEffect(() => {
-    if (activeTab !== 'class-groups' || !authenticated) return
+    if (activeTab !== 'class-groups' || !authenticated || !isAdmin) return
     loadClassDirectory(true)
-  }, [activeTab, authenticated])
+  }, [activeTab, authenticated, isAdmin])
 
   useEffect(() => {
     // Update selected subject data when subject changes
     const subject = subjects.find(s => s.id === selectedSubject)
     setSelectedSubjectData(subject || null)
-    setExamBoard(getLockedExamBoard(subject) || '')
-    setTier('')
+    setExamBoard(teacherProfile?.classBoards?.[selectedSubject] || getLockedExamBoard(subject) || '')
+    setTier(isTeacher ? (teacherProfile?.classTiers?.[selectedSubject] || '') : '')
     setSelectedRecordingStudentId('')
     setSelectedHomeworkStudentIds([])
     setSelectedResourceStudentIds([])
     setRosterFilter('all')
     setSubmissionFilter('all')
-  }, [selectedSubject, subjects])
+  }, [selectedSubject, subjects, isTeacher, teacherProfile])
 
   // Check if subject is English (no tier needed)
   const isEnglishSubject = () => {
@@ -886,8 +946,8 @@ function Admin() {
 
   const handleSubmitRecording = async (e) => {
     e.preventDefault()
-    if (!isAdmin) {
-      setMessage('Only admins can upload lessons, homework, or learning resources')
+    if (!teacherCanUpload('recording')) {
+      setMessage('You are not assigned to upload recordings for this class')
       return
     }
     if (!selectedSubject || !recordingTitle || !examBoard) {
@@ -902,6 +962,10 @@ function Admin() {
 
     if (!isEnglishSubject() && !tier) {
       setMessage('Please select a tier (Foundation or Higher)')
+      return
+    }
+    if (isTeacher && tier !== 'Foundation') {
+      setMessage('This teacher account can only upload Foundation class recordings')
       return
     }
 
@@ -926,7 +990,7 @@ function Admin() {
         studentIds: recordingAudience === 'student' ? [selectedRecordingStudentId] : []
       })
 
-      const uploadResult = await uploadFileWithProgress(
+      await uploadFileWithProgress(
         recordingFile,
         uploadConfig,
         setUploadProgress,
@@ -950,8 +1014,8 @@ function Admin() {
       setRecordingTitle('')
       setRecordingFile(null)
       setUploadProgress(0)
-      setExamBoard('')
-      setTier('')
+      setExamBoard(teacherProfile?.classBoards?.[selectedSubject] || getLockedExamBoard(selectedSubjectData) || '')
+      setTier(isTeacher ? (teacherProfile?.classTiers?.[selectedSubject] || '') : '')
       setRecordingAudience('subject')
       setSelectedRecordingStudentId('')
 
@@ -1367,8 +1431,8 @@ function Admin() {
 
   const handleSubmitHomework = async (e) => {
     e.preventDefault()
-    if (!isAdmin) {
-      setMessage('Only admins can upload lessons, homework, or learning resources')
+    if (!teacherCanUpload('homework')) {
+      setMessage('You are not assigned to upload homework for this class')
       return
     }
     if (!selectedSubject || !homeworkTitle) {
@@ -1383,6 +1447,10 @@ function Admin() {
 
     if (!examBoard || (!isEnglishSubject() && !tier)) {
       setMessage('Select the exam board and Foundation or Higher tier before uploading')
+      return
+    }
+    if (isTeacher && tier !== 'Foundation') {
+      setMessage('This teacher account can only upload Foundation class homework')
       return
     }
 
@@ -1586,7 +1654,7 @@ function Admin() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isAdmin ? 'Admin Panel' : 'Teacher Panel'}</h1>
             <button
               onClick={async () => {
                 await auth.signOut()
@@ -1626,6 +1694,11 @@ function Admin() {
               )}
             </div>
           )}
+          {isTeacher && (
+            <div className="mt-4 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950">
+              You can upload and view recordings and homework for your assigned Foundation classes only.
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -1654,7 +1727,7 @@ function Admin() {
           </button>
           <button
             onClick={() => setActiveTab('resource')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+            className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
               activeTab === 'resource'
                 ? 'bg-amber-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1665,7 +1738,7 @@ function Admin() {
           </button>
           <button
             onClick={() => setActiveTab('approve')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition relative ${
+            className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition relative ${
               activeTab === 'approve'
                 ? 'bg-purple-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1703,7 +1776,7 @@ function Admin() {
           </button>
           <button
             onClick={() => setActiveTab('view-submissions')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+            className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
               activeTab === 'view-submissions'
                 ? 'bg-purple-700 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1714,7 +1787,7 @@ function Admin() {
           </button>
           <button
             onClick={() => setActiveTab('class-groups')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+            className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
               activeTab === 'class-groups'
                 ? 'bg-indigo-700 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1944,7 +2017,7 @@ function Admin() {
         )}
 
         {/* Approval Tab */}
-        {activeTab === 'approve' && (
+        {activeTab === 'approve' && isAdmin && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Approve Recordings</h2>
             <p className="text-sm text-gray-600 mb-6">
@@ -2108,16 +2181,16 @@ function Admin() {
                             )}
                           </div>
 
-                          {recording.videoUrl && (
-                            <a
-                              href={recording.videoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm mt-3"
+                          {(recording.videoUrl || recording.r2Key) && (
+                            <button
+                              type="button"
+                              onClick={() => openManagedMaterial(recording, 'recording')}
+                              disabled={openingMaterialKey === `recording:${getRecordingCollection(recording)}:${recording.id}`}
+                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm mt-3 disabled:opacity-50"
                             >
                               <Video className="h-4 w-4" />
-                              Preview Video
-                            </a>
+                              {openingMaterialKey === `recording:${getRecordingCollection(recording)}:${recording.id}` ? 'Opening…' : 'Preview Video'}
+                            </button>
                           )}
 
                           <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -2284,16 +2357,16 @@ function Admin() {
                             )}
                           </div>
 
-                          {homework.attachmentUrl && (
-                            <a
-                              href={homework.attachmentUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 text-sm mt-3"
+                          {(homework.attachmentUrl || homework.r2Key) && (
+                            <button
+                              type="button"
+                              onClick={() => openManagedMaterial(homework, 'homework')}
+                              disabled={openingMaterialKey === `homework:${getHomeworkCollection(homework)}:${homework.id}`}
+                              className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 text-sm mt-3 disabled:opacity-50"
                             >
                               <Download className="h-4 w-4" />
-                              Open Attachment
-                            </a>
+                              {openingMaterialKey === `homework:${getHomeworkCollection(homework)}:${homework.id}` ? 'Opening…' : 'Open Attachment'}
+                            </button>
                           )}
 
                           <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -2580,7 +2653,7 @@ function Admin() {
         )}
 
         {/* Resource Form */}
-        {activeTab === 'resource' && (
+        {activeTab === 'resource' && isAdmin && (
           <form onSubmit={handleSubmitResource} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Revision Resource</h2>
             <p className="text-sm text-gray-600 mb-6">
@@ -2763,7 +2836,7 @@ function Admin() {
         )}
 
         {/* View Submissions */}
-        {activeTab === 'view-submissions' && (
+        {activeTab === 'view-submissions' && isAdmin && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3">
@@ -3172,7 +3245,7 @@ function Admin() {
           </div>
         )}
 
-        {activeTab === 'class-groups' && (() => {
+        {activeTab === 'class-groups' && isAdmin && (() => {
           const queryText = classGroupSearch.trim().toLowerCase()
           const matchingStudents = queryText
             ? studentClassLists.filter((student) => (

@@ -82,6 +82,54 @@ const assertAdminRole = (role) => {
   if (role !== 'admin') throw new Error('Only admins can upload or publish learning materials')
 }
 
+const TEACHER_UPLOAD_PERMISSIONS = {
+  recording: 'upload_recordings',
+  homework: 'upload_homework'
+}
+
+const TEACHER_VIEW_PERMISSIONS = {
+  recording: 'view_recordings',
+  homework: 'view_homework'
+}
+
+const getTeacherProfile = async (uid) => {
+  const snapshot = await getDb().doc(`teachers/${uid}`).get()
+  return snapshot.exists ? (snapshot.data() || {}) : null
+}
+
+const getTeacherTier = (teacher, subjectId) => {
+  const tiers = teacher?.classTiers || teacher?.allowedTiers || {}
+  return String(tiers[subjectId] || '').trim().toLowerCase()
+}
+
+const teacherHasPermission = (teacher, permission) => (
+  Array.isArray(teacher?.permissions) && teacher.permissions.includes(permission)
+)
+
+const assertTeacherMaterialAccess = async ({ uid, subjectId, tier, materialType, action }) => {
+  const teacher = await getTeacherProfile(uid)
+  const subjects = Array.isArray(teacher?.subjects) ? teacher.subjects : []
+  const permissionMap = action === 'upload' ? TEACHER_UPLOAD_PERMISSIONS : TEACHER_VIEW_PERMISSIONS
+  const permission = permissionMap[materialType]
+
+  if (!teacher || !subjects.includes(subjectId)) {
+    throw new Error('This teacher is not assigned to the selected class')
+  }
+  if (!permission || !teacherHasPermission(teacher, permission)) {
+    throw new Error(`This teacher cannot ${action} ${materialType}s`)
+  }
+  if (getTeacherTier(teacher, subjectId) !== String(tier || '').trim().toLowerCase()) {
+    throw new Error('This teacher is not assigned to the selected class tier')
+  }
+  return teacher
+}
+
+const materialTypeForCollection = (collectionName) => {
+  if (collectionName === 'recordings' || collectionName === 'studentRecordings') return 'recording'
+  if (collectionName === 'homeworks' || collectionName === 'studentHomeworks') return 'homework'
+  return null
+}
+
 const assertR2FileType = ({ uploadType, fileName, contentType }) => {
   const type = String(uploadType || '').trim().toLowerCase()
   const extension = String(fileName || '').split('.').pop().toLowerCase()
@@ -750,7 +798,6 @@ exports.createR2AdminUpload = runtimeFunctions.https.onRequest(async (req, res) 
   try {
     const decoded = await getAuthToken(req)
     const role = await getUserRole(decoded.uid)
-    assertAdminRole(role)
 
     const { subjectId, examBoard, tier, fileName, contentType, uploadType, studentIds = [] } = req.body || {}
     if (!subjectId || !examBoard || !fileName || !uploadType) {
@@ -758,6 +805,21 @@ exports.createR2AdminUpload = runtimeFunctions.https.onRequest(async (req, res) 
     }
     if (!Array.isArray(studentIds) || studentIds.some((id) => typeof id !== 'string' || !id.trim() || id.includes('/'))) {
       return jsonError(res, 400, 'studentIds must be a valid list')
+    }
+
+    if (role === 'teacher') {
+      if (studentIds.length > 0) {
+        return jsonError(res, 403, 'Teachers can only upload class-wide materials')
+      }
+      await assertTeacherMaterialAccess({
+        uid: decoded.uid,
+        subjectId,
+        tier,
+        materialType: uploadType,
+        action: 'upload'
+      })
+    } else {
+      assertAdminRole(role)
     }
 
     const route = resolveR2AcademicRoute({ subjectId, examBoard, tier })
@@ -844,7 +906,17 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
     if (!material.r2Key) return jsonError(res, 400, 'Material is not stored in R2')
 
     const role = await getUserRole(decoded.uid)
-    if (role !== 'admin') {
+    const materialType = materialTypeForCollection(collection)
+    if (role === 'teacher') {
+      if (!materialType) return jsonError(res, 403, 'Teachers cannot access this material type')
+      await assertTeacherMaterialAccess({
+        uid: decoded.uid,
+        subjectId: material.subjectId,
+        tier: material.tier,
+        materialType,
+        action: 'view'
+      })
+    } else if (role !== 'admin') {
       const studentSnapshot = await getDb().doc(`students/${decoded.uid}`).get()
       if (!studentSnapshot.exists) return jsonError(res, 403, 'Not authorized')
       const student = studentSnapshot.data() || {}
@@ -1102,7 +1174,6 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
     if (!role) {
       return jsonError(res, 403, 'Not authorized')
     }
-    assertAdminRole(role)
 
     const {
       subjectId,
@@ -1122,6 +1193,20 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
 
     if (!r2Key) {
       return jsonError(res, 400, 'An R2 video upload is required')
+    }
+    if (role === 'teacher') {
+      if (visibility === 'student' || studentId) {
+        return jsonError(res, 403, 'Teachers can only publish class-wide recordings')
+      }
+      await assertTeacherMaterialAccess({
+        uid: decoded.uid,
+        subjectId,
+        tier,
+        materialType: 'recording',
+        action: 'upload'
+      })
+    } else {
+      assertAdminRole(role)
     }
     const r2Route = r2Key ? resolveR2AcademicRoute({ subjectId, examBoard, tier }) : null
 
@@ -1200,7 +1285,6 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
     if (!role) {
       return jsonError(res, 403, 'Not authorized')
     }
-    assertAdminRole(role)
 
     const {
       subjectId,
@@ -1249,6 +1333,21 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
     const requestedStudentIds = Array.from(new Set(rawStudentIds.map((id) => id.trim())))
     if (isStudentSpecificRequest && requestedStudentIds.length === 0) {
       return jsonError(res, 400, 'Select at least one student for student-specific homework')
+    }
+
+    if (role === 'teacher') {
+      if (requestedStudentIds.length > 0) {
+        return jsonError(res, 403, 'Teachers can only publish class-wide homework')
+      }
+      await assertTeacherMaterialAccess({
+        uid: decoded.uid,
+        subjectId,
+        tier,
+        materialType: 'homework',
+        action: 'upload'
+      })
+    } else {
+      assertAdminRole(role)
     }
 
     if (requestedStudentIds.length > 500) {

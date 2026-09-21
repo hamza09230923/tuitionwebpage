@@ -15,8 +15,14 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/teachers/$(request.auth.uid));
     }
 
-    function isStaff() {
-      return isAdmin() || isTeacher();
+    function teacherProfile() {
+      return get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data;
+    }
+
+    function isAssignedTeacherClass(subjectId, tier) {
+      return isTeacher() &&
+        subjectId in teacherProfile().subjects &&
+        teacherProfile().classTiers[subjectId] == tier;
     }
 
     // A tutor may only see a student where an admin has created this
@@ -112,22 +118,24 @@ service cloud.firestore {
     }
 
     match /classGroups/{groupId} {
-      allow read: if isStaff();
-      allow write: if isStaff();
+      allow read, write: if isAdmin();
     }
 
     match /studentClassLists/{studentId} {
-      allow read: if isStaff() || isOwnStudent(studentId);
-      allow write: if isStaff();
+      allow read: if isAdmin() || isOwnStudent(studentId);
+      allow write: if isAdmin();
     }
 
     match /subjects/{subjectId} {
-      allow read: if isStaff() || isEnrolledIn(subjectId);
-      allow write: if isStaff();
+      allow read: if isAdmin() ||
+        (isTeacher() && subjectId in teacherProfile().subjects) ||
+        isEnrolledIn(subjectId);
+      allow write: if isAdmin();
     }
 
     match /recordings/{recordingId} {
-      allow read: if isStaff() || (
+      allow read: if isAdmin() ||
+        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) || (
         isEnrolledIn(resource.data.subjectId) &&
         (
           !('approvalStatus' in resource.data) ||
@@ -139,7 +147,8 @@ service cloud.firestore {
     }
 
     match /studentRecordings/{recordingId} {
-      allow read: if isStaff() || (
+      allow read: if isAdmin() ||
+        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
         isEnrolledIn(resource.data.subjectId) &&
@@ -153,12 +162,15 @@ service cloud.firestore {
     }
 
     match /homeworks/{homeworkId} {
-      allow read: if isStaff() || isEnrolledIn(resource.data.subjectId);
+      allow read: if isAdmin() ||
+        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) ||
+        isEnrolledIn(resource.data.subjectId);
       allow create, update, delete: if isAdmin();
     }
 
     match /studentHomeworks/{homeworkId} {
-      allow read: if isStaff() || (
+      allow read: if isAdmin() ||
+        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
         isEnrolledIn(resource.data.subjectId)
@@ -168,7 +180,7 @@ service cloud.firestore {
     }
 
     match /resources/{resourceId} {
-      allow read: if isStaff() || (
+      allow read: if isAdmin() || (
         isEnrolledIn(resource.data.subjectId) &&
         (
           !('approvalStatus' in resource.data) ||
@@ -180,7 +192,7 @@ service cloud.firestore {
     }
 
     match /studentResources/{resourceId} {
-      allow read: if isStaff() || (
+      allow read: if isAdmin() || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
         isEnrolledIn(resource.data.subjectId) &&
@@ -202,15 +214,14 @@ service cloud.firestore {
       allow read: if signedIn() && resource.data.studentId == request.auth.uid;
       // Students can create submissions for themselves only
       allow create: if signedIn() && request.resource.data.studentId == request.auth.uid;
-      // Staff can mark a student as done even if they did not submit a file
-      allow create: if isStaff();
+      // Only admins can mark a student as done even if they did not submit a file.
+      allow create: if isAdmin();
       // Students can update their own submission (to change link)
       allow update: if signedIn() && resource.data.studentId == request.auth.uid;
-      // Only staff can read all submissions
-      allow read: if isStaff();
-      // Only staff can update (mark as marked) and delete
-      allow update: if isStaff();
-      allow delete: if isStaff();
+      // Only admins can read, update, or delete all submissions.
+      allow read: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
   }
 }

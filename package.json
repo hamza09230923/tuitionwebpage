@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "setup:accounts": "node scripts/setup-accounts.js"
+    "setup:accounts": "node scripts/setup-accounts.js",
+    "setup:teacher": "node scripts/create-teacher-account.js"
   },
   "dependencies": {
     "firebase": "^12.6.0",
