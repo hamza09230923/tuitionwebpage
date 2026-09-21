@@ -517,24 +517,24 @@ function Admin() {
 
       setManagedRecordingsLoading(true)
       try {
-        let recordingsQuery
+        let recordingsSnapshot
         try {
-          recordingsQuery = query(
+          const recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
             ...(isTeacher ? [where('tier', '==', 'Foundation')] : []),
             orderBy('date', 'desc')
           )
+          recordingsSnapshot = await getDocs(recordingsQuery)
         } catch (err) {
-          console.warn('Recordings orderBy failed, using simple query:', err)
-          recordingsQuery = query(
+          console.warn('Ordered recordings query failed, using scoped query:', err)
+          const recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
             ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
           )
+          recordingsSnapshot = await getDocs(recordingsQuery)
         }
-
-        const recordingsSnapshot = await getDocs(recordingsQuery)
 
         const subjectRecordingsData = recordingsSnapshot.docs
           .map((recordingDoc) => ({
