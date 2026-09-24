@@ -137,6 +137,54 @@ const materialTypeForCollection = (collectionName) => {
   return null
 }
 
+exports.getTeacherClassRoster = runtimeFunctions.https.onRequest(async (req, res) => {
+  if (handleOptions(req, res)) return
+  applyCors(req, res)
+  if (req.method !== 'POST') return jsonError(res, 405, 'Method not allowed')
+
+  try {
+    const decoded = await getAuthToken(req)
+    const role = await getUserRole(decoded.uid)
+    if (role !== 'teacher') return jsonError(res, 403, 'Not authorized')
+
+    const teacher = await getTeacherProfile(decoded.uid)
+    if (!isFawwazTeacherProfile(teacher)) return jsonError(res, 403, 'Not authorized')
+
+    const { subjectId } = req.body || {}
+    const subjects = Array.isArray(teacher.subjects) ? teacher.subjects : []
+    if (!subjectId || !subjects.includes(subjectId)) {
+      return jsonError(res, 403, 'This teacher is not assigned to the selected class')
+    }
+
+    const tier = getTeacherTier(teacher, subjectId)
+    if (tier !== 'foundation') {
+      return jsonError(res, 403, 'This teacher account can only access Foundation class rosters')
+    }
+
+    const expectedBoard = String(teacher.classBoards?.[subjectId] || '').trim().toLowerCase()
+    const studentsSnapshot = await getDb().collection('students')
+      .where('subjects', 'array-contains', subjectId)
+      .get()
+    const students = studentsSnapshot.docs
+      .flatMap((studentDoc) => {
+        const student = studentDoc.data() || {}
+        const setting = student.subjectSettings?.[subjectId] || {}
+        if (String(setting.tier || '').trim().toLowerCase() !== tier) return []
+        if (expectedBoard && String(setting.examBoard || '').trim().toLowerCase() !== expectedBoard) return []
+        return [{
+          id: studentDoc.id,
+          name: String(student.name || student.displayName || student.studentName || 'Student').trim()
+        }]
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+
+    res.status(200).json({ students })
+  } catch (err) {
+    console.error('getTeacherClassRoster error:', err.message)
+    jsonError(res, 403, err.message || 'Unable to load this class roster')
+  }
+})
+
 const assertR2FileType = ({ uploadType, fileName, contentType }) => {
   const type = String(uploadType || '').trim().toLowerCase()
   const extension = String(fileName || '').split('.').pop().toLowerCase()

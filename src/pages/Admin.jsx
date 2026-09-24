@@ -4,7 +4,7 @@ import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, 
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
-import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
+import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, getTeacherClassRoster, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import {
   buildClassGroupRecords,
@@ -218,6 +218,8 @@ function Admin() {
   const [authenticated, setAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState(null)
   const [teacherProfile, setTeacherProfile] = useState(null)
+  const [teacherRosters, setTeacherRosters] = useState({})
+  const [teacherRostersLoading, setTeacherRostersLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('')
@@ -307,6 +309,37 @@ function Admin() {
         }
       })
     : []
+
+  useEffect(() => {
+    if (!authenticated || !isFawwazTeacher || !teacherProfile) {
+      setTeacherRosters({})
+      setTeacherRostersLoading(false)
+      return
+    }
+
+    let cancelled = false
+    const assignedFoundationSubjects = (Array.isArray(teacherProfile.subjects) ? teacherProfile.subjects : [])
+      .filter((subjectId) => String(teacherProfile.classTiers?.[subjectId] || '').trim().toLowerCase() === 'foundation')
+
+    setTeacherRostersLoading(true)
+    Promise.all(assignedFoundationSubjects.map(async (subjectId) => {
+      try {
+        const result = await getTeacherClassRoster({ subjectId })
+        return [subjectId, { students: Array.isArray(result.students) ? result.students : [], error: '' }]
+      } catch (err) {
+        return [subjectId, { students: [], error: err?.message || 'Unable to load students' }]
+      }
+    })).then((entries) => {
+      if (!cancelled) setTeacherRosters(Object.fromEntries(entries))
+    }).finally(() => {
+      if (!cancelled) setTeacherRostersLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authenticated, isFawwazTeacher, teacherProfile])
+
   const teacherCanUseSubject = (subjectId) => !isTeacher || teacherSubjects.includes(subjectId)
   const teacherCanUpload = (materialType) => {
     if (isAdmin) return true
@@ -1753,6 +1786,24 @@ function Admin() {
                           </a>
                         ) : (
                           <p className="mt-3 text-sm text-amber-700">Zoom link not set for this class.</p>
+                        )}
+                        {isFawwazTeacher && (
+                          <div className="mt-4 border-t border-gray-100 pt-3">
+                            <h4 className="text-sm font-medium text-gray-800">Students in this class</h4>
+                            {teacherRostersLoading ? (
+                              <p className="mt-1 text-sm text-gray-500">Loading students...</p>
+                            ) : teacherRosters[classItem.id]?.error ? (
+                              <p className="mt-1 text-sm text-red-600">Could not load this class roster.</p>
+                            ) : teacherRosters[classItem.id]?.students?.length ? (
+                              <ul className="mt-1 space-y-1 text-sm text-gray-600">
+                                {teacherRosters[classItem.id].students.map((student) => (
+                                  <li key={student.id}>{student.name}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="mt-1 text-sm text-gray-500">No students are currently enrolled in this class.</p>
+                            )}
+                          </div>
                         )}
                       </li>
                     ))}

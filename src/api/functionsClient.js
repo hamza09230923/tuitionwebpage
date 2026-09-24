@@ -62,6 +62,9 @@ const callPublicFunction = async (path, payload) => {
 export const createR2AdminUpload = (payload) =>
   callFunction('createR2AdminUpload', payload)
 
+export const getTeacherClassRoster = (payload) =>
+  callFunction('getTeacherClassRoster', payload)
+
 export const getR2DownloadUrl = (payload) =>
   callFunction('getR2DownloadUrl', payload)
 
