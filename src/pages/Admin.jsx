@@ -289,6 +289,7 @@ function Admin() {
   const [openingMaterialKey, setOpeningMaterialKey] = useState('')
   const isAdmin = userRole === 'admin'
   const isTeacher = userRole === 'teacher'
+  const isFawwazTeacher = isTeacher && String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase() === 'fawwaz@myschola.co.uk'
   const teacherSubjects = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
   const teacherPermissions = Array.isArray(teacherProfile?.permissions) ? teacherProfile.permissions : []
   const teacherClasses = isTeacher
@@ -565,22 +566,24 @@ function Admin() {
           }))
 
         let studentRecordingsData = []
-        try {
-          const studentRecordingsQuery = query(
-            collection(db, 'studentRecordings'),
-            where('subjectId', '==', selectedSubject),
-            ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
-          )
-          const studentRecordingsSnapshot = await getDocs(studentRecordingsQuery)
-          studentRecordingsData = studentRecordingsSnapshot.docs
-            .map((recordingDoc) => ({
-              id: recordingDoc.id,
-              sourceCollection: 'studentRecordings',
-              visibility: 'student',
-              ...recordingDoc.data()
-            }))
-        } catch (err) {
-          console.warn('Student-specific recordings could not be loaded:', err)
+        if (!isFawwazTeacher) {
+          try {
+            const studentRecordingsQuery = query(
+              collection(db, 'studentRecordings'),
+              where('subjectId', '==', selectedSubject),
+              ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
+            )
+            const studentRecordingsSnapshot = await getDocs(studentRecordingsQuery)
+            studentRecordingsData = studentRecordingsSnapshot.docs
+              .map((recordingDoc) => ({
+                id: recordingDoc.id,
+                sourceCollection: 'studentRecordings',
+                visibility: 'student',
+                ...recordingDoc.data()
+              }))
+          } catch (err) {
+            console.warn('Student-specific recordings could not be loaded:', err)
+          }
         }
 
         const recordingsData = [...subjectRecordingsData, ...studentRecordingsData]
@@ -600,7 +603,7 @@ function Admin() {
     }
 
     loadManagedRecordings()
-  }, [activeTab, authenticated, selectedSubject, isTeacher])
+  }, [activeTab, authenticated, selectedSubject, isTeacher, isFawwazTeacher])
 
   useEffect(() => {
     const shouldLoadStudents = isAdmin && ['recording', 'homework', 'resource', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
@@ -679,22 +682,24 @@ function Admin() {
           }))
 
         let studentHomeworksData = []
-        try {
-          const studentHomeworksQuery = query(
-            collection(db, 'studentHomeworks'),
-            where('subjectId', '==', selectedSubject),
-            ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
-          )
-          const studentHomeworksSnapshot = await getDocs(studentHomeworksQuery)
-          studentHomeworksData = studentHomeworksSnapshot.docs
-            .map((homeworkDoc) => ({
-              id: homeworkDoc.id,
-              sourceCollection: 'studentHomeworks',
-              visibility: 'student',
-              ...homeworkDoc.data()
-            }))
-        } catch (err) {
-          console.warn('Student-specific homework could not be loaded:', err)
+        if (!isFawwazTeacher) {
+          try {
+            const studentHomeworksQuery = query(
+              collection(db, 'studentHomeworks'),
+              where('subjectId', '==', selectedSubject),
+              ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
+            )
+            const studentHomeworksSnapshot = await getDocs(studentHomeworksQuery)
+            studentHomeworksData = studentHomeworksSnapshot.docs
+              .map((homeworkDoc) => ({
+                id: homeworkDoc.id,
+                sourceCollection: 'studentHomeworks',
+                visibility: 'student',
+                ...homeworkDoc.data()
+              }))
+          } catch (err) {
+            console.warn('Student-specific homework could not be loaded:', err)
+          }
         }
 
         const homeworksData = [...subjectHomeworksData, ...studentHomeworksData]
@@ -714,7 +719,7 @@ function Admin() {
     }
 
     loadManagedHomeworks()
-  }, [activeTab, authenticated, selectedSubject, isTeacher])
+  }, [activeTab, authenticated, selectedSubject, isTeacher, isFawwazTeacher])
 
   useEffect(() => {
     const loadSubmissions = async () => {
@@ -881,13 +886,13 @@ function Admin() {
     const subject = subjects.find(s => s.id === selectedSubject)
     setSelectedSubjectData(subject || null)
     setExamBoard(teacherProfile?.classBoards?.[selectedSubject] || getLockedExamBoard(subject) || '')
-    setTier(isTeacher ? (teacherProfile?.classTiers?.[selectedSubject] || '') : '')
+    setTier(isTeacher ? (isFawwazTeacher ? 'Foundation' : (teacherProfile?.classTiers?.[selectedSubject] || '')) : '')
     setSelectedRecordingStudentId('')
     setSelectedHomeworkStudentIds([])
     setSelectedResourceStudentIds([])
     setRosterFilter('all')
     setSubmissionFilter('all')
-  }, [selectedSubject, subjects, isTeacher, teacherProfile])
+  }, [selectedSubject, subjects, isTeacher, isFawwazTeacher, teacherProfile])
 
   // Check if subject is English (no tier needed)
   const isEnglishSubject = () => {
@@ -1035,7 +1040,7 @@ function Admin() {
       setRecordingFile(null)
       setUploadProgress(0)
       setExamBoard(teacherProfile?.classBoards?.[selectedSubject] || getLockedExamBoard(selectedSubjectData) || '')
-      setTier(isTeacher ? (teacherProfile?.classTiers?.[selectedSubject] || '') : '')
+      setTier(isTeacher ? (isFawwazTeacher ? 'Foundation' : (teacherProfile?.classTiers?.[selectedSubject] || '')) : '')
       setRecordingAudience('subject')
       setSelectedRecordingStudentId('')
 
@@ -1964,7 +1969,7 @@ function Admin() {
                   >
                     <option value="">Select Tier</option>
                     <option value="Foundation">Foundation</option>
-                    <option value="Higher">Higher</option>
+                    {!isFawwazTeacher && <option value="Higher">Higher</option>}
                   </select>
                 </div>
               )}
@@ -2222,7 +2227,7 @@ function Admin() {
                             <p>
                               <span className="font-medium">Access:</span>{' '}
                               {recording.visibility === 'student'
-                                ? recording.studentName || recording.studentEmail || recording.studentId || 'Specific student'
+                                ? isFawwazTeacher ? 'Specific student' : recording.studentName || recording.studentEmail || recording.studentId || 'Specific student'
                                 : isAdmin
                                   ? `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`
                                   : `All enrolled ${recording.tier ? `${recording.tier} ` : ''}students in this class`}
@@ -2400,7 +2405,7 @@ function Admin() {
                             <p>
                               <span className="font-medium">Access:</span>{' '}
                               {homework.visibility === 'student'
-                                ? homework.studentName || homework.studentEmail || homework.studentId || 'Specific student'
+                                ? isFawwazTeacher ? 'Specific student' : homework.studentName || homework.studentEmail || homework.studentId || 'Specific student'
                                 : isAdmin
                                   ? `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`
                                   : `All enrolled ${homework.tier ? `${homework.tier} ` : ''}students in this class`}
@@ -2578,7 +2583,7 @@ function Admin() {
                   <select value={tier} onChange={(e) => setTier(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
                     <option value="">Select Tier</option>
                     <option value="Foundation">Foundation</option>
-                    <option value="Higher">Higher</option>
+                    {!isFawwazTeacher && <option value="Higher">Higher</option>}
                   </select>
                 </div>}
               </div>
@@ -2771,7 +2776,7 @@ function Admin() {
                   <select value={tier} onChange={(e) => setTier(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
                     <option value="">Select Tier</option>
                     <option value="Foundation">Foundation</option>
-                    <option value="Higher">Higher</option>
+                    {!isFawwazTeacher && <option value="Higher">Higher</option>}
                   </select>
                 </div>}
               </div>

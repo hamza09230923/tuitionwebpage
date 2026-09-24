@@ -102,6 +102,10 @@ const getTeacherTier = (teacher, subjectId) => {
   return String(tiers[subjectId] || '').trim().toLowerCase()
 }
 
+const isFawwazTeacherProfile = (teacher) => (
+  String(teacher?.email || '').trim().toLowerCase() === 'fawwaz@myschola.co.uk'
+)
+
 const teacherHasPermission = (teacher, permission) => (
   Array.isArray(teacher?.permissions) && teacher.permissions.includes(permission)
 )
@@ -117,6 +121,9 @@ const assertTeacherMaterialAccess = async ({ uid, subjectId, tier, materialType,
   }
   if (!permission || !teacherHasPermission(teacher, permission)) {
     throw new Error(`This teacher cannot ${action} ${materialType}s`)
+  }
+  if (action === 'upload' && isFawwazTeacherProfile(teacher) && String(tier || '').trim().toLowerCase() !== 'foundation') {
+    throw new Error('This teacher account can only upload Foundation class materials')
   }
   if (getTeacherTier(teacher, subjectId) !== String(tier || '').trim().toLowerCase()) {
     throw new Error('This teacher is not assigned to the selected class tier')
@@ -908,6 +915,12 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
     const role = await getUserRole(decoded.uid)
     const materialType = materialTypeForCollection(collection)
     if (role === 'teacher') {
+      if (
+        ['studentRecordings', 'studentHomeworks'].includes(collection) &&
+        isFawwazTeacherProfile(await getTeacherProfile(decoded.uid))
+      ) {
+        return jsonError(res, 403, 'This teacher account cannot access student-specific materials')
+      }
       if (!materialType) return jsonError(res, 403, 'Teachers cannot access this material type')
       await assertTeacherMaterialAccess({
         uid: decoded.uid,

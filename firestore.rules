@@ -15,6 +15,10 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/teachers/$(request.auth.uid));
     }
 
+    function isFawwazTeacher() {
+      return isTeacher() && request.auth.token.email == 'fawwaz@myschola.co.uk';
+    }
+
     function teacherProfile() {
       return get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data;
     }
@@ -82,18 +86,18 @@ service cloud.firestore {
     }
 
     match /students/{uid} {
-      allow read: if isOwnStudent(uid) || isAdmin() || isAssignedTutor(uid);
+      allow read: if isOwnStudent(uid) || isAdmin() || (isAssignedTutor(uid) && !isFawwazTeacher());
       allow write: if isAdmin();
     }
 
     // Admins create classes and enrol tutors and students.  Tutors can only
     // access the classes in which their UID appears in tutorIds.
     match /classes/{classId} {
-      allow read: if isClassMember(classId);
+      allow read: if isAdmin() || isClassStudent(classId) || (isClassTutor(classId) && !isFawwazTeacher());
       allow create, update, delete: if isAdmin();
 
       match /students/{studentId} {
-        allow read: if isClassTutor(classId) ||
+        allow read: if (isClassTutor(classId) && !isFawwazTeacher()) ||
           (signedIn() && request.auth.uid == studentId && isClassStudent(classId));
         allow write: if isAdmin();
       }
@@ -148,7 +152,7 @@ service cloud.firestore {
 
     match /studentRecordings/{recordingId} {
       allow read: if isAdmin() ||
-        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) || (
+        (isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) && !isFawwazTeacher()) || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
         isEnrolledIn(resource.data.subjectId) &&
@@ -170,7 +174,7 @@ service cloud.firestore {
 
     match /studentHomeworks/{homeworkId} {
       allow read: if isAdmin() ||
-        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) || (
+        (isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) && !isFawwazTeacher()) || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
         isEnrolledIn(resource.data.subjectId)
