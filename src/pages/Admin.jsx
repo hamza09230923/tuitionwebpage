@@ -48,6 +48,198 @@ const getHomeworkAccessKey = (homeworkId, studentId, action) => `${action}:${hom
 const DEFAULT_UPLOAD_TIMEOUT_MS = 3 * 60 * 1000
 const RECORDING_UPLOAD_TIMEOUT_MS = 20 * 60 * 1000
 
+const TUTOR_HANDBOOK_FULL_SECTIONS = [
+  {
+    number: '01',
+    title: 'Tutor Responsibilities',
+    intro: 'MySchola tutors are responsible for delivering effective and engaging lessons that support student progress.',
+    bullets: [
+      'Preparing and delivering lessons',
+      'Supporting students with their understanding',
+      'Explaining concepts clearly',
+      'Adapting teaching based on student needs',
+      'Encouraging student participation',
+      'Helping students develop exam skills',
+      'Providing feedback and updates to the MySchola team',
+      'Uploading lesson recordings after every lesson'
+    ],
+    outro: 'Tutors are trusted as subject specialists and are encouraged to use their own teaching experience and methods.'
+  },
+  {
+    number: '02',
+    title: 'Before Every Lesson',
+    intro: 'Before every lesson, tutors should:',
+    numbered: [
+      'Review the cohort information before teaching.',
+      'Understand the exam board and specification being followed.',
+      'Prepare suitable lesson materials based on the topic and student needs.',
+      'Ensure Zoom and required resources are ready.',
+      'Join the lesson on time.'
+    ],
+    subheading: 'When students join',
+    bullets: [
+      'Accept students into the Zoom session.',
+      'Check attendance before starting the lesson.',
+      'Report any students who are missing to the MySchola admin team.'
+    ],
+    outro: 'The MySchola team will follow up with students or parents and take any necessary action.'
+  },
+  {
+    number: '03',
+    title: 'Lesson Delivery Expectations',
+    paragraphs: [
+      'At MySchola, we value each tutor’s teaching experience and approach.',
+      'Tutors are free to teach using the methods and lesson structures they are most comfortable with.'
+    ],
+    subheading: 'Tutors may use their own',
+    bullets: ['Teaching techniques', 'Lesson activities', 'Resources', 'Examples', 'Explanations'],
+    outro: 'Lessons should remain engaging, structured, focused on student progress and aligned with GCSE requirements. If tutors or MySchola co-founders have feedback regarding lessons, this will be discussed openly as a team. The purpose of feedback is to work together and continuously improve the learning experience for students.'
+  },
+  {
+    number: '04',
+    title: 'Creating a Positive Learning Environment',
+    intro: 'Tutors should create an environment where students feel comfortable learning and asking questions.',
+    subheading: 'Tutors should',
+    bullets: [
+      'Encourage students to participate',
+      'Be patient and supportive',
+      'Build student confidence',
+      'Explain mistakes clearly',
+      'Encourage independent thinking'
+    ],
+    outro: 'Every student has different confidence levels and learning styles. Tutors should support students accordingly.'
+  },
+  {
+    number: '05',
+    title: 'Subject & Exam Board Requirements',
+    intro: 'Tutors should ensure lessons match the correct GCSE requirements.',
+    subsections: [
+      { title: 'Maths', bullets: ['Edexcel GCSE Foundation', 'Edexcel GCSE Higher'], focus: ['Understanding methods', 'Problem-solving skills', 'Exam techniques', 'Applying knowledge to different question types'] },
+      { title: 'English', bullets: ['AQA GCSE English Language', 'GCSE Literature depending on student requirements'], focus: ['Reading analysis', 'Writing skills', 'Exam structure', 'Assessment objectives', 'Developing strong responses'], extra: 'For English Literature, focus on the specific text being studied, themes and characters, analysing quotations, exploring the writer’s methods and developing structured exam answers. Texts may differ, but the same core Literature techniques apply across all texts.' },
+      { title: 'Science', bullets: ['AQA', 'Edexcel', 'OCR'], focus: ['Scientific understanding', 'Exam questions', 'Required practicals', 'Key terminology'] }
+    ]
+  },
+  {
+    number: '06',
+    title: 'Homework Process',
+    paragraphs: [
+      'Homework is managed by the MySchola co-founder team.',
+      'Tutors do not directly assign homework.'
+    ],
+    subheading: 'Tutors should',
+    bullets: [
+      'Identify areas where students need additional practice',
+      'Recommend topics or question types',
+      'Inform the MySchola team about areas students need support with'
+    ],
+    outro: 'The MySchola team will review recommendations and assign suitable homework.',
+    callout: 'If students are struggling with algebraic equations, please inform the MySchola team so appropriate practice can be provided.'
+  },
+  {
+    number: '07',
+    title: 'Lesson Recordings',
+    intro: 'Lesson recordings are provided to students so they can review lessons and reinforce their learning.',
+    subheading: 'After every lesson, tutors must',
+    bullets: ['Upload the lesson recording', 'Use their MySchola tutor account login', 'Upload the recording to the correct cohort'],
+    outro: 'Tutors are responsible for ensuring recordings are uploaded after every session.'
+  },
+  {
+    number: '08',
+    title: 'Attendance Management',
+    intro: 'Attendance must be monitored during every lesson.',
+    bullets: ['Check which students are attending', 'Identify students who are absent', 'Report missing students to the MySchola admin team'],
+    outro: 'The admin team will contact students or parents where required.'
+  },
+  {
+    number: '09',
+    title: 'Parent Communication',
+    paragraphs: [
+      'The MySchola co-founders and admin team are responsible for all parent communication.',
+      'Tutors should focus on delivering lessons and supporting students academically.'
+    ],
+    subheading: 'Direct parents to the MySchola team for',
+    bullets: ['Payments', 'Timetables', 'Class changes', 'Enrolment', 'Account issues', 'Administrative queries'],
+    subheadingTwo: 'Report to the MySchola team regarding',
+    bulletsTwo: ['Student engagement', 'Learning progress', 'Areas for improvement', 'Behaviour concerns', 'Any issues affecting learning'],
+    outro: 'The MySchola team will communicate with parents and manage any required actions.'
+  },
+  {
+    number: '10',
+    title: 'Zoom & Online Lesson Expectations',
+    subheading: 'Tutors should',
+    bullets: ['Join lessons on time', 'Ensure their audio works correctly', 'Be prepared before lessons begin', 'Maintain a professional teaching environment'],
+    subheadingTwo: 'Students may participate through',
+    bulletsTwo: ['Camera', 'Voice', 'Zoom chat'],
+    outro: 'Some students may feel more comfortable using chat, and tutors should support different learning preferences.'
+  },
+  {
+    number: '11',
+    title: 'Tutor Absence & Cancellations',
+    paragraphs: [
+      'We understand unexpected situations can happen.',
+      'However, consistency is important for students.'
+    ],
+    bullets: ['Provide at least 24 hours’ notice where possible so MySchola can find a replacement tutor.'],
+    subheading: 'When informing MySchola, provide',
+    bulletsTwo: ['Lesson date and time', 'Cohort affected', 'Any useful lesson information'],
+    outro: 'If an emergency occurs and 24 hours’ notice is not possible, contact the MySchola team immediately.'
+  },
+  {
+    number: '12',
+    title: 'Professional Standards',
+    intro: 'MySchola tutors are expected to:',
+    bullets: ['Be reliable and punctual', 'Communicate professionally', 'Respect student confidentiality', 'Maintain appropriate boundaries', 'Deliver lessons to a high standard'],
+    outro: 'Tutors represent MySchola and contribute towards the experience students and parents receive.'
+  },
+  {
+    number: '13',
+    title: 'Safeguarding & Student Protection',
+    intro: 'Tutors must:',
+    bullets: ['Maintain professional relationships with students', 'Keep communication through approved MySchola channels', 'Protect student information', 'Report concerns to the MySchola team'],
+    outro: 'Student safety and wellbeing are always a priority.'
+  },
+  {
+    number: '14',
+    title: 'Tutor Checklist',
+    checklist: [
+      { title: 'Before Lesson', items: ['Review cohort information', 'Check exam board requirements', 'Prepare lesson materials', 'Ensure Zoom and resources are ready', 'Join on time'] },
+      { title: 'During Lesson', items: ['Accept students into Zoom', 'Check attendance', 'Report missing students to admin', 'Deliver engaging teaching', 'Support student understanding'] },
+      { title: 'After Lesson', items: ['Upload recording through MySchola account', 'Upload recording to correct cohort', 'Report student concerns or progress updates', 'Recommend homework areas if required'] }
+    ]
+  }
+]
+
+function renderTutorHandbookPanel(onOpen, isOpen) {
+  return (
+    <section className="mb-6 rounded-xl border border-blue-100 border-l-4 border-l-blue-600 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="tutor-handbook-panel-title">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+            <BookOpen className="h-5 w-5 text-blue-600" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Tutor resources</p>
+              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">Quick reference</span>
+            </div>
+            <h2 id="tutor-handbook-panel-title" className="mt-1 text-xl font-bold tracking-tight text-gray-900">MySchola Tutor Handbook</h2>
+            <p className="mt-1 text-sm text-gray-600">A short guide to planning lessons, recordings and getting support.</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-expanded={isOpen}
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+        >
+          Open handbook
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+    </section>
+  )
+}
+
 const getHiddenRecordingIds = (student) => {
   const hiddenIds = Array.isArray(student?.hiddenRecordingIds) ? student.hiddenRecordingIds : []
   return new Set(hiddenIds.map((id) => String(id)))
@@ -225,6 +417,7 @@ function Admin() {
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedSubjectData, setSelectedSubjectData] = useState(null)
   const [activeTab, setActiveTab] = useState('recording') // 'recording', 'homework', 'approve', 'manage', 'manage-homework', or 'view-submissions'
+  const [showTutorHandbook, setShowTutorHandbook] = useState(false)
   
   // Recording form
   const [recordingTitle, setRecordingTitle] = useState('')
@@ -294,6 +487,21 @@ function Admin() {
   const isTeacher = userRole === 'teacher'
   const isScopedTeacher = isTeacher && ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk']
     .includes(String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase())
+
+  useEffect(() => {
+    if (!showTutorHandbook) return undefined
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setShowTutorHandbook(false)
+    }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [showTutorHandbook])
   const teacherSubjects = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
   const teacherPermissions = Array.isArray(teacherProfile?.permissions) ? teacherProfile.permissions : []
   const teacherClasses = isTeacher
@@ -347,8 +555,9 @@ function Admin() {
   const teacherCanUseSubject = (subjectId) => !isTeacher || teacherSubjects.includes(subjectId)
   const teacherCanUpload = (materialType) => {
     if (isAdmin) return true
+    if (materialType === 'homework') return false
     if (!isTeacher || !teacherCanUseSubject(selectedSubject)) return false
-    const permission = materialType === 'recording' ? 'upload_recordings' : 'upload_homework'
+    const permission = 'upload_recordings'
     const assignedTier = String(teacherProfile?.classTiers?.[selectedSubject] || '').toLowerCase()
     return teacherPermissions.includes(permission) &&
       assignedTier === (isEnglishSubjectData(selectedSubjectData) ? 'all-levels' : 'foundation')
@@ -707,7 +916,7 @@ function Admin() {
         const homeworksQuery = query(
           collection(db, 'homeworks'),
           where('subjectId', '==', selectedSubject),
-          ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
+          ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : 'Foundation')] : [])
         )
 
         const homeworksSnapshot = await getDocs(homeworksQuery)
@@ -757,7 +966,7 @@ function Admin() {
     }
 
     loadManagedHomeworks()
-  }, [activeTab, authenticated, selectedSubject, isTeacher, isScopedTeacher])
+  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher])
 
   useEffect(() => {
     const loadSubmissions = async () => {
@@ -1494,8 +1703,8 @@ function Admin() {
 
   const handleSubmitHomework = async (e) => {
     e.preventDefault()
-    if (!teacherCanUpload('homework')) {
-      setMessage('You are not assigned to upload homework for this class')
+    if (!isAdmin) {
+      setMessage('Only MySchola admins can assign homework')
       return
     }
     if (!selectedSubject || !homeworkTitle) {
@@ -1715,6 +1924,7 @@ function Admin() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {isTeacher && renderTutorHandbookPanel(() => setShowTutorHandbook(true), showTutorHandbook)}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">{isAdmin ? 'Admin Panel' : 'Teacher Panel'}</h1>
@@ -1759,10 +1969,8 @@ function Admin() {
           )}
           {isTeacher && (
             <>
-              <div className="mt-4 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950">
-                {isScopedTeacher
-                  ? 'You can upload and view recordings for your assigned classes only.'
-                  : 'You can upload and view recordings and homework for your assigned Foundation classes only.'}
+              <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
+                You can upload recordings and view homework for your assigned classes. The MySchola team assigns homework.
               </div>
               <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5" aria-labelledby="teacher-classes-heading">
                 <h2 id="teacher-classes-heading" className="text-lg font-semibold text-gray-900">
@@ -1854,6 +2062,81 @@ function Admin() {
           )}
         </div>
 
+        {isTeacher && showTutorHandbook && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm sm:p-6"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setShowTutorHandbook(false)
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="tutor-handbook-title"
+              className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
+            >
+              <div className="shrink-0 border-b border-blue-100 border-t-4 border-t-blue-600 bg-white px-5 py-5 sm:px-8 sm:py-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-blue-50 p-2.5 ring-1 ring-blue-100">
+                      <BookOpen className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">MySchola tutor resources</p>
+                      <h2 id="tutor-handbook-title" className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Tutor Handbook</h2>
+                      <p className="mt-1 text-sm text-gray-600">The essential expectations for every MySchola lesson.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowTutorHandbook(false)}
+                    aria-label="Close Tutor Handbook"
+                    className="rounded-lg p-2 text-gray-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  >
+                    <XCircle className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-y-auto bg-gray-50 px-5 py-6 sm:px-8">
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-5 text-sm leading-6 text-gray-700">
+                  <h3 className="font-semibold text-gray-900">Welcome to MySchola</h3>
+                  <p className="mt-2">Welcome to the MySchola tutor team. MySchola provides online GCSE tuition through small group and 1-to-1 lessons, helping students improve their understanding, confidence and exam performance.</p>
+                  <p className="mt-2">Our aim is to provide students with high-quality teaching, structured support and a consistent learning experience. As a MySchola tutor, your role is to deliver excellent lessons and support students academically, while the MySchola co-founder and admin team manage operations, parent communication and student administration.</p>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  {TUTOR_HANDBOOK_FULL_SECTIONS.map((section) => (
+                    <article key={section.number} className="rounded-lg border border-gray-200 bg-white p-5">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-600 text-xs font-bold text-white">{section.number}</span>
+                        <h3 className="text-base font-semibold text-gray-900">{section.title}</h3>
+                      </div>
+                      {section.paragraphs?.map((paragraph) => <p key={paragraph} className="mt-3 text-sm leading-6 text-gray-600">{paragraph}</p>)}
+                      {section.intro && <p className="mt-3 text-sm leading-6 text-gray-600">{section.intro}</p>}
+                      {section.numbered && <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-gray-700">{section.numbered.map((item) => <li key={item}>{item}</li>)}</ol>}
+                      {section.subheading && <h4 className="mt-4 text-sm font-bold text-gray-900">{section.subheading}</h4>}
+                      {section.bullets && <ul className="mt-3 space-y-2">{section.bullets.map((item) => <li key={item} className="flex items-start gap-2 text-sm leading-6 text-gray-700"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-green-500" aria-hidden="true" /><span>{item}</span></li>)}</ul>}
+                      {section.subheadingTwo && <h4 className="mt-5 text-sm font-bold text-gray-900">{section.subheadingTwo}</h4>}
+                      {section.bulletsTwo && <ul className="mt-3 space-y-2">{section.bulletsTwo.map((item) => <li key={item} className="flex items-start gap-2 text-sm leading-6 text-gray-700"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-green-500" aria-hidden="true" /><span>{item}</span></li>)}</ul>}
+                      {section.subsections && <div className="mt-4 grid gap-4 md:grid-cols-3">{section.subsections.map((subsection) => <div key={subsection.title} className="rounded-lg bg-slate-50 p-4"><h4 className="font-semibold text-slate-900">{subsection.title}</h4><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Current focus</p><ul className="mt-2 space-y-1.5 text-sm text-slate-600">{subsection.bullets.map((item) => <li key={item}>• {item}</li>)}</ul><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Lessons should focus on</p><ul className="mt-2 space-y-1.5 text-sm text-slate-600">{subsection.focus.map((item) => <li key={item}>• {item}</li>)}</ul>{subsection.extra && <p className="mt-3 text-sm leading-6 text-slate-600">{subsection.extra}</p>}</div>)}</div>}
+                      {section.checklist && <div className="mt-4 grid gap-3 md:grid-cols-3">{section.checklist.map((group) => <div key={group.title} className="rounded-lg border border-emerald-100 bg-emerald-50 p-4"><h4 className="font-semibold text-emerald-950">{group.title}</h4><ul className="mt-3 space-y-2 text-sm text-emerald-900">{group.items.map((item) => <li key={item} className="flex gap-2"><CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />{item}</li>)}</ul></div>)}</div>}
+                      {section.callout && <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950"><span className="font-semibold">Example: </span>“{section.callout}”</p>}
+                      {section.outro && <p className="mt-4 text-sm leading-6 text-gray-600">{section.outro}</p>}
+                    </article>
+                  ))}
+                </div>
+
+                <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-5 text-center text-sm text-gray-700">
+                  <h3 className="font-semibold text-gray-900">Thank you for being part of the MySchola tutor team.</h3>
+                  <p className="mt-2 leading-6">By working together, tutors and the MySchola team can provide students with a high-quality GCSE learning experience and help them achieve their goals.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <button
@@ -1867,7 +2150,7 @@ function Admin() {
             <Video className="h-4 w-4" />
             Add Recording
           </button>
-          {!isScopedTeacher && (
+          {isAdmin && (
             <button
               onClick={() => setActiveTab('homework')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -1918,19 +2201,17 @@ function Admin() {
             <Video className="h-4 w-4" />
             Manage Recordings
           </button>
-          {!isScopedTeacher && (
-            <button
-              onClick={() => setActiveTab('manage-homework')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                activeTab === 'manage-homework'
-                  ? 'bg-emerald-700 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <FileText className="h-4 w-4" />
-              Manage Homework
-            </button>
-          )}
+          <button
+            onClick={() => setActiveTab('manage-homework')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              activeTab === 'manage-homework'
+                ? 'bg-emerald-700 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            {isAdmin ? 'Manage Homework' : 'View Homework'}
+          </button>
           <button
             onClick={() => setActiveTab('view-submissions')}
             className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -2439,7 +2720,7 @@ function Admin() {
           </div>
         )}
 
-        {!isScopedTeacher && activeTab === 'manage-homework' && (
+        {activeTab === 'manage-homework' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -2618,7 +2899,7 @@ function Admin() {
         )}
 
         {/* Homework Form */}
-        {!isScopedTeacher && activeTab === 'homework' && (
+        {isAdmin && activeTab === 'homework' && (
           <form onSubmit={handleSubmitHomework} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Homework</h2>
             

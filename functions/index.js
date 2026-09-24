@@ -83,8 +83,7 @@ const assertAdminRole = (role) => {
 }
 
 const TEACHER_UPLOAD_PERMISSIONS = {
-  recording: 'upload_recordings',
-  homework: 'upload_homework'
+  recording: 'upload_recordings'
 }
 
 const TEACHER_VIEW_PERMISSIONS = {
@@ -122,6 +121,10 @@ const assertTeacherMaterialAccess = async ({ uid, subjectId, tier, materialType,
   const subjects = Array.isArray(teacher?.subjects) ? teacher.subjects : []
   const permissionMap = action === 'upload' ? TEACHER_UPLOAD_PERMISSIONS : TEACHER_VIEW_PERMISSIONS
   const permission = permissionMap[materialType]
+
+  if (action === 'upload' && materialType === 'homework') {
+    throw new Error('Teachers can view homework but cannot assign it')
+  }
 
   if (!teacher || !subjects.includes(subjectId)) {
     throw new Error('This teacher is not assigned to the selected class')
