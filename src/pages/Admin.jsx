@@ -6,7 +6,12 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
 import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
-import { buildClassGroupRecords, buildStudentClassLists } from '../utils/classGroups'
+import {
+  buildClassGroupRecords,
+  buildStudentClassLists,
+  normalizeTierLabel,
+  resolveClassZoomLink
+} from '../utils/classGroups'
 
 const getStudentDisplayName = (student) => (
   student?.displayName || student?.name || student?.studentName || student?.email || student?.id || 'Unknown student'
@@ -286,6 +291,21 @@ function Admin() {
   const isTeacher = userRole === 'teacher'
   const teacherSubjects = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
   const teacherPermissions = Array.isArray(teacherProfile?.permissions) ? teacherProfile.permissions : []
+  const teacherClasses = isTeacher
+    ? subjects.map((subject) => {
+        const tier = normalizeTierLabel(
+          subject.id,
+          teacherProfile?.classTiers?.[subject.id]
+        )
+        return {
+          id: subject.id,
+          name: getCanonicalSubjectName(subject),
+          tier,
+          examBoard: teacherProfile?.classBoards?.[subject.id] || '',
+          zoomLink: resolveClassZoomLink(subject, subject.id, tier)
+        }
+      })
+    : []
   const teacherCanUseSubject = (subjectId) => !isTeacher || teacherSubjects.includes(subjectId)
   const teacherCanUpload = (materialType) => {
     if (isAdmin) return true
@@ -1695,9 +1715,46 @@ function Admin() {
             </div>
           )}
           {isTeacher && (
-            <div className="mt-4 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950">
-              You can upload and view recordings and homework for your assigned Foundation classes only.
-            </div>
+            <>
+              <div className="mt-4 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950">
+                You can upload and view recordings and homework for your assigned Foundation classes only.
+              </div>
+              <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5" aria-labelledby="teacher-classes-heading">
+                <h2 id="teacher-classes-heading" className="text-lg font-semibold text-gray-900">
+                  Your classes and Zoom links
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Your assigned subjects, exam boards, and class meeting links.
+                </p>
+                {teacherClasses.length === 0 ? (
+                  <p className="mt-4 text-sm text-gray-600">No classes are assigned to this account.</p>
+                ) : (
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {teacherClasses.map((classItem) => (
+                      <li key={classItem.id} className="rounded-lg border border-gray-200 p-4">
+                        <h3 className="font-semibold text-gray-900">{classItem.name}</h3>
+                        <p className="mt-1 text-sm text-gray-600">
+                          {[classItem.tier, classItem.examBoard].filter(Boolean).join(' · ') || 'Class details unavailable'}
+                        </p>
+                        {classItem.zoomLink ? (
+                          <a
+                            href={classItem.zoomLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                          >
+                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                            Join Zoom class
+                          </a>
+                        ) : (
+                          <p className="mt-3 text-sm text-amber-700">Zoom link not set for this class.</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </>
           )}
         </div>
 
@@ -2166,8 +2223,10 @@ function Admin() {
                               <span className="font-medium">Access:</span>{' '}
                               {recording.visibility === 'student'
                                 ? recording.studentName || recording.studentEmail || recording.studentId || 'Specific student'
-                                : `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`}
-                              {removedStudents.length > 0 && (
+                                : isAdmin
+                                  ? `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`
+                                  : `All enrolled ${recording.tier ? `${recording.tier} ` : ''}students in this class`}
+                              {isAdmin && removedStudents.length > 0 && (
                                 <span className="text-red-600">, {removedStudents.length} removed</span>
                               )}
                             </p>
@@ -2193,6 +2252,7 @@ function Admin() {
                             </button>
                           )}
 
+                          {isAdmin && (
                           <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                               <h4 className="text-sm font-semibold text-gray-900">Student Access</h4>
@@ -2257,6 +2317,7 @@ function Admin() {
                               </div>
                             )}
                           </div>
+                          )}
                         </div>
 
                         {isAdmin && (
@@ -2340,8 +2401,10 @@ function Admin() {
                               <span className="font-medium">Access:</span>{' '}
                               {homework.visibility === 'student'
                                 ? homework.studentName || homework.studentEmail || homework.studentId || 'Specific student'
-                                : `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`}
-                              {removedStudents.length > 0 && (
+                                : isAdmin
+                                  ? `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`
+                                  : `All enrolled ${homework.tier ? `${homework.tier} ` : ''}students in this class`}
+                              {isAdmin && removedStudents.length > 0 && (
                                 <span className="text-red-600">, {removedStudents.length} removed</span>
                               )}
                             </p>
@@ -2369,6 +2432,7 @@ function Admin() {
                             </button>
                           )}
 
+                          {isAdmin && (
                           <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                               <h4 className="text-sm font-semibold text-gray-900">Student Access</h4>
@@ -2433,6 +2497,7 @@ function Admin() {
                               </div>
                             )}
                           </div>
+                          )}
                         </div>
 
                         <button
