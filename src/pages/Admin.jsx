@@ -209,35 +209,6 @@ const TUTOR_HANDBOOK_FULL_SECTIONS = [
   }
 ]
 
-const TUTOR_HANDBOOK_SECTIONS = TUTOR_HANDBOOK_FULL_SECTIONS
-  .filter((section) => ['02', '06', '07', '09'].includes(section.number))
-  .map((section) => {
-    const conciseSection = {
-      '02': {
-        title: 'Before your lesson',
-        intro: 'Be ready a few minutes early so the class can start calmly and on time.',
-        bullets: ['Check the cohort and lesson focus', 'Prepare Zoom and your teaching materials', 'Take attendance and report absences']
-      },
-      '06': {
-        title: 'Homework',
-        intro: 'Homework is set by the MySchola team.',
-        bullets: ['View the homework for your class', 'Share topics or question types students need to practise', 'Send recommendations to the MySchola team']
-      },
-      '07': {
-        title: 'After your lesson',
-        intro: 'Finish each session with the key class admin completed.',
-        bullets: ['Upload the lesson recording to the correct cohort', 'Report useful progress updates or concerns', 'Flag anything that needs follow-up']
-      },
-      '09': {
-        title: 'Communication',
-        intro: 'Keep parents and operational queries with the MySchola team.',
-        bullets: ['Direct payment, timetable and account queries to MySchola', 'Share learning progress or engagement concerns with the team', 'Use approved MySchola channels for student communication']
-      }
-    }[section.number]
-
-    return { number: section.number, ...conciseSection }
-  })
-
 function renderTutorHandbookPanel(onOpen, isOpen) {
   return (
     <section className="mb-6 rounded-xl border border-blue-100 border-l-4 border-l-blue-600 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="tutor-handbook-panel-title">
@@ -2091,35 +2062,37 @@ function Admin() {
               </div>
 
               <div className="overflow-y-auto bg-gray-50 px-5 py-6 sm:px-8">
-                <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-gray-700">
-                  <h3 className="font-semibold text-gray-900">Your focus</h3>
-                  <p className="mt-1">Deliver a well-prepared lesson, support students clearly, upload the recording and share anything the team needs to know.</p>
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-5 text-sm leading-6 text-gray-700">
+                  <h3 className="font-semibold text-gray-900">Welcome to MySchola</h3>
+                  <p className="mt-2">Welcome to the MySchola tutor team. MySchola provides online GCSE tuition through small group and 1-to-1 lessons, helping students improve their understanding, confidence and exam performance.</p>
+                  <p className="mt-2">Our aim is to provide students with high-quality teaching, structured support and a consistent learning experience. As a MySchola tutor, your role is to deliver excellent lessons and support students academically, while the MySchola co-founder and admin team manage operations, parent communication and student administration.</p>
                 </div>
 
-                <div className="mt-5 space-y-3">
-                  {TUTOR_HANDBOOK_SECTIONS.map((section) => (
+                <div className="mt-5 space-y-4">
+                  {TUTOR_HANDBOOK_FULL_SECTIONS.map((section) => (
                     <article key={section.number} className="rounded-lg border border-gray-200 bg-white p-5">
                       <div className="flex items-center gap-3">
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-600 text-xs font-bold text-white">{section.number}</span>
                         <h3 className="text-base font-semibold text-gray-900">{section.title}</h3>
                       </div>
-                      {section.paragraphs?.map((paragraph) => <p key={paragraph} className="mt-3 text-sm leading-6 text-slate-600">{paragraph}</p>)}
+                      {section.paragraphs?.map((paragraph) => <p key={paragraph} className="mt-3 text-sm leading-6 text-gray-600">{paragraph}</p>)}
                       {section.intro && <p className="mt-3 text-sm leading-6 text-gray-600">{section.intro}</p>}
-                      {section.numbered && <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-600">{section.numbered.map((item) => <li key={item}>{item}</li>)}</ol>}
-                      {section.subheading && <h4 className="mt-4 text-sm font-bold text-slate-800">{section.subheading}</h4>}
+                      {section.numbered && <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-gray-700">{section.numbered.map((item) => <li key={item}>{item}</li>)}</ol>}
+                      {section.subheading && <h4 className="mt-4 text-sm font-bold text-gray-900">{section.subheading}</h4>}
                       {section.bullets && <ul className="mt-3 space-y-2">{section.bullets.map((item) => <li key={item} className="flex items-start gap-2 text-sm leading-6 text-gray-700"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-green-500" aria-hidden="true" /><span>{item}</span></li>)}</ul>}
-                      {section.subheadingTwo && <h4 className="mt-5 text-sm font-bold text-slate-800">{section.subheadingTwo}</h4>}
-                      {section.bulletsTwo && <ul className="mt-3 grid gap-2 sm:grid-cols-2">{section.bulletsTwo.map((item) => <li key={item} className="flex gap-2 text-sm leading-6 text-slate-600"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-emerald-500" />{item}</li>)}</ul>}
+                      {section.subheadingTwo && <h4 className="mt-5 text-sm font-bold text-gray-900">{section.subheadingTwo}</h4>}
+                      {section.bulletsTwo && <ul className="mt-3 space-y-2">{section.bulletsTwo.map((item) => <li key={item} className="flex items-start gap-2 text-sm leading-6 text-gray-700"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-green-500" aria-hidden="true" /><span>{item}</span></li>)}</ul>}
                       {section.subsections && <div className="mt-4 grid gap-4 md:grid-cols-3">{section.subsections.map((subsection) => <div key={subsection.title} className="rounded-lg bg-slate-50 p-4"><h4 className="font-semibold text-slate-900">{subsection.title}</h4><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Current focus</p><ul className="mt-2 space-y-1.5 text-sm text-slate-600">{subsection.bullets.map((item) => <li key={item}>• {item}</li>)}</ul><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Lessons should focus on</p><ul className="mt-2 space-y-1.5 text-sm text-slate-600">{subsection.focus.map((item) => <li key={item}>• {item}</li>)}</ul>{subsection.extra && <p className="mt-3 text-sm leading-6 text-slate-600">{subsection.extra}</p>}</div>)}</div>}
                       {section.checklist && <div className="mt-4 grid gap-3 md:grid-cols-3">{section.checklist.map((group) => <div key={group.title} className="rounded-lg border border-emerald-100 bg-emerald-50 p-4"><h4 className="font-semibold text-emerald-950">{group.title}</h4><ul className="mt-3 space-y-2 text-sm text-emerald-900">{group.items.map((item) => <li key={item} className="flex gap-2"><CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />{item}</li>)}</ul></div>)}</div>}
                       {section.callout && <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950"><span className="font-semibold">Example: </span>“{section.callout}”</p>}
-                      {section.outro && <p className="mt-4 text-sm leading-6 text-slate-600">{section.outro}</p>}
+                      {section.outro && <p className="mt-4 text-sm leading-6 text-gray-600">{section.outro}</p>}
                     </article>
                   ))}
                 </div>
 
-                <div className="mt-5 rounded-lg border border-blue-100 bg-white p-4 text-sm text-gray-700">
-                  <span className="font-semibold text-gray-900">Need help?</span> Contact the MySchola team with any lesson, student or class concern.
+                <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-5 text-center text-sm text-gray-700">
+                  <h3 className="font-semibold text-gray-900">Thank you for being part of the MySchola tutor team.</h3>
+                  <p className="mt-2 leading-6">By working together, tutors and the MySchola team can provide students with a high-quality GCSE learning experience and help them achieve their goals.</p>
                 </div>
               </div>
             </div>
