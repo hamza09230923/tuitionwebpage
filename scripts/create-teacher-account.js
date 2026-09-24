@@ -16,21 +16,27 @@ import { initializeApp, deleteApp } from 'firebase/app'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore'
 
-const TEACHER = {
-  name: 'Fawwaz',
-  email: 'fawwaz@myschola.co.uk',
-  classes: [
-    { subjectId: 'physics_001', tier: 'Foundation', examBoard: 'AQA' },
-    { subjectId: 'chemistry_001', tier: 'Foundation', examBoard: 'AQA' },
-    { subjectId: 'biology_001', tier: 'Foundation', examBoard: 'AQA' },
-    { subjectId: 'maths_001', tier: 'Foundation', examBoard: 'Edexcel' }
-  ],
-  permissions: [
-    'view_recordings',
-    'upload_recordings',
-    'view_homework',
-    'upload_homework'
-  ]
+const TEACHER_PROFILES = {
+  fawwaz: {
+    name: 'Fawwaz',
+    email: 'fawwaz@myschola.co.uk',
+    classes: [
+      { subjectId: 'physics_001', tier: 'Foundation', examBoard: 'AQA' },
+      { subjectId: 'chemistry_001', tier: 'Foundation', examBoard: 'AQA' },
+      { subjectId: 'biology_001', tier: 'Foundation', examBoard: 'AQA' },
+      { subjectId: 'maths_001', tier: 'Foundation', examBoard: 'Edexcel' }
+    ],
+    permissions: ['view_recordings', 'upload_recordings', 'view_homework']
+  },
+  jafren: {
+    name: 'Jafren',
+    email: 'jafren@myschola.com',
+    classes: [
+      { subjectId: 'english_lang_001', tier: 'all-levels', examBoard: 'AQA' },
+      { subjectId: 'english_lit_001', tier: 'all-levels', examBoard: 'AQA' }
+    ],
+    permissions: ['view_recordings', 'upload_recordings', 'view_homework']
+  }
 }
 
 const loadEnvFile = (envPath) => {
@@ -49,6 +55,15 @@ const getArg = (name) => {
   const prefix = `${name}=`
   const value = process.argv.find((arg) => arg.startsWith(prefix))
   return value ? value.slice(prefix.length) : ''
+}
+
+const getTeacherProfile = () => {
+  const profileName = (getArg('--teacher') || 'fawwaz').trim().toLowerCase()
+  const profile = TEACHER_PROFILES[profileName]
+  if (!profile) {
+    throw new Error(`Unknown teacher profile: ${profileName}. Choose fawwaz or jafren.`)
+  }
+  return profile
 }
 
 const generatePassword = () => {
@@ -98,8 +113,9 @@ const createAuthUser = async (apiKey, email, password) => {
 
 const main = async () => {
   loadEnvFile(join(process.cwd(), '.env'))
+  const TEACHER = getTeacherProfile()
   const execute = process.argv.includes('--execute')
-  const password = getArg('--password') || generatePassword()
+  const password = getArg('--password') || process.env.TEACHER_INITIAL_PASSWORD || generatePassword()
   const adminEmail = getArg('--admin-email') || process.env.MYSCHOLA_ADMIN_EMAIL || 'admin@myschola.com'
   const adminPassword = getArg('--admin-password') || process.env.MYSCHOLA_ADMIN_PASSWORD || 'Admin123!'
 
@@ -158,8 +174,7 @@ const main = async () => {
     }, { merge: true })
 
     console.log(`Teacher profile saved for ${TEACHER.email}. Auth user ${created ? 'created' : 'already existed'}.`)
-    console.log(`Initial password: ${password}`)
-    console.log('Ask Fawwaz to change this password after first sign-in.')
+    console.log('The supplied initial password was set. Ask the teacher to change it after first sign-in.')
   } finally {
     await deleteApp(app)
   }
