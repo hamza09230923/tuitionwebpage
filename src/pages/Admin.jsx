@@ -4,7 +4,7 @@ import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, 
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
-import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, getTeacherClassRoster, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
+import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, getTeacherClassRoster, getTeacherVisibleHomeworks, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import {
   buildClassGroupRecords,
@@ -487,6 +487,7 @@ function Admin() {
   const isTeacher = userRole === 'teacher'
   const isScopedTeacher = isTeacher && ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk']
     .includes(String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase())
+  const isJafrenTeacher = isTeacher && String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase() === 'jafren@myschola.co.uk'
 
   useEffect(() => {
     if (!showTutorHandbook) return undefined
@@ -913,6 +914,11 @@ function Admin() {
 
       setManagedHomeworksLoading(true)
       try {
+        if (isJafrenTeacher) {
+          const result = await getTeacherVisibleHomeworks({ subjectId: selectedSubject })
+          setManagedHomeworks(Array.isArray(result.homeworks) ? result.homeworks : [])
+          return
+        }
         const homeworksQuery = query(
           collection(db, 'homeworks'),
           where('subjectId', '==', selectedSubject),
@@ -966,7 +972,7 @@ function Admin() {
     }
 
     loadManagedHomeworks()
-  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher])
+  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher, isJafrenTeacher])
 
   useEffect(() => {
     const loadSubmissions = async () => {

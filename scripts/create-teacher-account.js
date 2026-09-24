@@ -32,7 +32,8 @@ const TEACHER_PROFILES = {
     name: 'Jafren',
     email: 'jafren@myschola.co.uk',
     classes: [
-      { subjectId: 'english_lang_001', tier: 'all-levels', examBoard: 'AQA' }
+      { subjectId: 'english_lang_001', tier: 'all-levels', examBoard: 'AQA' },
+      { subjectId: 'english_lit_001', tier: 'all-levels', examBoard: 'AQA' }
     ],
     permissions: ['view_recordings', 'upload_recordings', 'view_homework']
   }
@@ -171,7 +172,10 @@ const main = async () => {
       permissions: TEACHER.permissions,
       allowedMaterialTypes: ['recording', 'homework'],
       updatedAt: serverTimestamp(),
-      ...(created ? { createdAt: serverTimestamp() } : {})
+      ...(created ? {
+        createdAt: serverTimestamp(),
+        ...(TEACHER.email === 'jafren@myschola.co.uk' ? { homeworkVisibleAfter: serverTimestamp() } : {})
+      } : {})
     }, { merge: true })
 
     console.log(`Teacher profile saved for ${TEACHER.email}. Auth user ${created ? 'created' : 'already existed'}.`)

@@ -170,7 +170,11 @@ service cloud.firestore {
 
     match /homeworks/{homeworkId} {
       allow read: if isAdmin() ||
-        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) ||
+        (isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) &&
+          (request.auth.token.email != 'jafren@myschola.co.uk' ||
+            ('homeworkVisibleAfter' in teacherProfile() &&
+              'createdAt' in resource.data &&
+              resource.data.createdAt >= teacherProfile().homeworkVisibleAfter))) ||
         isEnrolledIn(resource.data.subjectId);
       allow create, update, delete: if isAdmin();
     }
