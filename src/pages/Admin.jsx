@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder, Search, XCircle, ClipboardCheck, MessageCircle, UploadCloud } from 'lucide-react'
+import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, ExternalLink, Users, ChevronDown, ChevronUp, Folder, Search, XCircle } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
@@ -208,6 +208,66 @@ const TUTOR_HANDBOOK_FULL_SECTIONS = [
     ]
   }
 ]
+
+const TUTOR_HANDBOOK_SECTIONS = TUTOR_HANDBOOK_FULL_SECTIONS
+  .filter((section) => ['02', '06', '07', '09'].includes(section.number))
+  .map((section) => {
+    const conciseSection = {
+      '02': {
+        title: 'Before your lesson',
+        intro: 'Be ready a few minutes early so the class can start calmly and on time.',
+        bullets: ['Check the cohort and lesson focus', 'Prepare Zoom and your teaching materials', 'Take attendance and report absences']
+      },
+      '06': {
+        title: 'Homework',
+        intro: 'Homework is set by the MySchola team.',
+        bullets: ['View the homework for your class', 'Share topics or question types students need to practise', 'Send recommendations to the MySchola team']
+      },
+      '07': {
+        title: 'After your lesson',
+        intro: 'Finish each session with the key class admin completed.',
+        bullets: ['Upload the lesson recording to the correct cohort', 'Report useful progress updates or concerns', 'Flag anything that needs follow-up']
+      },
+      '09': {
+        title: 'Communication',
+        intro: 'Keep parents and operational queries with the MySchola team.',
+        bullets: ['Direct payment, timetable and account queries to MySchola', 'Share learning progress or engagement concerns with the team', 'Use approved MySchola channels for student communication']
+      }
+    }[section.number]
+
+    return { number: section.number, ...conciseSection }
+  })
+
+function renderTutorHandbookPanel(onOpen, isOpen) {
+  return (
+    <section className="mb-6 rounded-xl border border-blue-100 border-l-4 border-l-blue-600 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="tutor-handbook-panel-title">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+            <BookOpen className="h-5 w-5 text-blue-600" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Tutor resources</p>
+              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">Quick reference</span>
+            </div>
+            <h2 id="tutor-handbook-panel-title" className="mt-1 text-xl font-bold tracking-tight text-gray-900">MySchola Tutor Handbook</h2>
+            <p className="mt-1 text-sm text-gray-600">A short guide to planning lessons, recordings and getting support.</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-expanded={isOpen}
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+        >
+          Open handbook
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+    </section>
+  )
+}
 
 const getHiddenRecordingIds = (student) => {
   const hiddenIds = Array.isArray(student?.hiddenRecordingIds) ? student.hiddenRecordingIds : []
@@ -520,8 +580,9 @@ function Admin() {
   const teacherCanUseSubject = (subjectId) => !isTeacher || teacherSubjects.includes(subjectId)
   const teacherCanUpload = (materialType) => {
     if (isAdmin) return true
+    if (materialType === 'homework') return false
     if (!isTeacher || !teacherCanUseSubject(selectedSubject)) return false
-    const permission = materialType === 'recording' ? 'upload_recordings' : 'upload_homework'
+    const permission = 'upload_recordings'
     return teacherPermissions.includes(permission) &&
       String(teacherProfile?.classTiers?.[selectedSubject] || '').toLowerCase() === 'foundation'
   }
@@ -1666,8 +1727,8 @@ function Admin() {
 
   const handleSubmitHomework = async (e) => {
     e.preventDefault()
-    if (!teacherCanUpload('homework')) {
-      setMessage('You are not assigned to upload homework for this class')
+    if (!isAdmin) {
+      setMessage('Only MySchola admins can assign homework')
       return
     }
     if (!selectedSubject || !homeworkTitle) {
@@ -1887,6 +1948,7 @@ function Admin() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {isTeacher && renderTutorHandbookPanel(() => setShowTutorHandbook(true), showTutorHandbook)}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">{isAdmin ? 'Admin Panel' : 'Teacher Panel'}</h1>
@@ -1931,8 +1993,8 @@ function Admin() {
           )}
           {isTeacher && (
             <>
-              <div className="mt-4 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950">
-                You can upload and view recordings and homework for your assigned Foundation classes only.
+              <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
+                You can upload recordings and view homework for your assigned Foundation classes. The MySchola team assigns homework.
               </div>
               <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5" aria-labelledby="teacher-classes-heading">
                 <h2 id="teacher-classes-heading" className="text-lg font-semibold text-gray-900">
@@ -1991,59 +2053,9 @@ function Admin() {
           )}
         </div>
 
-        {isTeacher && (
-          <section className="mb-6 overflow-hidden rounded-xl border border-blue-100 bg-white shadow-md">
-            <div className="h-1 bg-blue-600" />
-            <div className="p-5 sm:p-6">
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Tutor resources</p>
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 ring-1 ring-inset ring-blue-100">Quick reference</span>
-                    </div>
-                    <h2 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">MySchola Tutor Handbook</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
-                      Everything you need to deliver consistent, supportive GCSE lessons and keep each cohort moving forward.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowTutorHandbook((open) => !open)}
-                  aria-expanded={showTutorHandbook}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-                >
-                  Open handbook
-                  <ExternalLink className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {[
-                  { icon: ClipboardCheck, label: 'Prepare', text: 'Know your cohort and arrive ready.' },
-                  { icon: MessageCircle, label: 'Support', text: 'Build confidence through clear teaching.' },
-                  { icon: UploadCloud, label: 'Complete', text: 'Upload recordings after every lesson.' }
-                ].map(({ icon: Icon, label, text }) => (
-                  <div key={label} className="rounded-lg border border-blue-100 bg-blue-50/70 p-4">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-blue-600 shadow-sm ring-1 ring-blue-100">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-gray-900">{label}</p>
-                    <p className="mt-1 text-xs leading-5 text-gray-600">{text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
         {isTeacher && showTutorHandbook && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm sm:p-6"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm sm:p-6"
             role="presentation"
             onMouseDown={(event) => {
               if (event.target === event.currentTarget) setShowTutorHandbook(false)
@@ -2053,51 +2065,49 @@ function Admin() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="tutor-handbook-title"
-              className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-slate-50 shadow-2xl"
+              className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
             >
-              <div className="relative shrink-0 overflow-hidden bg-slate-950 px-5 py-5 text-white sm:px-8 sm:py-6">
-                <div className="pointer-events-none absolute -right-10 -top-20 h-48 w-48 rounded-full bg-indigo-500/25 blur-3xl" />
-                <div className="relative flex items-start justify-between gap-4">
+              <div className="shrink-0 border-b border-blue-100 border-t-4 border-t-blue-600 bg-white px-5 py-5 sm:px-8 sm:py-6">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="rounded-xl bg-white/10 p-2.5 ring-1 ring-white/15">
-                      <BookOpen className="h-6 w-6 text-cyan-200" />
+                    <div className="rounded-lg bg-blue-50 p-2.5 ring-1 ring-blue-100">
+                      <BookOpen className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">MySchola tutor resources</p>
-                      <h2 id="tutor-handbook-title" className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Tutor Handbook</h2>
-                      <p className="mt-1 text-sm text-slate-300">A practical guide to delivering excellent lessons and supporting students.</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">MySchola tutor resources</p>
+                      <h2 id="tutor-handbook-title" className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Tutor Handbook</h2>
+                      <p className="mt-1 text-sm text-gray-600">The essential expectations for every MySchola lesson.</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowTutorHandbook(false)}
                     aria-label="Close Tutor Handbook"
-                    className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                    className="rounded-lg p-2 text-gray-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
                   >
                     <XCircle className="h-6 w-6" />
                   </button>
                 </div>
               </div>
 
-              <div className="overflow-y-auto px-5 py-6 sm:px-8">
-                <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-5 text-sm leading-6 text-indigo-950">
-                  <h3 className="text-base font-bold">Welcome to MySchola</h3>
-                  <p className="mt-2">Welcome to the MySchola tutor team. MySchola provides online GCSE tuition through small group and 1-to-1 lessons, helping students improve their understanding, confidence and exam performance.</p>
-                  <p className="mt-2">Our aim is to provide students with high-quality teaching, structured support and a consistent learning experience. As a MySchola tutor, your role is to deliver excellent lessons and support students academically, while the MySchola co-founder and admin team manage operations, parent communication and student administration.</p>
+              <div className="overflow-y-auto bg-gray-50 px-5 py-6 sm:px-8">
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-gray-700">
+                  <h3 className="font-semibold text-gray-900">Your focus</h3>
+                  <p className="mt-1">Deliver a well-prepared lesson, support students clearly, upload the recording and share anything the team needs to know.</p>
                 </div>
 
-                <div className="mt-6 space-y-5">
-                  {TUTOR_HANDBOOK_FULL_SECTIONS.map((section) => (
-                    <article key={section.number} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                      <div className="flex items-start gap-3">
-                        <span className="rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-bold tracking-wider text-cyan-200">{section.number}</span>
-                        <h3 className="text-lg font-bold text-slate-900">{section.title}</h3>
+                <div className="mt-5 space-y-3">
+                  {TUTOR_HANDBOOK_SECTIONS.map((section) => (
+                    <article key={section.number} className="rounded-lg border border-gray-200 bg-white p-5">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-600 text-xs font-bold text-white">{section.number}</span>
+                        <h3 className="text-base font-semibold text-gray-900">{section.title}</h3>
                       </div>
                       {section.paragraphs?.map((paragraph) => <p key={paragraph} className="mt-3 text-sm leading-6 text-slate-600">{paragraph}</p>)}
-                      {section.intro && <p className="mt-4 text-sm leading-6 text-slate-600">{section.intro}</p>}
+                      {section.intro && <p className="mt-3 text-sm leading-6 text-gray-600">{section.intro}</p>}
                       {section.numbered && <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-600">{section.numbered.map((item) => <li key={item}>{item}</li>)}</ol>}
                       {section.subheading && <h4 className="mt-4 text-sm font-bold text-slate-800">{section.subheading}</h4>}
-                      {section.bullets && <ul className="mt-3 grid gap-2 sm:grid-cols-2">{section.bullets.map((item) => <li key={item} className="flex gap-2 text-sm leading-6 text-slate-600"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-emerald-500" />{item}</li>)}</ul>}
+                      {section.bullets && <ul className="mt-3 space-y-2">{section.bullets.map((item) => <li key={item} className="flex items-start gap-2 text-sm leading-6 text-gray-700"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-green-500" aria-hidden="true" /><span>{item}</span></li>)}</ul>}
                       {section.subheadingTwo && <h4 className="mt-5 text-sm font-bold text-slate-800">{section.subheadingTwo}</h4>}
                       {section.bulletsTwo && <ul className="mt-3 grid gap-2 sm:grid-cols-2">{section.bulletsTwo.map((item) => <li key={item} className="flex gap-2 text-sm leading-6 text-slate-600"><CheckCircle className="mt-1 h-4 w-4 shrink-0 text-emerald-500" />{item}</li>)}</ul>}
                       {section.subsections && <div className="mt-4 grid gap-4 md:grid-cols-3">{section.subsections.map((subsection) => <div key={subsection.title} className="rounded-lg bg-slate-50 p-4"><h4 className="font-semibold text-slate-900">{subsection.title}</h4><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Current focus</p><ul className="mt-2 space-y-1.5 text-sm text-slate-600">{subsection.bullets.map((item) => <li key={item}>• {item}</li>)}</ul><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Lessons should focus on</p><ul className="mt-2 space-y-1.5 text-sm text-slate-600">{subsection.focus.map((item) => <li key={item}>• {item}</li>)}</ul>{subsection.extra && <p className="mt-3 text-sm leading-6 text-slate-600">{subsection.extra}</p>}</div>)}</div>}
@@ -2108,9 +2118,8 @@ function Admin() {
                   ))}
                 </div>
 
-                <div className="mt-6 rounded-xl bg-slate-900 p-5 text-center text-white">
-                  <h3 className="font-bold">Thank you for being part of the MySchola tutor team.</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">By working together, tutors and the MySchola team can provide students with a high-quality GCSE learning experience and help them achieve their goals.</p>
+                <div className="mt-5 rounded-lg border border-blue-100 bg-white p-4 text-sm text-gray-700">
+                  <span className="font-semibold text-gray-900">Need help?</span> Contact the MySchola team with any lesson, student or class concern.
                 </div>
               </div>
             </div>
@@ -2130,17 +2139,19 @@ function Admin() {
             <Video className="h-4 w-4" />
             Add Recording
           </button>
-          <button
-            onClick={() => setActiveTab('homework')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              activeTab === 'homework'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-            Add Homework
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab('homework')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                activeTab === 'homework'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              Add Homework
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('resource')}
             className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -2188,7 +2199,7 @@ function Admin() {
             }`}
           >
             <FileText className="h-4 w-4" />
-            Manage Homework
+            {isAdmin ? 'Manage Homework' : 'View Homework'}
           </button>
           <button
             onClick={() => setActiveTab('view-submissions')}
@@ -2877,7 +2888,7 @@ function Admin() {
         )}
 
         {/* Homework Form */}
-        {activeTab === 'homework' && (
+        {isAdmin && activeTab === 'homework' && (
           <form onSubmit={handleSubmitHomework} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Homework</h2>
             
