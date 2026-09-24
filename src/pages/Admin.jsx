@@ -1992,22 +1992,21 @@ function Admin() {
         </div>
 
         {isTeacher && (
-          <section className="relative mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-lg shadow-indigo-100">
-            <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-indigo-500/25 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
-            <div className="relative p-5 sm:p-6">
+          <section className="mb-6 overflow-hidden rounded-xl border border-blue-100 bg-white shadow-md">
+            <div className="h-1 bg-blue-600" />
+            <div className="p-5 sm:p-6">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
-                    <BookOpen className="h-6 w-6 text-cyan-200" />
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+                    <BookOpen className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
                     <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">Tutor resources</p>
-                      <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">Quick reference</span>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Tutor resources</p>
+                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 ring-1 ring-inset ring-blue-100">Quick reference</span>
                     </div>
-                    <h2 className="text-xl font-bold tracking-tight sm:text-2xl">MySchola Tutor Handbook</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+                    <h2 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">MySchola Tutor Handbook</h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
                       Everything you need to deliver consistent, supportive GCSE lessons and keep each cohort moving forward.
                     </p>
                   </div>
@@ -2016,7 +2015,7 @@ function Admin() {
                   type="button"
                   onClick={() => setShowTutorHandbook((open) => !open)}
                   aria-expanded={showTutorHandbook}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-cyan-50 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-slate-950"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                 >
                   Open handbook
                   <ExternalLink className="h-4 w-4" />
@@ -2029,14 +2028,15 @@ function Admin() {
                   { icon: MessageCircle, label: 'Support', text: 'Build confidence through clear teaching.' },
                   { icon: UploadCloud, label: 'Complete', text: 'Upload recordings after every lesson.' }
                 ].map(({ icon: Icon, label, text }) => (
-                  <div key={label} className="rounded-xl border border-white/10 bg-white/[0.07] p-3.5">
-                    <Icon className="h-5 w-5 text-cyan-200" />
-                    <p className="mt-3 text-sm font-semibold text-white">{label}</p>
-                    <p className="mt-1 text-xs leading-5 text-slate-300">{text}</p>
+                  <div key={label} className="rounded-lg border border-blue-100 bg-blue-50/70 p-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-blue-600 shadow-sm ring-1 ring-blue-100">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-gray-900">{label}</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-600">{text}</p>
                   </div>
                 ))}
               </div>
-
             </div>
           </section>
         )}
