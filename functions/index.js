@@ -102,8 +102,15 @@ const getTeacherTier = (teacher, subjectId) => {
   return String(tiers[subjectId] || '').trim().toLowerCase()
 }
 
-const isFawwazTeacherProfile = (teacher) => (
-  String(teacher?.email || '').trim().toLowerCase() === 'fawwaz@myschola.co.uk'
+const isScopedTeacherProfile = (teacher) => (
+  ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk']
+    .includes(String(teacher?.email || '').trim().toLowerCase())
+)
+
+const getMaterialTier = (subjectId, tier) => (
+  String(subjectId || '').startsWith('english_') && !tier
+    ? 'all-levels'
+    : String(tier || '').trim().toLowerCase()
 )
 
 const teacherHasPermission = (teacher, permission) => (
@@ -122,10 +129,11 @@ const assertTeacherMaterialAccess = async ({ uid, subjectId, tier, materialType,
   if (!permission || !teacherHasPermission(teacher, permission)) {
     throw new Error(`This teacher cannot ${action} ${materialType}s`)
   }
-  if (action === 'upload' && isFawwazTeacherProfile(teacher) && String(tier || '').trim().toLowerCase() !== 'foundation') {
-    throw new Error('This teacher account can only upload Foundation class materials')
+  const requestedTier = getMaterialTier(subjectId, tier)
+  if (action === 'upload' && isScopedTeacherProfile(teacher) && !['foundation', 'all-levels'].includes(requestedTier)) {
+    throw new Error('This teacher account can only upload assigned class materials')
   }
-  if (getTeacherTier(teacher, subjectId) !== String(tier || '').trim().toLowerCase()) {
+  if (getTeacherTier(teacher, subjectId) !== requestedTier) {
     throw new Error('This teacher is not assigned to the selected class tier')
   }
   return teacher
@@ -148,7 +156,7 @@ exports.getTeacherClassRoster = runtimeFunctions.https.onRequest(async (req, res
     if (role !== 'teacher') return jsonError(res, 403, 'Not authorized')
 
     const teacher = await getTeacherProfile(decoded.uid)
-    if (!isFawwazTeacherProfile(teacher)) return jsonError(res, 403, 'Not authorized')
+    if (!isScopedTeacherProfile(teacher)) return jsonError(res, 403, 'Not authorized')
 
     const { subjectId } = req.body || {}
     const subjects = Array.isArray(teacher.subjects) ? teacher.subjects : []
@@ -157,8 +165,8 @@ exports.getTeacherClassRoster = runtimeFunctions.https.onRequest(async (req, res
     }
 
     const tier = getTeacherTier(teacher, subjectId)
-    if (tier !== 'foundation') {
-      return jsonError(res, 403, 'This teacher account can only access Foundation class rosters')
+    if (!['foundation', 'all-levels'].includes(tier)) {
+      return jsonError(res, 403, 'This teacher account can only access assigned class rosters')
     }
 
     const expectedBoard = String(teacher.classBoards?.[subjectId] || '').trim().toLowerCase()
@@ -169,7 +177,7 @@ exports.getTeacherClassRoster = runtimeFunctions.https.onRequest(async (req, res
       .flatMap((studentDoc) => {
         const student = studentDoc.data() || {}
         const setting = student.subjectSettings?.[subjectId] || {}
-        if (String(setting.tier || '').trim().toLowerCase() !== tier) return []
+        if (getMaterialTier(subjectId, setting.tier) !== tier) return []
         if (expectedBoard && String(setting.examBoard || '').trim().toLowerCase() !== expectedBoard) return []
         return [{
           id: studentDoc.id,
@@ -965,7 +973,7 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
     if (role === 'teacher') {
       if (
         ['studentRecordings', 'studentHomeworks'].includes(collection) &&
-        isFawwazTeacherProfile(await getTeacherProfile(decoded.uid))
+        isScopedTeacherProfile(await getTeacherProfile(decoded.uid))
       ) {
         return jsonError(res, 403, 'This teacher account cannot access student-specific materials')
       }

@@ -289,9 +289,11 @@ function Admin() {
   const [migrationLoading, setMigrationLoading] = useState(false)
   const [migrationSummary, setMigrationSummary] = useState(null)
   const [openingMaterialKey, setOpeningMaterialKey] = useState('')
+  const [copiedZoomClassId, setCopiedZoomClassId] = useState('')
   const isAdmin = userRole === 'admin'
   const isTeacher = userRole === 'teacher'
-  const isFawwazTeacher = isTeacher && String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase() === 'fawwaz@myschola.co.uk'
+  const isScopedTeacher = isTeacher && ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk']
+    .includes(String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase())
   const teacherSubjects = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
   const teacherPermissions = Array.isArray(teacherProfile?.permissions) ? teacherProfile.permissions : []
   const teacherClasses = isTeacher
@@ -311,18 +313,20 @@ function Admin() {
     : []
 
   useEffect(() => {
-    if (!authenticated || !isFawwazTeacher || !teacherProfile) {
+    if (!authenticated || !isScopedTeacher || !teacherProfile) {
       setTeacherRosters({})
       setTeacherRostersLoading(false)
       return
     }
 
     let cancelled = false
-    const assignedFoundationSubjects = (Array.isArray(teacherProfile.subjects) ? teacherProfile.subjects : [])
-      .filter((subjectId) => String(teacherProfile.classTiers?.[subjectId] || '').trim().toLowerCase() === 'foundation')
+    const assignedSubjects = (Array.isArray(teacherProfile.subjects) ? teacherProfile.subjects : [])
+      .filter((subjectId) => ['foundation', 'all-levels'].includes(
+        String(teacherProfile.classTiers?.[subjectId] || '').trim().toLowerCase()
+      ))
 
     setTeacherRostersLoading(true)
-    Promise.all(assignedFoundationSubjects.map(async (subjectId) => {
+    Promise.all(assignedSubjects.map(async (subjectId) => {
       try {
         const result = await getTeacherClassRoster({ subjectId })
         return [subjectId, { students: Array.isArray(result.students) ? result.students : [], error: '' }]
@@ -338,15 +342,16 @@ function Admin() {
     return () => {
       cancelled = true
     }
-  }, [authenticated, isFawwazTeacher, teacherProfile])
+  }, [authenticated, isScopedTeacher, teacherProfile])
 
   const teacherCanUseSubject = (subjectId) => !isTeacher || teacherSubjects.includes(subjectId)
   const teacherCanUpload = (materialType) => {
     if (isAdmin) return true
     if (!isTeacher || !teacherCanUseSubject(selectedSubject)) return false
     const permission = materialType === 'recording' ? 'upload_recordings' : 'upload_homework'
+    const assignedTier = String(teacherProfile?.classTiers?.[selectedSubject] || '').toLowerCase()
     return teacherPermissions.includes(permission) &&
-      String(teacherProfile?.classTiers?.[selectedSubject] || '').toLowerCase() === 'foundation'
+      assignedTier === (isEnglishSubjectData(selectedSubjectData) ? 'all-levels' : 'foundation')
   }
   const recipientRosterRequiresRoute = ['recording', 'homework', 'resource'].includes(activeTab) &&
     !isEnglishSubjectData(selectedSubjectData)
@@ -576,7 +581,7 @@ function Admin() {
           const recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
-            ...(isTeacher ? [where('tier', '==', 'Foundation')] : []),
+            ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : 'Foundation')] : []),
             orderBy('date', 'desc')
           )
           recordingsSnapshot = await getDocs(recordingsQuery)
@@ -585,7 +590,7 @@ function Admin() {
           const recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
-            ...(isTeacher ? [where('tier', '==', 'Foundation')] : [])
+            ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : 'Foundation')] : [])
           )
           recordingsSnapshot = await getDocs(recordingsQuery)
         }
@@ -599,7 +604,7 @@ function Admin() {
           }))
 
         let studentRecordingsData = []
-        if (!isFawwazTeacher) {
+        if (!isScopedTeacher) {
           try {
             const studentRecordingsQuery = query(
               collection(db, 'studentRecordings'),
@@ -636,7 +641,7 @@ function Admin() {
     }
 
     loadManagedRecordings()
-  }, [activeTab, authenticated, selectedSubject, isTeacher, isFawwazTeacher])
+  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher])
 
   useEffect(() => {
     const shouldLoadStudents = isAdmin && ['recording', 'homework', 'resource', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
@@ -715,7 +720,7 @@ function Admin() {
           }))
 
         let studentHomeworksData = []
-        if (!isFawwazTeacher) {
+        if (!isScopedTeacher) {
           try {
             const studentHomeworksQuery = query(
               collection(db, 'studentHomeworks'),
@@ -752,7 +757,7 @@ function Admin() {
     }
 
     loadManagedHomeworks()
-  }, [activeTab, authenticated, selectedSubject, isTeacher, isFawwazTeacher])
+  }, [activeTab, authenticated, selectedSubject, isTeacher, isScopedTeacher])
 
   useEffect(() => {
     const loadSubmissions = async () => {
@@ -919,13 +924,13 @@ function Admin() {
     const subject = subjects.find(s => s.id === selectedSubject)
     setSelectedSubjectData(subject || null)
     setExamBoard(teacherProfile?.classBoards?.[selectedSubject] || getLockedExamBoard(subject) || '')
-    setTier(isTeacher ? (isFawwazTeacher ? 'Foundation' : (teacherProfile?.classTiers?.[selectedSubject] || '')) : '')
+    setTier(isTeacher && !isEnglishSubjectData(subject) ? (teacherProfile?.classTiers?.[selectedSubject] || '') : '')
     setSelectedRecordingStudentId('')
     setSelectedHomeworkStudentIds([])
     setSelectedResourceStudentIds([])
     setRosterFilter('all')
     setSubmissionFilter('all')
-  }, [selectedSubject, subjects, isTeacher, isFawwazTeacher, teacherProfile])
+  }, [selectedSubject, subjects, isTeacher, isScopedTeacher, teacherProfile])
 
   // Check if subject is English (no tier needed)
   const isEnglishSubject = () => {
@@ -1022,7 +1027,7 @@ function Admin() {
       setMessage('Please select a tier (Foundation or Higher)')
       return
     }
-    if (isTeacher && tier !== 'Foundation') {
+    if (isTeacher && !isEnglishSubject() && tier !== 'Foundation') {
       setMessage('This teacher account can only upload Foundation class recordings')
       return
     }
@@ -1073,7 +1078,7 @@ function Admin() {
       setRecordingFile(null)
       setUploadProgress(0)
       setExamBoard(teacherProfile?.classBoards?.[selectedSubject] || getLockedExamBoard(selectedSubjectData) || '')
-      setTier(isTeacher ? (isFawwazTeacher ? 'Foundation' : (teacherProfile?.classTiers?.[selectedSubject] || '')) : '')
+      setTier(isTeacher && !isEnglishSubject() ? (teacherProfile?.classTiers?.[selectedSubject] || '') : '')
       setRecordingAudience('subject')
       setSelectedRecordingStudentId('')
 
@@ -1507,7 +1512,7 @@ function Admin() {
       setMessage('Select the exam board and Foundation or Higher tier before uploading')
       return
     }
-    if (isTeacher && tier !== 'Foundation') {
+    if (isTeacher && !isEnglishSubject() && tier !== 'Foundation') {
       setMessage('This teacher account can only upload Foundation class homework')
       return
     }
@@ -1755,7 +1760,9 @@ function Admin() {
           {isTeacher && (
             <>
               <div className="mt-4 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950">
-                You can upload and view recordings and homework for your assigned Foundation classes only.
+                {isScopedTeacher
+                  ? 'You can upload and view recordings for your assigned classes only.'
+                  : 'You can upload and view recordings and homework for your assigned Foundation classes only.'}
               </div>
               <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5" aria-labelledby="teacher-classes-heading">
                 <h2 id="teacher-classes-heading" className="text-lg font-semibold text-gray-900">
@@ -1775,19 +1782,52 @@ function Admin() {
                           {[classItem.tier, classItem.examBoard].filter(Boolean).join(' · ') || 'Class details unavailable'}
                         </p>
                         {classItem.zoomLink ? (
-                          <a
-                            href={classItem.zoomLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-3 inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-                          >
-                            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                            Join Zoom class
-                          </a>
+                          <div className="mt-3 space-y-2">
+                            {isScopedTeacher && (
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Zoom link</p>
+                                <a
+                                  href={classItem.zoomLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="break-all text-sm text-indigo-700 hover:underline"
+                                >
+                                  {classItem.zoomLink}
+                                </a>
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-2">
+                              <a
+                                href={classItem.zoomLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                              >
+                                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                                Join Zoom class
+                              </a>
+                              {isScopedTeacher && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    try {
+                                      await navigator.clipboard.writeText(classItem.zoomLink)
+                                      setCopiedZoomClassId(classItem.id)
+                                    } catch {
+                                      setMessage('Could not copy the Zoom link. Select the link above to copy it.')
+                                    }
+                                  }}
+                                  className="rounded-md border border-indigo-300 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+                                >
+                                  {copiedZoomClassId === classItem.id ? 'Copied' : 'Copy link'}
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         ) : (
                           <p className="mt-3 text-sm text-amber-700">Zoom link not set for this class.</p>
                         )}
-                        {isFawwazTeacher && (
+                        {isScopedTeacher && (
                           <div className="mt-4 border-t border-gray-100 pt-3">
                             <h4 className="text-sm font-medium text-gray-800">Students in this class</h4>
                             {teacherRostersLoading ? (
@@ -1827,17 +1867,19 @@ function Admin() {
             <Video className="h-4 w-4" />
             Add Recording
           </button>
-          <button
-            onClick={() => setActiveTab('homework')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              activeTab === 'homework'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-            Add Homework
-          </button>
+          {!isScopedTeacher && (
+            <button
+              onClick={() => setActiveTab('homework')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                activeTab === 'homework'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              Add Homework
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('resource')}
             className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -1876,17 +1918,19 @@ function Admin() {
             <Video className="h-4 w-4" />
             Manage Recordings
           </button>
-          <button
-            onClick={() => setActiveTab('manage-homework')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              activeTab === 'manage-homework'
-                ? 'bg-emerald-700 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-            Manage Homework
-          </button>
+          {!isScopedTeacher && (
+            <button
+              onClick={() => setActiveTab('manage-homework')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                activeTab === 'manage-homework'
+                  ? 'bg-emerald-700 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              Manage Homework
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('view-submissions')}
             className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -2020,7 +2064,7 @@ function Admin() {
                   >
                     <option value="">Select Tier</option>
                     <option value="Foundation">Foundation</option>
-                    {!isFawwazTeacher && <option value="Higher">Higher</option>}
+                    {!isScopedTeacher && <option value="Higher">Higher</option>}
                   </select>
                 </div>
               )}
@@ -2278,7 +2322,7 @@ function Admin() {
                             <p>
                               <span className="font-medium">Access:</span>{' '}
                               {recording.visibility === 'student'
-                                ? isFawwazTeacher ? 'Specific student' : recording.studentName || recording.studentEmail || recording.studentId || 'Specific student'
+                                ? isScopedTeacher ? 'Specific student' : recording.studentName || recording.studentEmail || recording.studentId || 'Specific student'
                                 : isAdmin
                                   ? `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`
                                   : `All enrolled ${recording.tier ? `${recording.tier} ` : ''}students in this class`}
@@ -2395,7 +2439,7 @@ function Admin() {
           </div>
         )}
 
-        {activeTab === 'manage-homework' && (
+        {!isScopedTeacher && activeTab === 'manage-homework' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -2456,7 +2500,7 @@ function Admin() {
                             <p>
                               <span className="font-medium">Access:</span>{' '}
                               {homework.visibility === 'student'
-                                ? isFawwazTeacher ? 'Specific student' : homework.studentName || homework.studentEmail || homework.studentId || 'Specific student'
+                                ? isScopedTeacher ? 'Specific student' : homework.studentName || homework.studentEmail || homework.studentId || 'Specific student'
                                 : isAdmin
                                   ? `${accessStudents.length} student${accessStudents.length === 1 ? '' : 's'} can see this`
                                   : `All enrolled ${homework.tier ? `${homework.tier} ` : ''}students in this class`}
@@ -2574,7 +2618,7 @@ function Admin() {
         )}
 
         {/* Homework Form */}
-        {activeTab === 'homework' && (
+        {!isScopedTeacher && activeTab === 'homework' && (
           <form onSubmit={handleSubmitHomework} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Homework</h2>
             
@@ -2634,7 +2678,7 @@ function Admin() {
                   <select value={tier} onChange={(e) => setTier(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
                     <option value="">Select Tier</option>
                     <option value="Foundation">Foundation</option>
-                    {!isFawwazTeacher && <option value="Higher">Higher</option>}
+                    {!isScopedTeacher && <option value="Higher">Higher</option>}
                   </select>
                 </div>}
               </div>
@@ -2827,7 +2871,7 @@ function Admin() {
                   <select value={tier} onChange={(e) => setTier(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
                     <option value="">Select Tier</option>
                     <option value="Foundation">Foundation</option>
-                    {!isFawwazTeacher && <option value="Higher">Higher</option>}
+                    {!isScopedTeacher && <option value="Higher">Higher</option>}
                   </select>
                 </div>}
               </div>

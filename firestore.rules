@@ -15,8 +15,9 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/teachers/$(request.auth.uid));
     }
 
-    function isFawwazTeacher() {
-      return isTeacher() && request.auth.token.email == 'fawwaz@myschola.co.uk';
+    function isScopedTeacher() {
+      return isTeacher() && request.auth.token.email in
+        ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk'];
     }
 
     function teacherProfile() {
@@ -26,7 +27,9 @@ service cloud.firestore {
     function isAssignedTeacherClass(subjectId, tier) {
       return isTeacher() &&
         subjectId in teacherProfile().subjects &&
-        teacherProfile().classTiers[subjectId] == tier;
+        (teacherProfile().classTiers[subjectId] == tier ||
+          (subjectId.matches('english_.*') &&
+            teacherProfile().classTiers[subjectId] == 'all-levels' && tier == null));
     }
 
     // A tutor may only see a student where an admin has created this
@@ -86,18 +89,18 @@ service cloud.firestore {
     }
 
     match /students/{uid} {
-      allow read: if isOwnStudent(uid) || isAdmin() || (isAssignedTutor(uid) && !isFawwazTeacher());
+      allow read: if isOwnStudent(uid) || isAdmin() || (isAssignedTutor(uid) && !isScopedTeacher());
       allow write: if isAdmin();
     }
 
     // Admins create classes and enrol tutors and students.  Tutors can only
     // access the classes in which their UID appears in tutorIds.
     match /classes/{classId} {
-      allow read: if isAdmin() || isClassStudent(classId) || (isClassTutor(classId) && !isFawwazTeacher());
+      allow read: if isAdmin() || isClassStudent(classId) || (isClassTutor(classId) && !isScopedTeacher());
       allow create, update, delete: if isAdmin();
 
       match /students/{studentId} {
-        allow read: if (isClassTutor(classId) && !isFawwazTeacher()) ||
+        allow read: if (isClassTutor(classId) && !isScopedTeacher()) ||
           (signedIn() && request.auth.uid == studentId && isClassStudent(classId));
         allow write: if isAdmin();
       }
@@ -152,7 +155,7 @@ service cloud.firestore {
 
     match /studentRecordings/{recordingId} {
       allow read: if isAdmin() ||
-        (isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) && !isFawwazTeacher()) || (
+        (isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) && !isScopedTeacher()) || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
         isEnrolledIn(resource.data.subjectId) &&
@@ -174,7 +177,7 @@ service cloud.firestore {
 
     match /studentHomeworks/{homeworkId} {
       allow read: if isAdmin() ||
-        (isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) && !isFawwazTeacher()) || (
+        (isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) && !isScopedTeacher()) || (
         signedIn() &&
         resource.data.studentId == request.auth.uid &&
         isEnrolledIn(resource.data.subjectId)
