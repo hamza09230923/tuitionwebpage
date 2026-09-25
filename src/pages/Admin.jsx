@@ -4,7 +4,7 @@ import { Video, FileText, BookOpen, Save, CheckCircle, Trash2, Download, Clock, 
 import { auth, db } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
-import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, getTeacherClassRoster, getTeacherVisibleHomeworks, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
+import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, getTeacherClassRoster, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import {
   buildClassGroupRecords,
@@ -487,7 +487,6 @@ function Admin() {
   const isTeacher = userRole === 'teacher'
   const isScopedTeacher = isTeacher && ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk']
     .includes(String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase())
-  const isJafrenTeacher = isTeacher && String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase() === 'jafren@myschola.co.uk'
 
   useEffect(() => {
     if (!showTutorHandbook) return undefined
@@ -908,17 +907,12 @@ function Admin() {
 
   useEffect(() => {
     const loadManagedHomeworks = async () => {
-      if (activeTab !== 'manage-homework' || !authenticated || !selectedSubject) {
+      if (activeTab !== 'manage-homework' || !authenticated || !selectedSubject || isScopedTeacher) {
         return
       }
 
       setManagedHomeworksLoading(true)
       try {
-        if (isJafrenTeacher) {
-          const result = await getTeacherVisibleHomeworks({ subjectId: selectedSubject })
-          setManagedHomeworks(Array.isArray(result.homeworks) ? result.homeworks : [])
-          return
-        }
         const homeworksQuery = query(
           collection(db, 'homeworks'),
           where('subjectId', '==', selectedSubject),
@@ -972,7 +966,7 @@ function Admin() {
     }
 
     loadManagedHomeworks()
-  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher, isJafrenTeacher])
+  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher])
 
   useEffect(() => {
     const loadSubmissions = async () => {
@@ -1976,7 +1970,9 @@ function Admin() {
           {isTeacher && (
             <>
               <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
-                You can upload recordings and view homework for your assigned classes. The MySchola team assigns homework.
+                {isScopedTeacher
+                  ? 'You can upload recordings for your assigned classes. The MySchola team assigns homework.'
+                  : 'You can upload recordings and view homework for your assigned classes. The MySchola team assigns homework.'}
               </div>
               <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5" aria-labelledby="teacher-classes-heading">
                 <h2 id="teacher-classes-heading" className="text-lg font-semibold text-gray-900">
@@ -2207,17 +2203,19 @@ function Admin() {
             <Video className="h-4 w-4" />
             Manage Recordings
           </button>
-          <button
-            onClick={() => setActiveTab('manage-homework')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              activeTab === 'manage-homework'
-                ? 'bg-emerald-700 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-            {isAdmin ? 'Manage Homework' : 'View Homework'}
-          </button>
+          {!isScopedTeacher && (
+            <button
+              onClick={() => setActiveTab('manage-homework')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                activeTab === 'manage-homework'
+                  ? 'bg-emerald-700 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              {isAdmin ? 'Manage Homework' : 'View Homework'}
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('view-submissions')}
             className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -2726,7 +2724,7 @@ function Admin() {
           </div>
         )}
 
-        {activeTab === 'manage-homework' && (
+        {activeTab === 'manage-homework' && !isScopedTeacher && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>

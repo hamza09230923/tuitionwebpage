@@ -106,16 +106,6 @@ const isScopedTeacherProfile = (teacher) => (
     .includes(String(teacher?.email || '').trim().toLowerCase())
 )
 
-const isJafrenTeacherProfile = (teacher) => (
-  String(teacher?.email || '').trim().toLowerCase() === 'jafren@myschola.co.uk'
-)
-
-const canViewJafrenHomework = (teacher, homework) => {
-  const cutoff = teacher?.homeworkVisibleAfter?.toMillis?.()
-  const createdAt = homework?.createdAt?.toMillis?.()
-  return Number.isFinite(cutoff) && Number.isFinite(createdAt) && createdAt >= cutoff
-}
-
 const getMaterialTier = (subjectId, tier) => (
   String(subjectId || '').startsWith('english_') && !tier
     ? 'all-levels'
@@ -210,46 +200,7 @@ exports.getTeacherVisibleHomeworks = runtimeFunctions.https.onRequest(async (req
   if (handleOptions(req, res)) return
   applyCors(req, res)
   if (req.method !== 'POST') return jsonError(res, 405, 'Method not allowed')
-
-  try {
-    const decoded = await getAuthToken(req)
-    if (await getUserRole(decoded.uid) !== 'teacher') return jsonError(res, 403, 'Not authorized')
-    const teacher = await getTeacherProfile(decoded.uid)
-    const { subjectId } = req.body || {}
-    if (!isJafrenTeacherProfile(teacher) ||
-        !teacherHasPermission(teacher, 'view_homework') ||
-        !Array.isArray(teacher.subjects) || !teacher.subjects.includes(subjectId)) {
-      return jsonError(res, 403, 'Not authorized')
-    }
-
-    const expectedTier = getTeacherTier(teacher, subjectId)
-    const expectedBoard = String(teacher.classBoards?.[subjectId] || '').trim().toLowerCase()
-    const snapshot = await getDb().collection('homeworks').where('subjectId', '==', subjectId).get()
-    const homeworks = snapshot.docs.flatMap((homeworkDoc) => {
-      const homework = homeworkDoc.data() || {}
-      if (!canViewJafrenHomework(teacher, homework) ||
-          getMaterialTier(subjectId, homework.tier) !== expectedTier ||
-          String(homework.examBoard || '').trim().toLowerCase() !== expectedBoard) return []
-      return [{
-        id: homeworkDoc.id,
-        sourceCollection: 'homeworks',
-        visibility: 'subject',
-        title: homework.title || '',
-        description: homework.description || '',
-        dueDate: homework.dueDate?.toDate?.()?.toISOString?.() || homework.dueDate || null,
-        attachmentName: homework.attachmentName || null,
-        attachmentUrl: homework.attachmentUrl || null,
-        r2Key: homework.r2Key || null,
-        createdByRole: homework.createdByRole || null,
-        examBoard: homework.examBoard || null,
-        tier: homework.tier || null
-      }]
-    })
-    res.status(200).json({ homeworks })
-  } catch (err) {
-    console.error('getTeacherVisibleHomeworks error:', err.message)
-    jsonError(res, 403, err.message || 'Unable to load homework')
-  }
+  return jsonError(res, 403, 'Not authorized')
 })
 
 const assertR2FileType = ({ uploadType, fileName, contentType }) => {
@@ -1037,8 +988,8 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
       ) {
         return jsonError(res, 403, 'This teacher account cannot access student-specific materials')
       }
-      if (collection === 'homeworks' && isJafrenTeacherProfile(teacher) && !canViewJafrenHomework(teacher, material)) {
-        return jsonError(res, 403, 'This homework predates this teacher account')
+      if (materialType === 'homework' && isScopedTeacherProfile(teacher)) {
+        return jsonError(res, 403, 'This teacher account cannot access homework')
       }
       if (!materialType) return jsonError(res, 403, 'Teachers cannot access this material type')
       await assertTeacherMaterialAccess({

@@ -26,7 +26,7 @@ const TEACHER_PROFILES = {
       { subjectId: 'biology_001', tier: 'Foundation', examBoard: 'AQA' },
       { subjectId: 'maths_001', tier: 'Foundation', examBoard: 'Edexcel' }
     ],
-    permissions: ['view_recordings', 'upload_recordings', 'view_homework']
+    permissions: ['view_recordings', 'upload_recordings']
   },
   jafren: {
     name: 'Jafren',
@@ -35,7 +35,7 @@ const TEACHER_PROFILES = {
       { subjectId: 'english_lang_001', tier: 'all-levels', examBoard: 'AQA' },
       { subjectId: 'english_lit_001', tier: 'all-levels', examBoard: 'AQA' }
     ],
-    permissions: ['view_recordings', 'upload_recordings', 'view_homework']
+    permissions: ['view_recordings', 'upload_recordings']
   }
 }
 

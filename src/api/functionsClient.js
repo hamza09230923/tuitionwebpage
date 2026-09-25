@@ -65,9 +65,6 @@ export const createR2AdminUpload = (payload) =>
 export const getTeacherClassRoster = (payload) =>
   callFunction('getTeacherClassRoster', payload)
 
-export const getTeacherVisibleHomeworks = (payload) =>
-  callFunction('getTeacherVisibleHomeworks', payload)
-
 export const getR2DownloadUrl = (payload) =>
   callFunction('getR2DownloadUrl', payload)
 
