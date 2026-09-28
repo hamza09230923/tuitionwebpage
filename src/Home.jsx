@@ -1,7 +1,9 @@
 import { Menu, X, BookOpen, Users, Award, ArrowRight, ArrowLeft, Check, Star, GraduationCap, Target, TrendingUp, Mail, Phone, Clock, ZoomIn, UserCheck, Lock, MessageCircle } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import CalInlineEmbed from './components/CalInlineEmbed'
+import SiteFooter from './components/SiteFooter'
 import { normalizeCalBooking, saveConsultationBooking } from './utils/bookingStorage'
 import { scrollToBookingSection } from './utils/scrollToBooking'
 import testimonialVideo1 from './testimonials/testimonial1-5gwMtUAO.mp4'
@@ -64,19 +66,55 @@ function TestimonialVideo({ src, className, showControls = true }) {
 
 // eslint-disable-next-line react/prop-types
 function DeferredSection({ children, className = '', ...props }) {
+  const reduceMotion = useReducedMotion()
   return (
-    <section
+    <motion.section
       className={`deferred-section ${className}`}
       style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}
+      initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: 0.42, ease: 'easeOut' }}
       {...props}
     >
       {children}
-    </section>
+    </motion.section>
+  )
+}
+
+function InteractiveMotionCard({ children, className = '', ...props }) {
+  const pointerX = useMotionValue(0)
+  const pointerY = useMotionValue(0)
+  const rotateX = useSpring(useTransform(pointerY, [-1, 1], [4, -4]), { stiffness: 180, damping: 24 })
+  const rotateY = useSpring(useTransform(pointerX, [-1, 1], [-5, 5]), { stiffness: 180, damping: 24 })
+
+  const handlePointerMove = (event) => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    pointerX.set((event.clientX - bounds.left) / bounds.width * 2 - 1)
+    pointerY.set((event.clientY - bounds.top) / bounds.height * 2 - 1)
+  }
+
+  const resetPointer = () => {
+    pointerX.set(0)
+    pointerY.set(0)
+  }
+
+  return (
+    <motion.div
+      {...props}
+      className={className}
+      style={{ ...props.style, rotateX, rotateY, transformPerspective: 1200 }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetPointer}
+    >
+      {children}
+    </motion.div>
   )
 }
 
 function Home() {
   const navigate = useNavigate()
+  const reduceMotion = useReducedMotion()
   const testimonialVideos = [
     { src: parentTestimonialVideo, id: 7, name: 'Parent Testimonial', subjects: ['Parent Feedback'], improvementLabel: 'Family experience' },
     { src: studentTestimonialVideo, id: 6, name: 'Student Testimonial', subjects: ['Student Feedback'], improvementLabel: 'Learning experience' },
@@ -162,43 +200,37 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="marketing-shell min-h-screen bg-white">
       {/* Skip to main content link for screen readers */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg">
         Skip to main content
       </a>
 
       {/* Cohort Banner */}
-      <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
+      <div className="cohort-banner">
         Join our {cohortMonth} cohort as soon as possible - spaces are running out!
       </div>
       
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
+      <nav className="site-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16">
-            <div className="flex items-center">
-              <GraduationCap className="h-8 w-8 text-blue-600" aria-hidden="true" />
-              <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
-            </div>
+          <div className="site-nav-inner">
+            <Link to="/" className="site-brand"><GraduationCap aria-hidden="true" /><span>MySchola</span></Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex justify-center">
-              <div className="flex items-center space-x-8 text-base font-medium">
-                <a href="#home" className="text-gray-700 hover:text-blue-600 transition">Home</a>
-                <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
-                <a href="#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
-                <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
-                <Link to="/faqs" className="text-gray-700 hover:text-blue-600 transition">FAQ</Link>
-                <Link to="/careers" className="text-gray-700 hover:text-blue-600 transition">Careers</Link>
-              </div>
-            </div>
+            <div className="nav-links hidden md:flex"><div>
+                <a href="#home">Home</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#subjects">Subjects</a>
+                <a href="#testimonials">Testimonials</a>
+                <Link to="/faqs">FAQ</Link>
+            </div></div>
 
             <div className="flex items-center justify-end">
-              <div className="hidden md:flex items-center space-x-4">
+              <div className="hidden md:flex nav-actions">
                 <Link
                   to="/login"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 inline-flex items-center"
+                  className="nav-login"
                   aria-label="Log in"
                 >
                   Log In
@@ -208,7 +240,7 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={trackLeadWhatsApp}
-                  className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center gap-2"
+                  className="nav-whatsapp"
                   aria-label="Contact us on WhatsApp"
                 >
                   <MessageCircle className="h-5 w-5" aria-hidden="true" />
@@ -239,7 +271,6 @@ function Home() {
               <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
               <Link to="/faqs" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</Link>
-              <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -268,15 +299,13 @@ function Home() {
 
       {/* Hero Section - Clear Headline */}
       <main id="main-content">
-      <section id="home" className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100" aria-label="Hero section">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center">
-            <div className="relative inline-block px-2">
-              <h1 className="relative z-10 text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
+      <section id="home" className="hero-section" aria-label="Hero section">
+        <div className="hero-inner">
+          <motion.div className="hero-copy" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
                 GCSE Tuition That Helps Students Close Gaps, Build Confidence and
                 <span className="font-keyword text-blue-600"> Improve Grades</span>
               </h1>
-            </div>
             <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-4xl mx-auto px-2">
               Online small-group Maths, English and Science tuition for Year 9, Year 10 and Year 11 students, built around exam technique, weekly structure and clear parent feedback.
             </p>
@@ -298,7 +327,17 @@ function Home() {
               </Link>
             </div>
             <p className="mt-6 text-sm text-gray-600">Free consultation available. No card required.</p>
-          </div>
+          </motion.div>
+          <InteractiveMotionCard className="hero-visual" initial={reduceMotion ? false : { opacity: 0, x: 26 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.08 }}>
+            <div className="hero-orbit hero-orbit-one" /><div className="hero-orbit hero-orbit-two" />
+            <motion.div className="hero-plan-card" animate={reduceMotion ? undefined : { y: [0, -7, 0], rotateX: [0, 1.5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}>
+              <div className="hero-plan-top"><span className="status-dot" /> <small>MY SCHOLA LEARNING PLAN</small><b>Structured</b></div>
+              <p>Progress tracking</p><strong>Weekly</strong><div className="hero-progress"><span /></div>
+              <div className="hero-legend"><span>● Maths</span><span>● English</span><span>● Science</span></div>
+            </motion.div>
+            <motion.div className="hero-plan-badge hero-plan-badge-left" animate={reduceMotion ? undefined : { y: [0, 5, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}>◷ <span>Lesson timetable<br /><b>Built around your week</b></span></motion.div>
+            <motion.div className="hero-plan-badge hero-plan-badge-right" animate={reduceMotion ? undefined : { y: [0, -5, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}>✓ <span>Tutor feedback<br /><b>Next step is clear</b></span></motion.div>
+          </InteractiveMotionCard>
         </div>
       </section>
 
@@ -309,7 +348,7 @@ function Home() {
           <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
             Good GCSE tuition starts with understanding what your child needs. We use a simple four-step process so students receive focused support and parents know what happens next.
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="how-it-works-grid grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center p-6 bg-blue-50 rounded-lg">
               <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                 <UserCheck className="h-8 w-8 text-white" />
@@ -349,16 +388,10 @@ function Home() {
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
             Many of our students have improved by two or more grades after consistent lessons, homework and exam practice. Individual results vary, but regular attendance and active practice give students a clearer route forward.
           </p>
-          <div className="mb-12 flex justify-center">
-            <img
-              src={benefitsComparisonGraphic}
-              alt="Comparison table showing MySchola benefits against other providers and one-to-one home tutors"
-              className="w-full max-w-6xl h-auto rounded-2xl border border-gray-200 shadow-sm object-contain"
-              loading="lazy"
-              width={1152}
-              height={768}
-            />
-          </div>
+          <motion.div className="comparison-visual comparison-3d-frame mb-12" initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} whileHover={reduceMotion ? undefined : { rotateX: 2, rotateY: -2, y: -5 }} viewport={{ once: true, amount: 0.18 }} transition={{ duration: 0.45 }}>
+            <div className="comparison-orbit" aria-hidden="true" />
+            <img src={benefitsComparisonGraphic} alt="Comparison table showing MySchola benefits against other providers and one-to-one home tutors" loading="lazy" />
+          </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-3">
@@ -518,7 +551,7 @@ function Home() {
           <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">Every student's starting point and outcome is different. These stories show how regular teaching, practice and encouragement have helped individual students make progress.</p>
 
           {/* Testimonials */}
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="testimonial-grid grid md:grid-cols-3 gap-8">
             {[
               {
                 name: 'Aisha K, Parent',
@@ -581,7 +614,7 @@ function Home() {
           <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
             Our GCSE Maths tuition, GCSE English tuition and GCSE Science tuition combine clear teaching with purposeful exam-question practice. Students receive support that matches their exam board and current needs, whether they are rebuilding foundations or aiming for the highest grades.
           </p>
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="subjects-grid grid lg:grid-cols-3 gap-8">
             {[
               {
                 name: 'GCSE Maths Tuition',
@@ -634,20 +667,35 @@ function Home() {
         </div>
       </DeferredSection>
 
-      <DeferredSection className="py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="parents-heading">
+      <DeferredSection className="parents-section py-20 px-4 sm:px-6 lg:px-8" aria-labelledby="parents-heading">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-start">
-          <div>
+          <motion.div initial={reduceMotion ? false : { opacity: 0, x: -18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.45 }}>
             <h2 id="parents-heading" className="text-4xl font-bold mb-5">Built for Busy Parents Who Want Clear Progress</h2>
             <p className="text-gray-600 leading-relaxed mb-4">It is difficult to support GCSE revision when you are not sure what has been covered, whether homework is complete or where your child is struggling. MySchola gives families a clear weekly routine and straightforward communication, without expecting parents to become subject teachers.</p>
             <p className="text-gray-600 leading-relaxed">Students receive lessons, homework tracking, feedback and access to 1-to-1 WhatsApp tutor support between sessions. Monthly Zoom progress calls help parents understand current performance, engagement and next priorities. You can see whether the plan is working and raise concerns before they become bigger problems.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {['A dependable weekly lesson routine', 'Clear communication and progress updates', 'Homework tracking and tutor feedback', '1-to-1 WhatsApp tutor support', 'Monthly Zoom progress calls', 'Support aligned with school and exams'].map((item) => (
-              <div key={item} className="flex items-start gap-3 rounded-lg bg-blue-50 p-4">
-                <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                <p className="font-medium text-gray-800">{item}</p>
+          </motion.div>
+          <div>
+            <InteractiveMotionCard className="parents-visual-card parents-visual-compact" aria-hidden="true" animate={reduceMotion ? undefined : { y: [0, -5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}>
+              <div className="parents-grid" />
+              <div className="parents-orbit" />
+              <div className="parents-dashboard">
+                <div className="parents-dashboard-head"><span>MY SCHOLA PROGRESS</span><b>On track</b></div>
+                <div className="parents-dashboard-grid">
+                  <div className="parents-metric"><small>Weekly progress</small><strong>76%</strong><i><span /></i></div>
+                  <div className="parents-metric"><small>Homework tracking</small><strong>4 / 5</strong><em>Reviewed</em></div>
+                  <div className="parents-metric"><small>Tutor feedback</small><strong>Clear</strong><em>Next step shared</em></div>
+                  <div className="parents-metric parents-next-action"><small>Next action</small><strong>Review feedback</strong><em>Ready for this week</em></div>
+                </div>
               </div>
+            </InteractiveMotionCard>
+            <motion.div className="parents-benefits-grid grid sm:grid-cols-2 gap-4" initial={reduceMotion ? false : { opacity: 0, x: 18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.45, delay: 0.08 }}>
+            {['A dependable weekly lesson routine', 'Homework tracking and tutor feedback', '1-to-1 WhatsApp tutor support', 'Clear communication and progress updates', 'Monthly Zoom progress calls', 'Support aligned with school and exams'].map((item, index) => (
+              <motion.div key={item} whileHover={reduceMotion ? undefined : { y: -3, rotateX: 2 }} transition={{ duration: 0.18 }} className="parent-benefit-item flex items-start gap-3 rounded-lg bg-blue-50 p-4">
+                <span className="parent-benefit-step" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                <p className="font-medium text-gray-800">{item}</p>
+              </motion.div>
             ))}
+            </motion.div>
           </div>
         </div>
       </DeferredSection>
@@ -663,9 +711,9 @@ function Home() {
               ['More accountability than self-study', 'A weekly timetable, homework and feedback make it easier to keep going than relying on revision intentions alone.'],
               ['More personal support than recorded videos', 'Students can ask questions, receive feedback and contact a tutor on WhatsApp instead of watching content without guidance.']
             ].map(([title, copy]) => (
-              <article key={title} className="bg-white rounded-xl p-6 shadow-sm">
+              <article key={title} className="trust-card rounded-xl p-6 shadow-sm">
                 <h3 className="text-xl font-semibold mb-2">{title}</h3>
-                <p className="text-gray-600 leading-relaxed">{copy}</p>
+                <p className="leading-relaxed">{copy}</p>
               </article>
             ))}
           </div>
@@ -872,8 +920,9 @@ function Home() {
 
       </main>
       
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
+      <SiteFooter />
+      {/* Legacy footer retained temporarily for content parity; hidden in favour of the shared footer. */}
+      <footer className="legacy-route-footer bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>

@@ -12,7 +12,7 @@ function Booking() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-10">
+    <div className="product-page booking-flow min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">

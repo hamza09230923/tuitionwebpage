@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ChevronDown, GraduationCap, Mail, Menu, MessageCircle, Phone, X } from 'lucide-react'
 import { trackLeadWhatsApp } from '../utils/metaPixel'
 import { getCohortMonth } from '../utils/cohortMonth'
+import SiteFooter from '../components/SiteFooter'
 
 const faqGroups = [
   {
@@ -109,11 +111,13 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
         <span className="font-semibold text-slate-900">{question}</span>
         <ChevronDown className={`h-5 w-5 shrink-0 text-blue-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
-      {isOpen && (
-        <div id={answerId} role="region" aria-labelledby={questionId} className="border-t border-slate-100 px-5 pb-5 pt-4 leading-relaxed text-slate-600">
-          {answer}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div id={answerId} role="region" aria-labelledby={questionId} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2, ease: 'easeOut' }} className="border-t border-slate-100 px-5 pb-5 pt-4 leading-relaxed text-slate-600">
+            {answer}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -125,14 +129,14 @@ export default function FAQs() {
   let itemNumber = 0
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="public-page faq-page min-h-screen bg-slate-50 text-slate-900">
       <header>
-        <div className="w-full bg-[#0B3D91] py-3 px-4 text-center text-sm font-bold text-white shadow-md sm:text-base md:text-lg">
+        <div className="cohort-banner">
           Join our {cohortMonth} cohort as soon as possible - spaces are running out!
         </div>
-        <nav className="sticky top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
+        <nav className="site-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center">
+            <div className="site-nav-inner">
               <Link to="/" className="flex items-center" aria-label="MySchola home">
                 <GraduationCap className="h-8 w-8 text-blue-600" aria-hidden="true" />
                 <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
@@ -145,7 +149,6 @@ export default function FAQs() {
                   <a href="/#subjects" className="text-gray-700 transition hover:text-blue-600">Subjects</a>
                   <a href="/#testimonials" className="text-gray-700 transition hover:text-blue-600">Testimonials</a>
                   <Link to="/faqs" className="font-semibold text-blue-600">FAQ</Link>
-                  <Link to="/careers" className="text-gray-700 transition hover:text-blue-600">Careers</Link>
                 </div>
               </div>
 
@@ -170,7 +173,6 @@ export default function FAQs() {
                 <a href="/#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
                 <a href="/#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
                 <Link to="/faqs" className="block bg-blue-50 px-3 py-2 font-semibold text-blue-600" role="menuitem">FAQ</Link>
-                <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
                 <Link to="/login" className="block rounded-lg bg-blue-600 px-3 py-2 text-center text-white" role="menuitem">Log In</Link>
                 <a href="https://wa.me/447344193804" target="_blank" rel="noopener noreferrer" onClick={trackLeadWhatsApp} className="block rounded-lg bg-green-500 px-3 py-2 text-center text-white" role="menuitem">Contact Us</a>
               </div>
@@ -213,7 +215,8 @@ export default function FAQs() {
         </section>
       </main>
 
-      <footer className="bg-gray-900 px-4 py-10 text-white sm:px-6 lg:px-8">
+      <SiteFooter />
+      <footer className="legacy-route-footer bg-gray-900 px-4 py-10 text-white sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 sm:grid-cols-3">
           <div><div className="flex items-center"><GraduationCap className="h-7 w-7 text-blue-400" aria-hidden="true" /><span className="ml-2 text-xl font-bold">MySchola</span></div><p className="mt-3 text-sm text-gray-400">Expert GCSE tutoring for Years 9–11 via Zoom.</p></div>
           <div><h2 className="font-semibold">Explore</h2><div className="mt-3 flex flex-col gap-2 text-sm text-gray-400"><Link to="/courses" className="hover:text-white">GCSE courses</Link><Link to="/package" className="hover:text-white">Tuition packages</Link><Link to="/timetable" className="hover:text-white">Lesson timetable</Link></div></div>

@@ -5,7 +5,7 @@ import SiteFooter from '../components/SiteFooter'
 
 function EnglishTeacher() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="public-page english-teacher-page min-h-screen bg-slate-50 text-slate-900">
       <SiteHeader activePath="/careers" />
 
       <main id="main-content">

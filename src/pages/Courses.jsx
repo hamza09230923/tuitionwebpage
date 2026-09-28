@@ -14,6 +14,7 @@ import parentTestimonialVideo from '../testimonials/parentTestimonial.MP4'
 import studentTestimonialVideo from '../testimonials/studentTestimonial.MP4'
 import { trackLeadConsultation, trackLeadWhatsApp } from '../utils/metaPixel'
 import { getCohortMonth, getMsUntilNextLocalMonth } from '../utils/cohortMonth'
+import SiteFooter from '../components/SiteFooter'
 
 function TestimonialVideo({ src, className }) {
   const videoRef = useRef(null)
@@ -209,21 +210,21 @@ function Courses() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="public-page courses-page min-h-screen bg-white">
       {/* Skip to main content link for screen readers */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg">
         Skip to main content
       </a>
 
       {/* Cohort Banner */}
-      <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
+      <div className="cohort-banner">
         Join our {cohortMonth} cohort as soon as possible - spaces are running out!
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
+      <nav className="site-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16">
+          <div className="site-nav-inner">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
@@ -237,7 +238,6 @@ function Courses() {
                 <a href="/#how-it-works" className="text-gray-700 hover:text-blue-600 transition">How It Works</a>
                 <a href="/#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
                 <a href="/#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
-                <Link to="/careers" className="text-gray-700 hover:text-blue-600 transition">Careers</Link>
               </div>
             </div>
 
@@ -286,7 +286,6 @@ function Courses() {
               <a href="/#how-it-works" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">How It Works</a>
               <a href="/#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
               <a href="/#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
-              <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -327,7 +326,7 @@ function Courses() {
                 <button
                   key={year}
                   onClick={() => handleYearClick(year)}
-                  className="w-full sm:w-auto px-10 sm:px-12 py-5 sm:py-6 rounded-xl font-bold text-xl sm:text-2xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-offset-2 bg-white text-gray-800 border-4 border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:shadow-xl hover:scale-105 active:scale-95 focus:ring-blue-400 cursor-pointer touch-manipulation min-h-[80px] sm:min-h-[90px] flex items-center justify-center"
+                  className="course-year-button w-full sm:w-auto px-10 sm:px-12 py-5 sm:py-6 rounded-xl font-bold text-xl sm:text-2xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-offset-2 bg-white text-gray-800 border-4 border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:shadow-xl hover:scale-105 active:scale-95 focus:ring-blue-400 cursor-pointer touch-manipulation min-h-[80px] sm:min-h-[90px] flex items-center justify-center"
                   aria-label={`Select Year ${year}`}
                 >
                   Year {year}
@@ -347,7 +346,7 @@ function Courses() {
           <div className="max-w-7xl mx-auto">
 
             {/* What's Included */}
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 sm:p-12 text-white">
+            <div className="course-included-panel bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 sm:p-12 text-white">
               <h3 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
                 What's included
               </h3>
@@ -503,7 +502,8 @@ function Courses() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
+      <SiteFooter />
+      <footer className="legacy-route-footer bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>

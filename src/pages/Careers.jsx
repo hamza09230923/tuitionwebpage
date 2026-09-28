@@ -5,7 +5,7 @@ import SiteFooter from '../components/SiteFooter'
 
 function Careers() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="public-page careers-page min-h-screen bg-slate-50 text-slate-900">
       <SiteHeader activePath="/careers" />
 
       <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:py-24">

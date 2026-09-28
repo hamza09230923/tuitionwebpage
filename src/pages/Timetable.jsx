@@ -1,4 +1,7 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react'
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import SiteFooter from '../components/SiteFooter'
 import { Link } from 'react-router-dom'
 import { 
   Clock, 
@@ -39,6 +42,32 @@ const getLevelBadges = (level) => {
   }
 
   return []
+}
+
+function InteractiveLessonButton({ children, className, ...props }) {
+  const pointerX = useMotionValue(0)
+  const pointerY = useMotionValue(0)
+  const rotateX = useSpring(useTransform(pointerY, [-1, 1], [3, -3]), { stiffness: 180, damping: 24 })
+  const rotateY = useSpring(useTransform(pointerX, [-1, 1], [-4, 4]), { stiffness: 180, damping: 24 })
+
+  const handlePointerMove = (event) => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    pointerX.set((event.clientX - bounds.left) / bounds.width * 2 - 1)
+    pointerY.set((event.clientY - bounds.top) / bounds.height * 2 - 1)
+  }
+
+  return (
+    <motion.button
+      {...props}
+      className={className}
+      style={{ rotateX, rotateY, transformPerspective: 700 }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => { pointerX.set(0); pointerY.set(0) }}
+      whileTap={{ scale: 0.98 }}
+    >
+      {children}
+    </motion.button>
+  )
 }
 
 const getTierLabel = (entry) => {
@@ -189,7 +218,7 @@ function Timetable() {
   const todayEntries = getDayEntries(today)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="public-page timetable-page min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Skip Link for Accessibility */}
       <a 
         href="#main-content" 
@@ -209,7 +238,7 @@ function Timetable() {
       </div>
 
       {/* Cohort Banner */}
-      <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
+      <div className="cohort-banner">
         <span className="inline-flex items-center gap-2 animate-pulse">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -220,9 +249,9 @@ function Timetable() {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
+      <nav className="site-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16">
+          <div className="site-nav-inner">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
@@ -236,7 +265,6 @@ function Timetable() {
                 <a href="/courses" className="text-gray-700 hover:text-blue-600 transition">Courses</a>
                 <a href="/package" className="text-gray-700 hover:text-blue-600 transition">Pricing</a>
                 <a href="/#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
-                <Link to="/careers" className="text-gray-700 hover:text-blue-600 transition">Careers</Link>
               </div>
             </div>
 
@@ -284,7 +312,6 @@ function Timetable() {
               <a href="/courses" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Courses</a>
               <a href="/package" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Pricing</a>
               <a href="/#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
-              <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -419,7 +446,7 @@ function Timetable() {
                       {entries.length > 0 ? (
                         <div className="space-y-2">
                           {entries.map((entry) => (
-                            <button
+                            <InteractiveLessonButton
                               key={`${entry.day}-${entry.subject}-${entry.time}`}
                               onClick={() => handleDayClick(entry)}
                               className={`w-full rounded-lg px-2.5 py-2 text-left text-white shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-4 focus:ring-blue-300 ${entry.color} ${
@@ -448,7 +475,7 @@ function Timetable() {
                                 <Clock className="h-3.5 w-3.5 shrink-0" />
                                 {formatTimeRange(entry.time)}
                               </span>
-                            </button>
+                            </InteractiveLessonButton>
                           ))}
                         </div>
                       ) : (
@@ -547,7 +574,8 @@ function Timetable() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
+      <SiteFooter />
+      <footer className="legacy-route-footer bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>

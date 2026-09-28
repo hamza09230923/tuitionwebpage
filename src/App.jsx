@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { lazy, Suspense, useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import Home from './Home'
 import { trackPageView } from './utils/metaPixel'
 
@@ -10,7 +11,6 @@ const Recordings = lazy(() => import('./pages/Recordings'))
 const Homework = lazy(() => import('./pages/Homework'))
 const Admin = lazy(() => import('./pages/Admin'))
 const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'))
-const PaymentConfirmation = lazy(() => import('./pages/PaymentConfirmation'))
 const BookingSuccess = lazy(() => import('./pages/BookingSuccess'))
 const Booking = lazy(() => import('./pages/Booking'))
 const Webinar = lazy(() => import('./pages/Webinar'))
@@ -31,25 +31,40 @@ const LEGACY_WEBINAR_ROUTE = '/webinar'
 const LEGACY_WEBINAR_THANKS_ROUTE = '/webinar/thanks'
 
 function RouteTracker() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   useEffect(() => {
     trackPageView()
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-  }, [pathname])
+    const targetId = hash.replace(/^#/, '')
+    const scrollToTarget = () => {
+      const target = targetId ? document.getElementById(targetId) : null
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      }
+    }
+    const frame = window.requestAnimationFrame(scrollToTarget)
+    return () => window.cancelAnimationFrame(frame)
+  }, [pathname, hash])
   return null
 }
 
-function App() {
+function RouteTransition() {
+  const { pathname } = useLocation()
+
   return (
-    <Router>
-      <RouteTracker />
-      <Suspense fallback={null}>
+    <AnimatePresence initial={false} mode="sync">
+      <motion.div
+        key={pathname}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/login" element={<Login />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/payment-confirmation" element={<PaymentConfirmation />} />
           <Route path="/booking-success" element={<BookingSuccess />} />
           <Route path="/admin" element={<Admin />} />
           <Route path={WEBINAR_ROUTE} element={<Webinar />} />
@@ -64,41 +79,22 @@ function App() {
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/careers" element={<Careers />} />
           <Route path="/english-teacher" element={<EnglishTeacher />} />
-
-          {/* Protected student routes */}
-          <Route
-            path="/app/dashboard"
-            element={
-              <ProtectedRoute>
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/subject/:subjectId/recordings"
-            element={
-              <ProtectedRoute>
-                <Recordings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/subject/:subjectId/homework"
-            element={
-              <ProtectedRoute>
-                <Homework />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/subject/:subjectId/resources"
-            element={
-              <ProtectedRoute>
-                <Resources />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/app/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/app/subject/:subjectId/recordings" element={<ProtectedRoute><Recordings /></ProtectedRoute>} />
+          <Route path="/app/subject/:subjectId/homework" element={<ProtectedRoute><Homework /></ProtectedRoute>} />
+          <Route path="/app/subject/:subjectId/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
         </Routes>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+function App() {
+  return (
+    <Router>
+      <RouteTracker />
+      <Suspense fallback={null}>
+        <RouteTransition />
       </Suspense>
     </Router>
   )

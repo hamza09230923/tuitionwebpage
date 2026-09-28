@@ -17,7 +17,7 @@ function BookingSuccess() {
   }, [booking])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 px-4 py-10">
+    <div className="product-page booking-success min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 px-4 py-10">
       <div className="mx-auto max-w-3xl">
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">

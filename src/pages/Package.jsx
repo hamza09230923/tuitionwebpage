@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { trackLeadConsultation } from '../utils/metaPixel'
+import SiteFooter from '../components/SiteFooter'
 import {
   GraduationCap,
   Menu,
@@ -475,14 +476,14 @@ function Package() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="public-page package-page min-h-screen bg-white">
       {/* Skip to main content link */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg">
         Skip to main content
       </a>
 
       {/* Cohort Banner */}
-      <div className="w-full bg-[#0B3D91] text-white text-center text-sm sm:text-base md:text-lg font-bold py-3 px-4 shadow-md">
+      <div className="cohort-banner">
         <span className="inline-flex items-center gap-2 animate-pulse">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -493,9 +494,9 @@ function Package() {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm" role="navigation" aria-label="Main navigation">
+      <nav className="site-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16">
+          <div className="site-nav-inner">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" aria-hidden="true" />
               <span className="ml-2 text-2xl font-bold text-gray-900">MySchola</span>
@@ -509,7 +510,6 @@ function Package() {
                 <a href="/#subjects" className="text-gray-700 hover:text-blue-600 transition">Subjects</a>
                 <a href="/#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
                 <a href="/#faq" className="text-gray-700 hover:text-blue-600 transition">FAQ</a>
-                <Link to="/careers" className="text-gray-700 hover:text-blue-600 transition">Careers</Link>
               </div>
             </div>
 
@@ -558,7 +558,6 @@ function Package() {
               <a href="/#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="/#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
               <a href="/#faq" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</a>
-              <Link to="/careers" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Careers</Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -809,7 +808,8 @@ function Package() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
+      <SiteFooter />
+      <footer className="legacy-route-footer bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
