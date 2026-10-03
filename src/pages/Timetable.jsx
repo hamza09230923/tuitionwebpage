@@ -117,7 +117,7 @@ const septemberScheduleData = [
     day: 'Monday',
     status: 'active',
     subject: 'Chemistry',
-    time: '7:15 PM - 8:15 PM',
+    time: '7:25 PM - 8:25 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation Tier',
     color: 'bg-green-500'
