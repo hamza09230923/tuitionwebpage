@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, doc, getDoc, updateDoc, query, where, orderBy, deleteDoc, writeBatch } from 'firebase/firestore'
 import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, getTeacherClassRoster, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
+import { matchesStudentMaterialRoute } from '../utils/studentMaterialAccess'
 import {
   buildClassGroupRecords,
   buildStudentClassLists,
@@ -35,6 +36,34 @@ const isEnglishSubjectData = (subject) => {
   return name.includes('english') || id.startsWith('english_')
 }
 const normalizeAcademicRouteValue = (value) => String(value || '').trim().toLowerCase()
+const renderCourseTierBadge = (tier, subjectId, isMaterial = false) => {
+  const value = normalizeAcademicRouteValue(tier)
+  const isEnglish = /^english[_-]/.test(String(subjectId || '').toLowerCase())
+  const label = isEnglish || value === 'all-levels'
+    ? 'All levels'
+    : value === 'foundation'
+      ? 'Foundation'
+      : value === 'higher'
+        ? 'Higher'
+        : isMaterial && !value ? 'Shared / no tier' : 'Tier not set'
+  const styles = label === 'Foundation'
+    ? 'bg-amber-100 text-amber-900 ring-amber-200'
+    : label === 'Higher'
+      ? 'bg-indigo-100 text-indigo-800 ring-indigo-200'
+      : 'bg-slate-100 text-slate-700 ring-slate-200'
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${styles}`}>{label}</span>
+}
+const getStudentCourseRestriction = (material, student) => {
+  if (matchesStudentMaterialRoute(material, student)) return ''
+  const settings = student?.subjectSettings?.[material.subjectId]
+  const tier = normalizeAcademicRouteValue(material.tier)
+  const studentTier = normalizeAcademicRouteValue(settings?.tier)
+  if (tier && tier !== 'all-levels' && studentTier && tier !== studentTier) return 'Different tier / no access'
+  const board = normalizeAcademicRouteValue(material.examBoard)
+  const studentBoard = normalizeAcademicRouteValue(settings?.examBoard)
+  if (board && studentBoard && board !== studentBoard) return 'Different exam board / no access'
+  return 'Course settings incomplete / no access'
+}
 const isStudentOnSelectedRoute = (student, subjectId, examBoard, tier) => {
   const subjectIds = Array.isArray(student?.subjects) ? student.subjects : []
   if (!subjectIds.includes(subjectId)) return false
@@ -2556,7 +2585,7 @@ function Admin() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Manage Recordings</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Review subject-wide and student-specific recordings for the selected subject.
+                  Review recordings and check each student's course tier and access below.
                 </p>
               </div>
               {!isAdmin && (
@@ -2579,8 +2608,10 @@ function Admin() {
               <div className="space-y-4">
                 {managedRecordings.map((recording) => {
                   const targetStudents = getRecordingTargetStudents(recording, enrolledStudents)
-                  const accessStudents = targetStudents.filter((student) => !isRecordingHiddenForStudent(recording, student))
-                  const removedStudents = targetStudents.filter((student) => isRecordingHiddenForStudent(recording, student))
+                  const matchingStudents = targetStudents.filter((student) => matchesStudentMaterialRoute(recording, student))
+                  const isPublished = !recording.approvalStatus || recording.approvalStatus === 'approved'
+                  const accessStudents = matchingStudents.filter((student) => isPublished && !isRecordingHiddenForStudent(recording, student))
+                  const removedStudents = matchingStudents.filter((student) => isRecordingHiddenForStudent(recording, student))
 
                   return (
                     <div
@@ -2593,6 +2624,7 @@ function Admin() {
                             <h3 className="text-lg font-semibold text-gray-900">
                               {recording.title}
                             </h3>
+                            {renderCourseTierBadge(recording.tier, recording.subjectId, !recording.r2Key)}
                             <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusStyles(recording.approvalStatus)}`}>
                               {recording.approvalStatus || 'approved'}
                             </span>
@@ -2642,9 +2674,10 @@ function Admin() {
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                               <h4 className="text-sm font-semibold text-gray-900">Student Access</h4>
                               <span className="text-xs text-gray-500">
-                                {accessStudents.length} active / {targetStudents.length} total
+                                {accessStudents.length} can access / {targetStudents.length} students listed
                               </span>
                             </div>
+                            <p className="mb-3 text-xs text-gray-600">Each student's tier and exam board must match this recording. Students on another course cannot access it.</p>
 
                             {subjectStudentsLoading ? (
                               <p className="text-sm text-gray-600">Loading students...</p>
@@ -2655,24 +2688,30 @@ function Admin() {
                                 {targetStudents.map((student) => {
                                   const isHidden = isRecordingHiddenForStudent(recording, student)
                                   const hiddenByKeyword = isRecordingHiddenByTitleKeyword(recording, student)
+                                  const courseRestriction = getStudentCourseRestriction(recording, student)
+                                  const canAccess = !courseRestriction && !isHidden && isPublished
                                   const removeKey = getRecordingAccessKey(recording.id, student.id, 'remove')
                                   const restoreKey = getRecordingAccessKey(recording.id, student.id, 'restore')
 
                                   return (
                                     <div key={student.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-white px-3 py-2 border border-gray-200">
                                       <div className="min-w-0">
-                                        <p className="text-sm font-medium text-gray-900">{getStudentDisplayName(student)}</p>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <p className="text-sm font-medium text-gray-900">{getStudentDisplayName(student)}</p>
+                                          {renderCourseTierBadge(student.subjectSettings?.[recording.subjectId]?.tier, recording.subjectId)}
+                                          <span className="text-xs text-gray-500">{student.subjectSettings?.[recording.subjectId]?.examBoard || 'Exam board not set'}</span>
+                                        </div>
                                         {student.email && (
                                           <p className="text-xs text-gray-500">{student.email}</p>
                                         )}
                                       </div>
                                       <div className="flex flex-wrap items-center gap-2">
                                         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                                          isHidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                          courseRestriction ? 'bg-slate-100 text-slate-700' : isHidden ? 'bg-red-100 text-red-700' : canAccess ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-800'
                                         }`}>
-                                          {isHidden ? 'Access removed' : 'Can access'}
+                                          {courseRestriction || (isHidden ? 'Access removed' : canAccess ? 'Can access' : 'Not approved / no access')}
                                         </span>
-                                        {isAdmin && !isHidden && (
+                                        {isAdmin && !courseRestriction && !isHidden && (
                                           <button
                                             type="button"
                                             onClick={() => handleRemoveRecordingAccess(recording, student)}
@@ -2682,7 +2721,7 @@ function Admin() {
                                             {updatingRecordingAccessKey === removeKey ? 'Removing...' : 'Remove access'}
                                           </button>
                                         )}
-                                        {isAdmin && isHidden && !hiddenByKeyword && (
+                                        {isAdmin && !courseRestriction && isHidden && !hiddenByKeyword && (
                                           <button
                                             type="button"
                                             onClick={() => handleRestoreRecordingAccess(recording, student)}
@@ -2730,7 +2769,7 @@ function Admin() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Manage Homework</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Review homework for the selected subject, open the attachment, and remove work that should no longer appear to students.
+                  Review homework and check each student's course tier and access below.
                 </p>
               </div>
             </div>
@@ -2749,8 +2788,9 @@ function Admin() {
                 {managedHomeworks.map((homework) => {
                   const overdue = isHomeworkOverdue(homework.dueDate)
                   const targetStudents = getHomeworkTargetStudents(homework, enrolledStudents)
-                  const accessStudents = targetStudents.filter((student) => !isHomeworkHiddenForStudent(homework, student))
-                  const removedStudents = targetStudents.filter((student) => isHomeworkHiddenForStudent(homework, student))
+                  const matchingStudents = targetStudents.filter((student) => matchesStudentMaterialRoute(homework, student))
+                  const accessStudents = matchingStudents.filter((student) => !isHomeworkHiddenForStudent(homework, student))
+                  const removedStudents = matchingStudents.filter((student) => isHomeworkHiddenForStudent(homework, student))
 
                   return (
                     <div
@@ -2763,6 +2803,7 @@ function Admin() {
                             <h3 className="text-lg font-semibold text-gray-900">
                               {homework.title}
                             </h3>
+                            {renderCourseTierBadge(homework.tier, homework.subjectId, !homework.r2Key)}
                             {overdue && (
                               <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700">
                                 Overdue
@@ -2797,6 +2838,7 @@ function Admin() {
                               <Clock className="h-4 w-4 text-gray-400" />
                               <span><span className="font-medium">Due:</span> {formatHomeworkDate(homework.dueDate)}</span>
                             </p>
+                            <p><span className="font-medium">Exam Board:</span> {homework.examBoard || 'Not set'}</p>
                             {homework.attachmentName && (
                               <p><span className="font-medium">File:</span> {homework.attachmentName}</p>
                             )}
@@ -2822,9 +2864,10 @@ function Admin() {
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                               <h4 className="text-sm font-semibold text-gray-900">Student Access</h4>
                               <span className="text-xs text-gray-500">
-                                {accessStudents.length} active / {targetStudents.length} total
+                                {accessStudents.length} can access / {targetStudents.length} students listed
                               </span>
                             </div>
+                            <p className="mb-3 text-xs text-gray-600">Each student's tier and exam board must match this homework. Students on another course cannot access it.</p>
 
                             {subjectStudentsLoading ? (
                               <p className="text-sm text-gray-600">Loading students...</p>
@@ -2835,24 +2878,29 @@ function Admin() {
                                 {targetStudents.map((student) => {
                                   const isHidden = isHomeworkHiddenForStudent(homework, student)
                                   const hiddenByKeyword = isHomeworkHiddenByTitleKeyword(homework, student)
+                                  const courseRestriction = getStudentCourseRestriction(homework, student)
                                   const removeKey = getHomeworkAccessKey(homework.id, student.id, 'remove')
                                   const restoreKey = getHomeworkAccessKey(homework.id, student.id, 'restore')
 
                                   return (
                                     <div key={student.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-white px-3 py-2 border border-gray-200">
                                       <div className="min-w-0">
-                                        <p className="text-sm font-medium text-gray-900">{getStudentDisplayName(student)}</p>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <p className="text-sm font-medium text-gray-900">{getStudentDisplayName(student)}</p>
+                                          {renderCourseTierBadge(student.subjectSettings?.[homework.subjectId]?.tier, homework.subjectId)}
+                                          <span className="text-xs text-gray-500">{student.subjectSettings?.[homework.subjectId]?.examBoard || 'Exam board not set'}</span>
+                                        </div>
                                         {student.email && (
                                           <p className="text-xs text-gray-500">{student.email}</p>
                                         )}
                                       </div>
                                       <div className="flex flex-wrap items-center gap-2">
                                         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                                          isHidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                          courseRestriction ? 'bg-slate-100 text-slate-700' : isHidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
                                         }`}>
-                                          {isHidden ? 'Access removed' : 'Can access'}
+                                          {courseRestriction || (isHidden ? 'Access removed' : 'Can access')}
                                         </span>
-                                        {isAdmin && !isHidden && (
+                                        {isAdmin && !courseRestriction && !isHidden && (
                                           <button
                                             type="button"
                                             onClick={() => handleRemoveHomeworkAccess(homework, student)}
@@ -2862,7 +2910,7 @@ function Admin() {
                                             {updatingHomeworkAccessKey === removeKey ? 'Removing...' : 'Remove access'}
                                           </button>
                                         )}
-                                        {isAdmin && isHidden && !hiddenByKeyword && (
+                                        {isAdmin && !courseRestriction && isHidden && !hiddenByKeyword && (
                                           <button
                                             type="button"
                                             onClick={() => handleRestoreHomeworkAccess(homework, student)}
