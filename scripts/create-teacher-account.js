@@ -26,7 +26,7 @@ const TEACHER_PROFILES = {
       { subjectId: 'biology_001', tier: 'Foundation', examBoard: 'AQA' },
       { subjectId: 'maths_001', tier: 'Foundation', examBoard: 'Edexcel' }
     ],
-    permissions: ['view_recordings', 'upload_recordings']
+    permissions: ['view_recordings', 'upload_recordings', 'view_homework', 'upload_homework', 'view_resources', 'upload_resources']
   },
   jafren: {
     name: 'Jafren',
@@ -170,7 +170,8 @@ const main = async () => {
       classTiers,
       classBoards,
       permissions: TEACHER.permissions,
-      allowedMaterialTypes: ['recording', 'homework'],
+      allowedMaterialTypes: TEACHER.email === 'fawwaz@myschola.co.uk'
+        ? ['recording', 'homework', 'resource'] : ['recording', 'homework'],
       updatedAt: serverTimestamp(),
       ...(created ? {
         createdAt: serverTimestamp(),

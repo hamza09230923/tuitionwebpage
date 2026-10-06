@@ -5,6 +5,7 @@ const { google } = require('googleapis')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '')
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3')
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
+const { assertTeacherClassMaterialAccess, isFawwazTeacher } = require('./teacher-material-access')
 
 admin.initializeApp()
 
@@ -82,15 +83,6 @@ const assertAdminRole = (role) => {
   if (role !== 'admin') throw new Error('Only admins can upload or publish learning materials')
 }
 
-const TEACHER_UPLOAD_PERMISSIONS = {
-  recording: 'upload_recordings'
-}
-
-const TEACHER_VIEW_PERMISSIONS = {
-  recording: 'view_recordings',
-  homework: 'view_homework'
-}
-
 const getTeacherProfile = async (uid) => {
   const snapshot = await getDb().doc(`teachers/${uid}`).get()
   return snapshot.exists ? (snapshot.data() || {}) : null
@@ -112,39 +104,16 @@ const getMaterialTier = (subjectId, tier) => (
     : String(tier || '').trim().toLowerCase()
 )
 
-const teacherHasPermission = (teacher, permission) => (
-  Array.isArray(teacher?.permissions) && teacher.permissions.includes(permission)
-)
-
-const assertTeacherMaterialAccess = async ({ uid, subjectId, tier, materialType, action }) => {
+const assertTeacherMaterialAccess = async ({ uid, ...material }) => {
   const teacher = await getTeacherProfile(uid)
-  const subjects = Array.isArray(teacher?.subjects) ? teacher.subjects : []
-  const permissionMap = action === 'upload' ? TEACHER_UPLOAD_PERMISSIONS : TEACHER_VIEW_PERMISSIONS
-  const permission = permissionMap[materialType]
-
-  if (action === 'upload' && materialType === 'homework') {
-    throw new Error('Teachers can view homework but cannot assign it')
-  }
-
-  if (!teacher || !subjects.includes(subjectId)) {
-    throw new Error('This teacher is not assigned to the selected class')
-  }
-  if (!permission || !teacherHasPermission(teacher, permission)) {
-    throw new Error(`This teacher cannot ${action} ${materialType}s`)
-  }
-  const requestedTier = getMaterialTier(subjectId, tier)
-  if (action === 'upload' && isScopedTeacherProfile(teacher) && !['foundation', 'all-levels'].includes(requestedTier)) {
-    throw new Error('This teacher account can only upload assigned class materials')
-  }
-  if (getTeacherTier(teacher, subjectId) !== requestedTier) {
-    throw new Error('This teacher is not assigned to the selected class tier')
-  }
+  assertTeacherClassMaterialAccess(teacher, material)
   return teacher
 }
 
 const materialTypeForCollection = (collectionName) => {
   if (collectionName === 'recordings' || collectionName === 'studentRecordings') return 'recording'
   if (collectionName === 'homeworks' || collectionName === 'studentHomeworks') return 'homework'
+  if (collectionName === 'resources' || collectionName === 'studentResources') return 'resource'
   return null
 }
 
@@ -212,6 +181,17 @@ const assertR2FileType = ({ uploadType, fileName, contentType }) => {
   }
   if (type === 'recording' && contentType && !String(contentType).toLowerCase().startsWith('video/')) {
     throw new Error('Lessons must be uploaded as video files')
+  }
+}
+
+const assertTeacherUploadKey = ({ r2Key, subjectId, examBoard, tier, materialType }) => {
+  if (!r2Key) return
+  const route = resolveR2AcademicRoute({ subjectId, examBoard, tier })
+  const prefix = [getR2Configuration().prefix, 'admin-materials', route.subject, route.board,
+    route.tier, R2_UPLOAD_TYPES[materialType]].join('/') + '/'
+  const file = typeof r2Key === 'string' && r2Key.startsWith(prefix) ? r2Key.slice(prefix.length) : ''
+  if (!file || file.includes('/') || file.includes('..')) {
+    throw new Error('The upload does not belong to the selected class and material type')
   }
 }
 
@@ -888,6 +868,7 @@ exports.createR2AdminUpload = runtimeFunctions.https.onRequest(async (req, res) 
         uid: decoded.uid,
         subjectId,
         tier,
+        examBoard,
         materialType: uploadType,
         action: 'upload'
       })
@@ -983,12 +964,12 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
     if (role === 'teacher') {
       const teacher = await getTeacherProfile(decoded.uid)
       if (
-        ['studentRecordings', 'studentHomeworks'].includes(collection) &&
+        ['studentRecordings', 'studentHomeworks', 'studentResources'].includes(collection) &&
         isScopedTeacherProfile(teacher)
       ) {
         return jsonError(res, 403, 'This teacher account cannot access student-specific materials')
       }
-      if (materialType === 'homework' && isScopedTeacherProfile(teacher)) {
+      if (materialType === 'homework' && isScopedTeacherProfile(teacher) && !isFawwazTeacher(teacher)) {
         return jsonError(res, 403, 'This teacher account cannot access homework')
       }
       if (!materialType) return jsonError(res, 403, 'Teachers cannot access this material type')
@@ -996,6 +977,7 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
         uid: decoded.uid,
         subjectId: material.subjectId,
         tier: material.tier,
+        examBoard: material.examBoard,
         materialType,
         action: 'view'
       })
@@ -1285,9 +1267,11 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
         uid: decoded.uid,
         subjectId,
         tier,
+        examBoard,
         materialType: 'recording',
         action: 'upload'
       })
+      assertTeacherUploadKey({ r2Key, subjectId, examBoard, tier, materialType: 'recording' })
     } else {
       assertAdminRole(role)
     }
@@ -1314,7 +1298,7 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
       if (r2Route) assertStudentAcademicRoute(targetStudent, subjectId, r2Route)
     }
 
-    const approvalStatus = role === 'admin' ? 'approved' : 'pending'
+    const approvalStatus = role === 'admin' || isFawwazTeacher(await getTeacherProfile(decoded.uid)) ? 'approved' : 'pending'
     const collectionName = recordingVisibility === 'student' ? 'studentRecordings' : 'recordings'
     const docRef = await getDb().collection(collectionName).add({
       subjectId,
@@ -1337,7 +1321,7 @@ exports.createRecording = runtimeFunctions.https.onRequest(async (req, res) => {
       createdByRole: role,
       storageProvider: 'r2',
       r2Key,
-      approvedAt: role === 'admin' ? admin.firestore.FieldValue.serverTimestamp() : null
+      approvedAt: approvalStatus === 'approved' ? admin.firestore.FieldValue.serverTimestamp() : null
     })
 
     res.status(200).json({
@@ -1426,9 +1410,11 @@ exports.createHomework = runtimeFunctions.https.onRequest(async (req, res) => {
         uid: decoded.uid,
         subjectId,
         tier,
+        examBoard,
         materialType: 'homework',
         action: 'upload'
       })
+      assertTeacherUploadKey({ r2Key, subjectId, examBoard, tier, materialType: 'homework' })
     } else {
       assertAdminRole(role)
     }
@@ -1565,7 +1551,6 @@ exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
     if (!role) {
       return jsonError(res, 403, 'Not authorized')
     }
-    assertAdminRole(role)
 
     const {
       subjectId,
@@ -1619,6 +1604,18 @@ exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
       return jsonError(res, 400, 'Select at least one student for student-specific resources')
     }
 
+    if (role === 'teacher') {
+      if (isStudentSpecificRequest || studentId || studentIds.length > 0) {
+        return jsonError(res, 403, 'Teachers can only publish class-wide resources')
+      }
+      await assertTeacherMaterialAccess({
+        uid: decoded.uid, subjectId, tier, examBoard, materialType: 'resource', action: 'upload'
+      })
+      assertTeacherUploadKey({ r2Key, subjectId, examBoard, tier, materialType: 'resource' })
+    } else {
+      assertAdminRole(role)
+    }
+
     if (requestedStudentIds.length > 500) {
       return jsonError(res, 400, 'Select no more than 500 students at a time')
     }
@@ -1653,7 +1650,7 @@ exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
       }
     }
 
-    const approvalStatus = role === 'admin' ? 'approved' : 'pending'
+    const approvalStatus = role === 'admin' || role === 'teacher' ? 'approved' : 'pending'
     const resourceData = {
       subjectId,
       title,
@@ -1670,7 +1667,7 @@ exports.createResource = runtimeFunctions.https.onRequest(async (req, res) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       createdBy: decoded.uid,
       createdByRole: role,
-      approvedAt: role === 'admin' ? admin.firestore.FieldValue.serverTimestamp() : null
+      approvedAt: approvalStatus === 'approved' ? admin.firestore.FieldValue.serverTimestamp() : null
     }
 
     if (resourceVisibility === 'student') {

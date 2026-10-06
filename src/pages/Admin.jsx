@@ -440,6 +440,8 @@ function Admin() {
   const [userRole, setUserRole] = useState(null)
   const [teacherProfile, setTeacherProfile] = useState(null)
   const [teacherRosters, setTeacherRosters] = useState({})
+  const [teacherResources, setTeacherResources] = useState([])
+  const [teacherResourcesLoading, setTeacherResourcesLoading] = useState(false)
   const [teacherRostersLoading, setTeacherRostersLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [subjects, setSubjects] = useState([])
@@ -531,6 +533,8 @@ function Admin() {
       window.removeEventListener('keydown', closeOnEscape)
     }
   }, [showTutorHandbook])
+  const isFawwazTeacher = isTeacher && String(teacherProfile?.email || '').trim().toLowerCase() === 'fawwaz@myschola.co.uk'
+  const canViewHomework = !isScopedTeacher || isFawwazTeacher
   const teacherSubjects = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
   const teacherPermissions = Array.isArray(teacherProfile?.permissions) ? teacherProfile.permissions : []
   const teacherClasses = isTeacher
@@ -581,12 +585,43 @@ function Admin() {
     }
   }, [authenticated, isScopedTeacher, teacherProfile])
 
+  useEffect(() => {
+    if (!authenticated || !isFawwazTeacher || activeTab !== 'view-resources' || !selectedSubject) return
+    let cancelled = false
+    setTeacherResources([])
+    setTeacherResourcesLoading(true)
+    getDocs(query(collection(db, 'resources'),
+      where('subjectId', '==', selectedSubject),
+      where('tier', '==', teacherProfile.classTiers?.[selectedSubject]),
+      where('examBoard', '==', teacherProfile.classBoards?.[selectedSubject])
+    )).then((snapshot) => {
+      if (!cancelled) setTeacherResources(snapshot.docs.map((item) => ({ id: item.id, ...item.data() })))
+    }).catch((err) => {
+      if (!cancelled) setMessage(err?.message || 'Failed to load resources for this class')
+    }).finally(() => {
+      if (!cancelled) setTeacherResourcesLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [authenticated, isFawwazTeacher, activeTab, selectedSubject, teacherProfile])
+
+  const openTeacherResource = async (resource) => {
+    try {
+      const url = resource.r2Key
+        ? (await getR2DownloadUrl({ collection: 'resources', documentId: resource.id })).downloadUrl
+        : resource.fileUrl
+      if (!url) throw new Error('This resource has no downloadable file')
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch (err) {
+      setMessage(err?.message || 'Unable to open this resource')
+    }
+  }
+
   const teacherCanUseSubject = (subjectId) => !isTeacher || teacherSubjects.includes(subjectId)
   const teacherCanUpload = (materialType) => {
     if (isAdmin) return true
-    if (materialType === 'homework') return false
+    if (materialType !== 'recording' && !isFawwazTeacher) return false
     if (!isTeacher || !teacherCanUseSubject(selectedSubject)) return false
-    const permission = 'upload_recordings'
+    const permission = { recording: 'upload_recordings', homework: 'upload_homework', resource: 'upload_resources' }[materialType]
     const assignedTier = String(teacherProfile?.classTiers?.[selectedSubject] || '').toLowerCase()
     return teacherPermissions.includes(permission) &&
       assignedTier === (isEnglishSubjectData(selectedSubjectData) ? 'all-levels' : 'foundation')
@@ -819,7 +854,8 @@ function Admin() {
           const recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
-            ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : 'Foundation')] : []),
+            ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : teacherProfile?.classTiers?.[selectedSubject])] : []),
+            ...(isFawwazTeacher ? [where('examBoard', '==', teacherProfile?.classBoards?.[selectedSubject])] : []),
             orderBy('date', 'desc')
           )
           recordingsSnapshot = await getDocs(recordingsQuery)
@@ -828,7 +864,8 @@ function Admin() {
           const recordingsQuery = query(
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
-            ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : 'Foundation')] : [])
+            ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : teacherProfile?.classTiers?.[selectedSubject])] : []),
+            ...(isFawwazTeacher ? [where('examBoard', '==', teacherProfile?.classBoards?.[selectedSubject])] : [])
           )
           recordingsSnapshot = await getDocs(recordingsQuery)
         }
@@ -879,7 +916,7 @@ function Admin() {
     }
 
     loadManagedRecordings()
-  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher])
+  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher, isFawwazTeacher, canViewHomework, teacherProfile])
 
   useEffect(() => {
     const shouldLoadStudents = isAdmin && ['recording', 'homework', 'resource', 'manage', 'manage-homework', 'view-submissions'].includes(activeTab)
@@ -936,7 +973,7 @@ function Admin() {
 
   useEffect(() => {
     const loadManagedHomeworks = async () => {
-      if (activeTab !== 'manage-homework' || !authenticated || !selectedSubject || isScopedTeacher) {
+      if (activeTab !== 'manage-homework' || !authenticated || !selectedSubject || !canViewHomework) {
         return
       }
 
@@ -945,7 +982,8 @@ function Admin() {
         const homeworksQuery = query(
           collection(db, 'homeworks'),
           where('subjectId', '==', selectedSubject),
-          ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : 'Foundation')] : [])
+          ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : teacherProfile?.classTiers?.[selectedSubject])] : []),
+            ...(isFawwazTeacher ? [where('examBoard', '==', teacherProfile?.classBoards?.[selectedSubject])] : [])
         )
 
         const homeworksSnapshot = await getDocs(homeworksQuery)
@@ -995,7 +1033,7 @@ function Admin() {
     }
 
     loadManagedHomeworks()
-  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher])
+  }, [activeTab, authenticated, selectedSubject, selectedSubjectData, isTeacher, isScopedTeacher, isFawwazTeacher, canViewHomework, teacherProfile])
 
   useEffect(() => {
     const loadSubmissions = async () => {
@@ -1174,7 +1212,7 @@ function Admin() {
   const isEnglishSubject = () => {
     return isEnglishSubjectData(selectedSubjectData)
   }
-  const lockedExamBoard = getLockedExamBoard(selectedSubjectData)
+  const lockedExamBoard = (isTeacher && teacherProfile?.classBoards?.[selectedSubject]) || getLockedExamBoard(selectedSubjectData)
   const examBoardOptions = lockedExamBoard ? [lockedExamBoard] : ['AQA', 'Edexcel']
 
   const uploadFileWithProgress = (
@@ -1732,8 +1770,8 @@ function Admin() {
 
   const handleSubmitHomework = async (e) => {
     e.preventDefault()
-    if (!isAdmin) {
-      setMessage('Only MySchola admins can assign homework')
+    if (!teacherCanUpload('homework')) {
+      setMessage('You are not assigned to upload homework for this class')
       return
     }
     if (!selectedSubject || !homeworkTitle) {
@@ -1847,8 +1885,8 @@ function Admin() {
 
   const handleSubmitResource = async (e) => {
     e.preventDefault()
-    if (!isAdmin) {
-      setMessage('Only admins can upload lessons, homework, or learning resources')
+    if (!teacherCanUpload('resource')) {
+      setMessage('You are not assigned to upload resources for this class')
       return
     }
     if (!selectedSubject || !resourceTitle) {
@@ -1999,7 +2037,9 @@ function Admin() {
           {isTeacher && (
             <>
               <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
-                {isScopedTeacher
+                {isFawwazTeacher
+                  ? 'You can view recordings, homework and resources, and upload materials for your assigned classes. Uploads are published to your class automatically.'
+                  : isScopedTeacher
                   ? 'You can upload recordings for your assigned classes. The MySchola team assigns homework.'
                   : 'You can upload recordings and view homework for your assigned classes. The MySchola team assigns homework.'}
               </div>
@@ -2017,6 +2057,8 @@ function Admin() {
                     {teacherClasses.map((classItem) => (
                       <li key={classItem.id} className="rounded-lg border border-gray-200 p-4">
                         <h3 className="font-semibold text-gray-900">{classItem.name}</h3>
+                        <button type="button" onClick={() => { setSelectedSubject(classItem.id); setActiveTab('manage') }}
+                          className="mt-2 text-sm font-medium text-indigo-700 hover:underline">Open class materials</button>
                         <p className="mt-1 text-sm text-gray-600">
                           {[classItem.tier, classItem.examBoard].filter(Boolean).join(' · ') || 'Class details unavailable'}
                         </p>
@@ -2181,7 +2223,7 @@ function Admin() {
             <Video className="h-4 w-4" />
             Add Recording
           </button>
-          {isAdmin && (
+          {teacherCanUpload('homework') && (
             <button
               onClick={() => setActiveTab('homework')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -2196,7 +2238,7 @@ function Admin() {
           )}
           <button
             onClick={() => setActiveTab('resource')}
-            className={`${!isAdmin ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+            className={`${!teacherCanUpload('resource') ? 'hidden ' : ''} flex items-center gap-2 px-4 py-2 rounded-lg transition ${
               activeTab === 'resource'
                 ? 'bg-amber-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -2232,7 +2274,13 @@ function Admin() {
             <Video className="h-4 w-4" />
             Manage Recordings
           </button>
-          {!isScopedTeacher && (
+          {isFawwazTeacher && (
+            <button onClick={() => setActiveTab('view-resources')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === 'view-resources' ? 'bg-amber-700 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
+              <BookOpen className="h-4 w-4" />View Resources
+            </button>
+          )}
+          {canViewHomework && (
             <button
               onClick={() => setActiveTab('manage-homework')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
@@ -2585,7 +2633,7 @@ function Admin() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Manage Recordings</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Review recordings and check each student's course tier and access below.
+                  Review recordings and check each student&apos;s course tier and access below.
                 </p>
               </div>
               {!isAdmin && (
@@ -2677,7 +2725,7 @@ function Admin() {
                                 {accessStudents.length} can access / {targetStudents.length} students listed
                               </span>
                             </div>
-                            <p className="mb-3 text-xs text-gray-600">Each student's tier and exam board must match this recording. Students on another course cannot access it.</p>
+                            <p className="mb-3 text-xs text-gray-600">Each student&apos;s tier and exam board must match this recording. Students on another course cannot access it.</p>
 
                             {subjectStudentsLoading ? (
                               <p className="text-sm text-gray-600">Loading students...</p>
@@ -2763,13 +2811,13 @@ function Admin() {
           </div>
         )}
 
-        {activeTab === 'manage-homework' && !isScopedTeacher && (
+        {activeTab === 'manage-homework' && canViewHomework && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Manage Homework</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Review homework and check each student's course tier and access below.
+                  Review homework and check each student&apos;s course tier and access below.
                 </p>
               </div>
             </div>
@@ -2867,7 +2915,7 @@ function Admin() {
                                 {accessStudents.length} can access / {targetStudents.length} students listed
                               </span>
                             </div>
-                            <p className="mb-3 text-xs text-gray-600">Each student's tier and exam board must match this homework. Students on another course cannot access it.</p>
+                            <p className="mb-3 text-xs text-gray-600">Each student&apos;s tier and exam board must match this homework. Students on another course cannot access it.</p>
 
                             {subjectStudentsLoading ? (
                               <p className="text-sm text-gray-600">Loading students...</p>
@@ -2951,7 +2999,7 @@ function Admin() {
         )}
 
         {/* Homework Form */}
-        {isAdmin && activeTab === 'homework' && (
+        {teacherCanUpload('homework') && activeTab === 'homework' && (
           <form onSubmit={handleSubmitHomework} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Add New Homework</h2>
             
@@ -3150,8 +3198,25 @@ function Admin() {
           </form>
         )}
 
+        {isFawwazTeacher && activeTab === 'view-resources' && (
+          <section className="rounded-lg border border-gray-200 bg-white p-6">
+            <h2 className="mb-4 text-xl font-semibold text-gray-900">Class resources</h2>
+            {teacherResourcesLoading ? <p role="status">Loading resources...</p> : teacherResources.length === 0
+              ? <p className="text-gray-600">No resources uploaded for this class yet.</p>
+              : <ul className="space-y-3">{teacherResources.map((resource) => (
+                <li key={resource.id} className="rounded-lg border border-gray-200 p-4">
+                  <h3 className="font-medium text-gray-900">{resource.title}</h3>
+                  {resource.description && <p className="mt-1 text-sm text-gray-600">{resource.description}</p>}
+                  <button type="button" onClick={() => openTeacherResource(resource)} className="mt-2 inline-flex items-center gap-2 text-sm text-indigo-700 hover:underline">
+                    <Download className="h-4 w-4" />Open resource
+                  </button>
+                </li>
+              ))}</ul>}
+          </section>
+        )}
+
         {/* Resource Form */}
-        {activeTab === 'resource' && isAdmin && (
+        {activeTab === 'resource' && teacherCanUpload('resource') && (
           <form onSubmit={handleSubmitResource} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Revision Resource</h2>
             <p className="text-sm text-gray-600 mb-6">
