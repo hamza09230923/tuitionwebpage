@@ -4,6 +4,7 @@ import { getR2DownloadUrl } from '../api/functionsClient'
 // after the server has checked their enrolled subject, exam board and tier.
 export async function getR2MaterialUrl(collection, documentId) {
   const { downloadUrl } = await getR2DownloadUrl({ collection, documentId })
+  if (!downloadUrl) throw new Error('Download link was not returned')
   return downloadUrl
 }
 
@@ -12,6 +13,7 @@ export async function openR2Material(collection, documentId) {
   // blocking it while the secure-link request is in flight.
   const tab = window.open('about:blank', '_blank')
   if (tab) {
+    tab.opener = null
     tab.document.title = 'Opening lesson…'
     tab.document.body.innerHTML = '<p style="font-family:system-ui;padding:2rem">Opening your lesson securely…</p>'
   }

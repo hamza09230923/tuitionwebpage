@@ -6,6 +6,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '')
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3')
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
 const { assertTeacherClassMaterialAccess, isFawwazTeacher } = require('./teacher-material-access')
+const { assertR2FileType, resolveR2ContentType } = require('./material-file-types')
 
 admin.initializeApp()
 
@@ -59,7 +60,6 @@ const R2_SUBJECT_PATHS = {
 const R2_TIERED_SUBJECTS = new Set([
   'maths', 'physics', 'biology', 'chemistry', 'combined-science', 'triple-science'
 ])
-const R2_DOCUMENT_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'])
 
 const resolveR2AcademicRoute = ({ subjectId, examBoard, tier }) => {
   const subject = R2_SUBJECT_PATHS[String(subjectId || '').trim().toLowerCase()]
@@ -171,18 +171,6 @@ exports.getTeacherVisibleHomeworks = runtimeFunctions.https.onRequest(async (req
   if (req.method !== 'POST') return jsonError(res, 405, 'Method not allowed')
   return jsonError(res, 403, 'Not authorized')
 })
-
-const assertR2FileType = ({ uploadType, fileName, contentType }) => {
-  const type = String(uploadType || '').trim().toLowerCase()
-  const extension = String(fileName || '').split('.').pop().toLowerCase()
-  if (!R2_UPLOAD_TYPES[type]) throw new Error('uploadType must be homework, recording, or resource')
-  if (type !== 'recording' && !R2_DOCUMENT_EXTENSIONS.has(extension)) {
-    throw new Error('Homework and learning resources must be PDF or Office documents')
-  }
-  if (type === 'recording' && contentType && !String(contentType).toLowerCase().startsWith('video/')) {
-    throw new Error('Lessons must be uploaded as video files')
-  }
-}
 
 const assertTeacherUploadKey = ({ r2Key, subjectId, examBoard, tier, materialType }) => {
   if (!r2Key) return
@@ -914,7 +902,7 @@ exports.createR2AdminUpload = runtimeFunctions.https.onRequest(async (req, res) 
       folder,
       `${crypto.randomUUID()}-${sanitizeSegment(fileName)}`
     ].join('/')
-    const resolvedContentType = contentType || 'application/octet-stream'
+    const resolvedContentType = resolveR2ContentType(fileName, contentType)
     const uploadUrl = await getSignedUrl(
       getR2Client(),
       new PutObjectCommand({

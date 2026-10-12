@@ -7,6 +7,7 @@ import { addDoc, arrayRemove, arrayUnion, collection, getDocs, serverTimestamp, 
 import { createR2AdminUpload, createRecording, createHomework, createResource, getR2DownloadUrl, getTeacherClassRoster, migrateLegacyMaterialsToR2 } from '../api/functionsClient'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import { matchesStudentMaterialRoute } from '../utils/studentMaterialAccess'
+import { openR2Material } from '../utils/r2MaterialAccess'
 import {
   buildClassGroupRecords,
   buildStudentClassLists,
@@ -648,7 +649,7 @@ function Admin() {
       ? getRecordingCollection(material)
       : getHomeworkCollection(material)
     const urlField = materialType === 'recording' ? 'videoUrl' : 'attachmentUrl'
-    if (material[urlField]) {
+    if (!material.r2Key && material[urlField]) {
       window.open(material[urlField], '_blank', 'noopener,noreferrer')
       return
     }
@@ -660,9 +661,7 @@ function Admin() {
     const key = `${materialType}:${collectionName}:${material.id}`
     setOpeningMaterialKey(key)
     try {
-      const result = await getR2DownloadUrl({ collection: collectionName, documentId: material.id })
-      if (!result?.downloadUrl) throw new Error('Download link was not returned')
-      window.open(result.downloadUrl, '_blank', 'noopener,noreferrer')
+      await openR2Material(collectionName, material.id)
     } catch (err) {
       setMessage(err?.message || 'Unable to open this material')
     } finally {
@@ -1829,11 +1828,14 @@ function Admin() {
         await uploadFileWithProgress(
           homeworkFile,
           uploadConfig,
-          setHomeworkUploadProgress
+          setHomeworkUploadProgress,
+          /\.(mp4|m4v|webm|mov|avi|mkv)$/i.test(homeworkFile.name)
+            ? RECORDING_UPLOAD_TIMEOUT_MS
+            : DEFAULT_UPLOAD_TIMEOUT_MS
         )
         r2Key = uploadConfig.r2Key
         attachmentName = homeworkFile.name
-        attachmentContentType = homeworkFile.type
+        attachmentContentType = uploadConfig.headers?.['Content-Type'] || homeworkFile.type
         attachmentSize = homeworkFile.size
       }
 
@@ -1874,7 +1876,7 @@ function Admin() {
     } catch (err) {
       console.error('Error adding homework:', err)
       const errorMessage = err?.message === 'Upload timed out'
-        ? 'R2 did not finish the upload within 3 minutes. Check your connection, then try again.'
+        ? 'The homework upload timed out. Check your connection, then try again.'
         : err?.message || 'Failed to add homework'
       setMessage(errorMessage)
       setHomeworkUploadStage('')
@@ -3158,6 +3160,7 @@ function Admin() {
                 </label>
                 <input
                   type="file"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.mp4,.m4v,.webm,.mov,.avi,.mkv"
                   required
                   onChange={(e) => {
                     const file = e.target.files?.[0] || null
@@ -3167,6 +3170,9 @@ function Admin() {
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
+                <p className="text-sm text-gray-600 mt-2">
+                  Upload a PDF, Office document or video. MP4 and WebM work best for browser previews.
+                </p>
                 {loading && homeworkUploadStage && (
                   <p className="text-sm text-gray-600 mt-2" role="status">
                     {homeworkUploadStage}
