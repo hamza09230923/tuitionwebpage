@@ -15,7 +15,6 @@ import parentTestimonialVideo from './testimonials/parentTestimonial.MP4'
 import studentTestimonialVideo from './testimonials/studentTestimonial.MP4'
 import benefitsComparisonGraphic from './assets/checklist.jpeg'
 import { trackLeadConsultation, trackLeadWhatsApp } from './utils/metaPixel'
-import { getCohortMonth, getMsUntilNextLocalMonth } from './utils/cohortMonth'
 // University logos
 import nottinghamLogo from './university/nottingham-university-logo.png'
 import kingsCollegeLogo from './university/King\'s_College_London_logo.svg'
@@ -129,7 +128,6 @@ function Home() {
   const loopStartIndex = totalTestimonialVideos
   const loopEndIndex = totalTestimonialVideos * 2
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [cohortMonth, setCohortMonth] = useState(getCohortMonth)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(loopStartIndex)
   const [carouselTransitionEnabled, setCarouselTransitionEnabled] = useState(true)
   const [visibleTestimonialCount, setVisibleTestimonialCount] = useState(() => {
@@ -152,18 +150,6 @@ function Home() {
     updateVisibleCount()
     window.addEventListener('resize', updateVisibleCount)
     return () => window.removeEventListener('resize', updateVisibleCount)
-  }, [])
-
-  useEffect(() => {
-    let monthTimer
-
-    const updateForNewMonth = () => {
-      setCohortMonth(getCohortMonth())
-      monthTimer = window.setTimeout(updateForNewMonth, getMsUntilNextLocalMonth())
-    }
-
-    updateForNewMonth()
-    return () => window.clearTimeout(monthTimer)
   }, [])
 
   useEffect(() => {
@@ -208,7 +194,7 @@ function Home() {
 
       {/* Cohort Banner */}
       <div className="cohort-banner">
-        Join our {cohortMonth} cohort as soon as possible - spaces are running out!
+        Join our current GCSE tuition cohort - spaces are limited.
       </div>
       
       {/* Navigation */}
@@ -993,7 +979,7 @@ function Home() {
         target="_blank"
         rel="noopener noreferrer"
         onClick={trackLeadWhatsApp}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-green-500 text-white p-3 sm:p-4 rounded-full shadow-2xl hover:bg-green-600 active:bg-green-700 transition-all duration-300 hover:scale-110 active:scale-95 z-50 focus:outline-none focus:ring-4 focus:ring-green-300 min-w-[56px] min-h-[56px] flex items-center justify-center touch-manipulation"
+        className="floating-whatsapp fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-green-500 text-white p-3 sm:p-4 rounded-full shadow-2xl hover:bg-green-600 active:bg-green-700 transition-all duration-300 hover:scale-110 active:scale-95 z-50 focus:outline-none focus:ring-4 focus:ring-green-300 min-w-[56px] min-h-[56px] flex items-center justify-center touch-manipulation"
         aria-label="Contact us on WhatsApp"
       >
         <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />

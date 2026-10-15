@@ -3,7 +3,6 @@ import { GraduationCap, Menu, MessageCircle, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { trackLeadWhatsApp } from '../utils/metaPixel'
-import { getCohortMonth } from '../utils/cohortMonth'
 
 function SiteHeader({ activePath = '' }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -18,7 +17,7 @@ function SiteHeader({ activePath = '' }) {
   return (
     <>
       <div className="cohort-banner">
-        Join our {getCohortMonth()} cohort as soon as possible - spaces are running out!
+        Join our current GCSE tuition cohort - spaces are limited.
       </div>
       <nav className="site-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

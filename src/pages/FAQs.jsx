@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ChevronDown, GraduationCap, Mail, Menu, MessageCircle, Phone, X } from 'lucide-react'
 import { trackLeadWhatsApp } from '../utils/metaPixel'
-import { getCohortMonth } from '../utils/cohortMonth'
 import SiteFooter from '../components/SiteFooter'
 
 const faqGroups = [
@@ -125,14 +124,13 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
 export default function FAQs() {
   const [openItem, setOpenItem] = useState('0-0')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const cohortMonth = getCohortMonth()
   let itemNumber = 0
 
   return (
       <div className="public-page faq-page min-h-screen bg-slate-50 text-slate-900">
       <header>
         <div className="cohort-banner">
-          Join our {cohortMonth} cohort as soon as possible - spaces are running out!
+          Join our current GCSE tuition cohort - spaces are limited.
         </div>
         <nav className="site-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

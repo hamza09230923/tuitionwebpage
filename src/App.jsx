@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { lazy, Suspense, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Home from './Home'
+import NotFound from './pages/NotFound'
 import { trackPageView } from './utils/metaPixel'
 
 const Login = lazy(() => import('./Login'))
@@ -24,6 +25,7 @@ const RefundCancellationPolicy = lazy(() => import('./pages/RefundCancellationPo
 const FAQs = lazy(() => import('./pages/FAQs'))
 const Careers = lazy(() => import('./pages/Careers'))
 const EnglishTeacher = lazy(() => import('./pages/EnglishTeacher'))
+const InspectorCalls = lazy(() => import('./pages/InspectorCalls'))
 
 const WEBINAR_ROUTE = '/book-strategy-call'
 const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
@@ -80,9 +82,11 @@ function RouteTransition() {
           <Route path="/careers" element={<Careers />} />
           <Route path="/english-teacher" element={<EnglishTeacher />} />
           <Route path="/app/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/app/literature/an-inspector-calls" element={<ProtectedRoute><InspectorCalls /></ProtectedRoute>} />
           <Route path="/app/subject/:subjectId/recordings" element={<ProtectedRoute><Recordings /></ProtectedRoute>} />
           <Route path="/app/subject/:subjectId/homework" element={<ProtectedRoute><Homework /></ProtectedRoute>} />
           <Route path="/app/subject/:subjectId/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>
     </AnimatePresence>

@@ -1,0 +1,1829 @@
+/*
+ * Authoritative An Inspector Calls presentation layer.
+ * This file is imported last so the learning content can keep its behaviour
+ * while sharing one MySchola shell, palette and accessible type scale.
+ */
+.literature-shell {
+  --lit-blue: #1463ff;
+  --lit-blue-dark: #0d47c7;
+  --lit-blue-soft: #eaf2ff;
+  --lit-ink: #081b36;
+  --lit-copy: #405571;
+  --lit-muted: #647792;
+  --lit-line: #d6e2f1;
+  --lit-canvas: #f3f7fd;
+  --lit-card: #ffffff;
+  --lit-success: #0a9f6e;
+  --lit-header-height: 72px;
+  --lit-sidebar-width: clamp(15rem, 17vw, 17.25rem);
+  background: var(--lit-canvas) !important;
+  color: var(--lit-ink) !important;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+  font-size: 16px;
+  line-height: 1.55;
+  min-height: 100vh;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+.literature-shell,
+.literature-shell * {
+  box-sizing: border-box;
+}
+
+.literature-shell * {
+  font-family: inherit !important;
+}
+
+.literature-shell :is(p, li, blockquote, cite) {
+  color: var(--lit-copy);
+  font-size: 1rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.literature-shell :is(button, input, textarea, select) {
+  font: inherit;
+}
+
+.literature-shell :is(button, a, input, textarea, select):focus-visible {
+  outline: 3px solid rgba(20, 99, 255, .38) !important;
+  outline-offset: 3px;
+}
+
+/* Header and page frame */
+.literature-shell .literature-header {
+  align-items: center;
+  background: rgba(255, 255, 255, .97) !important;
+  border-bottom: 1px solid var(--lit-line) !important;
+  box-shadow: 0 1px 8px rgba(8, 27, 54, .04) !important;
+  display: flex;
+  height: var(--lit-header-height) !important;
+  justify-content: space-between;
+  padding: 0 clamp(1rem, 3vw, 2.5rem) !important;
+  position: sticky !important;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.literature-shell .literature-brand,
+.literature-shell .literature-header-actions {
+  align-items: center;
+  display: flex;
+}
+
+.literature-shell .literature-brand {
+  gap: .9rem;
+}
+
+.literature-shell .literature-brand > a {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--lit-line);
+  border-radius: 999px;
+  color: var(--lit-ink);
+  display: inline-flex;
+  height: 2.4rem;
+  justify-content: center;
+  width: 2.4rem;
+}
+
+.literature-shell .literature-logo {
+  height: 2rem !important;
+  max-width: 9rem;
+  object-fit: contain;
+  width: auto !important;
+}
+
+.literature-shell .literature-header-actions {
+  gap: clamp(1rem, 3vw, 2.5rem);
+}
+
+.literature-shell .header-book-title {
+  color: var(--lit-ink) !important;
+  font-size: .75rem !important;
+  font-weight: 800;
+  letter-spacing: .1em;
+  line-height: 1.15;
+  text-align: right;
+}
+
+.literature-shell .header-book-title small {
+  color: var(--lit-muted) !important;
+  display: block;
+  font-size: .625rem !important;
+  letter-spacing: .08em;
+  margin-top: .2rem;
+}
+
+.literature-shell .return-dashboard {
+  align-items: center;
+  color: var(--lit-copy) !important;
+  display: inline-flex;
+  font-size: .875rem;
+  font-weight: 700;
+  gap: .5rem;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.literature-shell .literature-layout {
+  background: var(--lit-canvas) !important;
+  display: grid !important;
+  grid-template-columns: var(--lit-sidebar-width) minmax(0, 1fr) !important;
+  margin: 0 !important;
+  max-width: none !important;
+  min-height: calc(100vh - var(--lit-header-height));
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+/* The sidebar uses the same header-height token, fixing the former 68/72px gap. */
+.literature-shell .literature-sidebar {
+  align-self: start;
+  background: #fff !important;
+  border-right: 1px solid var(--lit-line) !important;
+  box-shadow: none !important;
+  height: calc(100dvh - var(--lit-header-height)) !important;
+  overflow-y: auto;
+  padding: 1.35rem 1rem 1.5rem !important;
+  position: sticky !important;
+  top: var(--lit-header-height) !important;
+  width: auto !important;
+  z-index: 20;
+}
+
+.literature-shell .sidebar-intro {
+  border-bottom: 1px solid var(--lit-line);
+  margin: 0 .35rem 1.1rem !important;
+  padding: 0 .25rem 1.15rem !important;
+}
+
+.literature-shell .sidebar-intro > span,
+.literature-shell .sidebar-label {
+  color: var(--lit-muted) !important;
+  font-size: .6875rem !important;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.literature-shell .sidebar-intro h1 {
+  color: var(--lit-ink) !important;
+  font-size: 1.55rem !important;
+  font-style: normal;
+  font-weight: 800 !important;
+  letter-spacing: -.04em;
+  line-height: 1.02 !important;
+  margin: .55rem 0 .45rem !important;
+}
+
+.literature-shell .sidebar-intro h1 em {
+  color: var(--lit-blue) !important;
+  font-style: normal !important;
+}
+
+.literature-shell .sidebar-intro p {
+  color: var(--lit-muted) !important;
+  font-size: .8125rem !important;
+  margin: 0 !important;
+}
+
+.literature-shell .literature-sidebar nav {
+  display: grid;
+  gap: .25rem;
+}
+
+.literature-shell .sidebar-label {
+  margin: 0 .6rem .35rem;
+}
+
+.literature-shell .literature-sidebar nav button {
+  align-items: center;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: .65rem !important;
+  color: var(--lit-copy) !important;
+  cursor: pointer;
+  display: grid;
+  font-size: .8125rem !important;
+  font-weight: 650 !important;
+  gap: .6rem;
+  grid-template-columns: 1.45rem minmax(0, 1fr) .4rem;
+  line-height: 1.25 !important;
+  min-height: 44px;
+  padding: .55rem .65rem !important;
+  text-align: left;
+  width: 100%;
+}
+
+.literature-shell .literature-sidebar nav button:hover {
+  background: var(--lit-blue-soft) !important;
+  color: var(--lit-blue-dark) !important;
+}
+
+.literature-shell .literature-sidebar nav button.is-active {
+  background: var(--lit-blue) !important;
+  box-shadow: 0 7px 18px rgba(20, 99, 255, .18) !important;
+  color: #fff !important;
+}
+
+.literature-shell .chapter-number {
+  color: var(--lit-blue) !important;
+  font-size: .7rem !important;
+  font-weight: 800;
+}
+
+.literature-shell .literature-sidebar nav button.is-active .chapter-number {
+  color: #fff !important;
+}
+
+.literature-shell .chapter-dot {
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  height: .32rem;
+  opacity: .55;
+  width: .32rem;
+}
+
+.literature-shell .sidebar-loop,
+.literature-shell .chapter-hero {
+  display: none !important;
+}
+
+/* One chapter, one canvas */
+.literature-shell .literature-main {
+  background: var(--lit-canvas) !important;
+  min-width: 0;
+  padding: clamp(1.25rem, 2.8vw, 3rem) !important;
+}
+
+.literature-shell .book-content {
+  margin: 0 auto !important;
+  max-width: 76rem !important;
+  min-width: 0;
+  width: 100%;
+}
+
+.literature-shell .book-content > div {
+  min-width: 0;
+  scroll-margin-top: calc(var(--lit-header-height) + 1rem);
+}
+
+@keyframes literatureChapterIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.literature-shell .book-section {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--lit-ink) !important;
+  margin: 0 !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding: clamp(1rem, 2.5vw, 2.25rem) !important;
+  width: 100% !important;
+}
+
+.literature-shell :is(.section-heading, .learning-section-heading) {
+  align-items: start;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin: 0 0 clamp(1.5rem, 3vw, 2.5rem) !important;
+}
+
+.literature-shell :is(.section-heading, .learning-section-heading) > div:first-child {
+  max-width: 49rem;
+}
+
+.literature-shell :is(.section-heading h2, .learning-section-heading h2) {
+  color: var(--lit-ink) !important;
+  font-size: clamp(2.1rem, 4vw, 3.65rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.055em !important;
+  line-height: 1.02 !important;
+  margin: .7rem 0 .6rem !important;
+}
+
+.literature-shell :is(.section-heading p, .learning-section-heading p) {
+  color: var(--lit-copy) !important;
+  font-size: clamp(.975rem, .9rem + .15vw, 1.075rem) !important;
+  line-height: 1.65 !important;
+  margin: 0 !important;
+  max-width: 47rem;
+}
+
+.literature-shell .learning-index {
+  color: #b8c9df !important;
+  flex: 0 0 auto;
+  font-size: clamp(2.6rem, 5vw, 4.5rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.06em;
+  line-height: .9 !important;
+}
+
+.literature-shell :is(.literature-kicker, .learning-kicker, .note-label, .dossier-label) {
+  align-items: center;
+  color: var(--lit-blue) !important;
+  display: inline-flex;
+  font-size: .72rem !important;
+  font-weight: 800 !important;
+  gap: .4rem;
+  letter-spacing: .09em !important;
+  line-height: 1.35 !important;
+}
+
+.literature-shell .book-section h3 {
+  color: var(--lit-ink) !important;
+  font-size: clamp(1.35rem, 2vw, 2rem) !important;
+  font-weight: 750 !important;
+  letter-spacing: -.035em !important;
+  line-height: 1.2 !important;
+}
+
+.literature-shell .book-section h4 {
+  color: var(--lit-ink) !important;
+  font-size: 1.125rem !important;
+  font-weight: 750 !important;
+  line-height: 1.3 !important;
+}
+
+.literature-shell .book-section :is(small, cite) {
+  color: var(--lit-muted);
+  font-size: .78rem !important;
+  line-height: 1.45;
+}
+
+/* Shared controls and cards */
+.literature-shell .book-section button,
+.literature-shell .literature-button,
+.literature-shell .chapter-pagination :is(button, a) {
+  min-height: 44px;
+}
+
+.literature-shell .book-section button:not(.overview-timeline button) {
+  font-size: .8125rem;
+}
+
+.literature-shell :is(
+  .overview-detail,
+  .cast-focus-copy,
+  .story-event-detail,
+  .eva-journey-detail,
+  .moment-detail,
+  .theme-guide-detail,
+  .method-guide-detail,
+  .quote-library-detail,
+  .context-guide-detail,
+  .glossary-definition,
+  .character-dossier,
+  .important-notes-grid article
+) {
+  background: var(--lit-card) !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 12px 32px rgba(8, 27, 54, .07) !important;
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell :is(
+  .overview-detail,
+  .cast-focus-copy,
+  .story-event-detail,
+  .moment-detail,
+  .theme-guide-detail,
+  .quote-library-detail,
+  .context-guide-detail,
+  .glossary-definition,
+  .character-dossier
+) :is(p, li, strong, blockquote, cite) {
+  font-size: .95rem !important;
+  line-height: 1.6 !important;
+}
+
+.literature-shell :is(
+  .overview-detail,
+  .cast-focus-copy,
+  .story-event-detail,
+  .eva-journey-copy,
+  .moment-detail,
+  .theme-guide-detail,
+  .method-guide-copy,
+  .quote-library-detail,
+  .context-guide-detail,
+  .glossary-definition,
+  .character-dossier
+) > span,
+.literature-shell :is(.overview-facts, .cast-intro-grid, .scene-learning-grid, .quote-analysis-grid, .context-guide-columns) span {
+  color: var(--lit-blue) !important;
+  font-size: .6875rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+}
+
+.literature-shell :is(
+  .cast-portraits,
+  .story-event-list,
+  .eva-journey-rail,
+  .moment-list,
+  .method-guide-list,
+  .quote-library-list,
+  .glossary-terms,
+  .character-portrait-rail
+) button {
+  color: var(--lit-copy) !important;
+  font-size: .8125rem !important;
+  line-height: 1.3 !important;
+}
+
+.literature-shell :is(
+  .cast-portraits,
+  .story-event-list,
+  .eva-journey-rail,
+  .moment-list,
+  .method-guide-list,
+  .quote-library-list,
+  .glossary-terms,
+  .character-portrait-rail,
+  .act-selector,
+  .theme-guide-tabs,
+  .context-guide-tabs,
+  .glossary-categories
+) button.is-active {
+  background: var(--lit-blue) !important;
+  border-color: var(--lit-blue) !important;
+  color: #fff !important;
+}
+
+.literature-shell :is(
+  .cast-portraits,
+  .story-event-list,
+  .eva-journey-rail,
+  .moment-list,
+  .method-guide-list,
+  .quote-library-list,
+  .glossary-terms,
+  .character-portrait-rail,
+  .act-selector,
+  .theme-guide-tabs,
+  .context-guide-tabs,
+  .glossary-categories
+) button.is-active :is(span, strong, small) {
+  color: #fff !important;
+}
+
+.literature-shell :is(input[type="text"], input[type="search"], textarea, .quote-library-search, .glossary-search) {
+  background: #fff !important;
+  border-color: #bcd0e9 !important;
+  color: var(--lit-ink) !important;
+  font-size: 1rem !important;
+}
+
+/* Timeline: fifteen equal columns, with horizontal scrolling instead of compression. */
+.literature-shell .overview-timeline {
+  margin: .5rem 0 1.75rem !important;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  padding: .25rem 0 .85rem !important;
+  scrollbar-color: #9fc2f5 #e7effa;
+  scrollbar-width: thin;
+}
+
+.literature-shell .overview-timeline-track {
+  align-items: start;
+  display: grid !important;
+  grid-template-columns: repeat(15, minmax(4rem, 1fr)) !important;
+  min-width: 60rem;
+  position: relative;
+  width: 100% !important;
+}
+
+.literature-shell .overview-timeline-line {
+  background: #c8daf0 !important;
+  height: 2px !important;
+  left: 3.333333% !important;
+  position: absolute;
+  right: 3.333333% !important;
+  top: 1.375rem !important;
+}
+
+.literature-shell .overview-timeline-line span {
+  background: var(--lit-blue) !important;
+  display: block;
+  height: 100%;
+}
+
+.literature-shell .overview-timeline button {
+  align-items: center;
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--lit-copy) !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: .4rem;
+  justify-content: flex-start;
+  margin: 0 !important;
+  min-height: 4.2rem;
+  padding: 0 .2rem !important;
+  position: relative;
+  text-align: center;
+  width: 100% !important;
+  z-index: 2;
+}
+
+.literature-shell .overview-timeline button > span {
+  align-items: center;
+  background: #fff !important;
+  border: 1px solid #a9c6eb !important;
+  border-radius: 50%;
+  color: var(--lit-copy) !important;
+  display: flex;
+  flex: 0 0 2.75rem;
+  font-size: .72rem !important;
+  font-weight: 750;
+  height: 2.75rem;
+  justify-content: center;
+  width: 2.75rem;
+}
+
+.literature-shell .overview-timeline button small {
+  color: var(--lit-copy) !important;
+  font-size: .625rem !important;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.literature-shell .overview-timeline button.is-active > span {
+  background: var(--lit-blue) !important;
+  border-color: var(--lit-blue) !important;
+  box-shadow: 0 0 0 4px rgba(20, 99, 255, .12);
+  color: #fff !important;
+}
+
+/* Media is intentionally dark; its overlay type needs white contrast. */
+.literature-shell :is(.cinematic-stage-shell, .visual-play-frame, .overview-visual, .eva-journey-image, .character-portrait-stage) :is(p, li, cite, small) {
+  color: #e7f0ff !important;
+}
+
+.literature-shell :is(.cinematic-stage-shell, .visual-play-frame, .overview-visual, .eva-journey-image, .character-portrait-stage) :is(h2, h3, h4, strong, span) {
+  color: #fff !important;
+}
+
+/* The teaching panel and transcript are light reading surfaces below the dark stage. */
+.literature-shell .cinematic-teaching-panel,
+.literature-shell .cinematic-transcript {
+  background: #fff !important;
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell .cinematic-teaching-panel :is(h3, p, span, strong, button),
+.literature-shell .cinematic-transcript :is(summary, p, li, strong) {
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell .cinematic-teaching-panel .teaching-panel-method span,
+.literature-shell .cinematic-teaching-panel .teaching-panel-copy > span,
+.literature-shell .cinematic-teaching-panel .teaching-question strong,
+.literature-shell .cinematic-teaching-panel .teaching-pearl strong {
+  color: var(--lit-blue) !important;
+}
+
+.literature-shell .cinematic-teaching-panel .teaching-panel-copy > p,
+.literature-shell .cinematic-teaching-panel .teaching-question span,
+.literature-shell .cinematic-teaching-panel .teaching-pearl span,
+.literature-shell .cinematic-transcript p,
+.literature-shell .cinematic-transcript li {
+  color: var(--lit-copy) !important;
+  font-family: inherit !important;
+  font-size: .95rem !important;
+  line-height: 1.6 !important;
+}
+
+.literature-shell .cinematic-teaching-panel .teaching-question,
+.literature-shell .cinematic-teaching-panel .teaching-pearl,
+.literature-shell .cinematic-transcript {
+  background: var(--lit-blue-soft) !important;
+  border-color: var(--lit-line) !important;
+}
+
+.literature-shell .cinematic-teaching-panel .teaching-panel-actions > button:first-child {
+  color: var(--lit-muted) !important;
+}
+
+.literature-shell .cinematic-teaching-panel .send-to-pearl {
+  background: var(--lit-blue) !important;
+  color: #fff !important;
+}
+
+.literature-shell .cinematic-stage-shell {
+  border-color: #7faeff !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 16px 36px rgba(8, 27, 54, .13) !important;
+  overflow: hidden;
+}
+
+/* Remove decorative sparkle/star marks; retain meaningful subject icons. */
+.literature-shell .key-moments-section .learning-kicker svg,
+.literature-shell .network-section .literature-kicker svg,
+.literature-shell .assembled-note svg {
+  display: none !important;
+}
+
+/* Chapter navigation */
+.literature-shell .chapter-pagination {
+  align-items: center;
+  border-top: 1px solid var(--lit-line);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  margin: 1rem auto 0;
+  max-width: 76rem;
+  padding: 1.5rem clamp(1rem, 2.5vw, 2.25rem) .5rem;
+}
+
+.literature-shell .chapter-pagination :is(button, a) {
+  align-items: center;
+  background: #fff !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: .8rem;
+  color: var(--lit-ink) !important;
+  cursor: pointer;
+  display: inline-flex;
+  gap: .75rem;
+  max-width: 19rem;
+  padding: .7rem .9rem;
+  text-align: left;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.literature-shell .chapter-pagination :is(button, a):last-child {
+  justify-self: end;
+  text-align: right;
+}
+
+.literature-shell .chapter-pagination :is(button, a):hover {
+  border-color: var(--lit-blue) !important;
+  color: var(--lit-blue-dark) !important;
+}
+
+.literature-shell .chapter-pagination span span,
+.literature-shell .chapter-pagination :is(button, a) > span {
+  display: grid;
+  font-size: .875rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.literature-shell .chapter-pagination small {
+  color: var(--lit-muted) !important;
+  font-size: .65rem !important;
+  font-weight: 750;
+  letter-spacing: .06em;
+  margin-bottom: .2rem;
+  text-transform: uppercase;
+}
+
+.literature-shell .chapter-pagination-current {
+  color: var(--lit-muted);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .literature-shell {
+    --lit-header-height: 64px;
+  }
+
+  .literature-shell .literature-layout {
+    display: block !important;
+  }
+
+  .literature-shell .literature-sidebar {
+    border-bottom: 1px solid var(--lit-line) !important;
+    border-right: 0 !important;
+    height: auto !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: .55rem .75rem !important;
+    top: var(--lit-header-height) !important;
+  }
+
+  .literature-shell .sidebar-intro,
+  .literature-shell .sidebar-label,
+  .literature-shell .chapter-dot {
+    display: none !important;
+  }
+
+  .literature-shell .literature-sidebar nav {
+    display: flex;
+    gap: .35rem;
+    min-width: max-content;
+  }
+
+  .literature-shell .literature-sidebar nav button {
+    display: flex;
+    gap: .4rem;
+    padding: .5rem .7rem !important;
+    width: auto;
+  }
+
+  .literature-shell .literature-main {
+    padding: clamp(1rem, 3vw, 2rem) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .literature-shell .literature-header {
+    padding: 0 .8rem !important;
+  }
+
+  .literature-shell .literature-logo {
+    height: 1.75rem !important;
+  }
+
+  .literature-shell .header-book-title {
+    display: none;
+  }
+
+  .literature-shell .return-dashboard {
+    font-size: .8rem;
+  }
+
+  .literature-shell .literature-main {
+    padding: .75rem !important;
+  }
+
+  .literature-shell .book-section {
+    padding: 1rem .35rem !important;
+  }
+
+  .literature-shell :is(.section-heading, .learning-section-heading) {
+    gap: .75rem;
+  }
+
+  .literature-shell :is(.section-heading h2, .learning-section-heading h2) {
+    font-size: clamp(2rem, 10vw, 2.75rem) !important;
+  }
+
+  .literature-shell .learning-index {
+    font-size: 2.4rem !important;
+  }
+
+  .literature-shell :is(
+    .overview-detail,
+    .cast-focus-copy,
+    .story-event-detail,
+    .moment-detail,
+    .theme-guide-detail,
+    .quote-library-detail,
+    .context-guide-detail,
+    .glossary-definition,
+    .character-dossier
+  ) {
+    border-radius: .75rem !important;
+  }
+
+  .literature-shell .overview-timeline {
+    scroll-snap-type: x proximity;
+  }
+
+  .literature-shell .overview-timeline-track {
+    grid-template-columns: repeat(15, 4rem) !important;
+    min-width: 60rem;
+  }
+
+  .literature-shell .chapter-pagination {
+    grid-template-columns: 1fr 1fr;
+    padding-inline: .35rem;
+  }
+
+  .literature-shell .chapter-pagination-current {
+    display: none;
+  }
+
+  .literature-shell .chapter-pagination :is(button, a) {
+    max-width: 100%;
+  }
+}
+
+/* Keep the entire literature document in normal page flow. */
+.literature-shell,
+.literature-shell .literature-layout,
+.literature-shell .literature-main {
+  overflow: visible !important;
+}
+
+.literature-shell .literature-layout {
+  min-height: auto !important;
+}
+
+/* The event list needs an actual grid for its gap to take effect. */
+.literature-shell .story-event-list {
+  align-content: start !important;
+  align-self: start !important;
+  display: grid !important;
+  gap: .6rem !important;
+  height: max-content;
+}
+
+.literature-shell .story-event-list li {
+  margin: 0 !important;
+}
+
+.literature-shell .story-event-list button {
+  border: 1px solid var(--lit-line) !important;
+  border-radius: .75rem !important;
+  font-size: 1rem !important;
+  min-height: 3.6rem;
+  padding: .75rem .8rem !important;
+}
+
+.literature-shell .story-event-list button > span {
+  flex: 0 0 2rem;
+  min-width: 2rem;
+  white-space: nowrap;
+}
+
+/* Match the homepage's 16px system-sans reading scale. */
+.literature-shell .literature-sidebar nav button {
+  font-size: .9rem !important;
+}
+
+.literature-shell :is(
+  .moment-list button,
+  .method-guide-list button,
+  .quote-library-list button,
+  .glossary-terms button,
+  .cast-portraits button,
+  .eva-journey-rail button
+) {
+  font-size: .95rem !important;
+}
+
+.literature-shell :is(.method-guide-list button strong, .quote-library-list button strong) {
+  font-size: .95rem !important;
+}
+
+/* Hover is a light preview; only the selected item uses white-on-blue text. */
+.literature-shell :is(
+  .story-event-list,
+  .moment-list,
+  .method-guide-list,
+  .quote-library-list,
+  .glossary-terms,
+  .cast-portraits,
+  .eva-journey-rail
+) {
+  gap: .6rem !important;
+}
+
+.literature-shell .story-event-list li {
+  margin: 0 !important;
+}
+
+.literature-shell :is(
+  .story-event-list,
+  .moment-list,
+  .method-guide-list,
+  .quote-library-list,
+  .glossary-terms,
+  .cast-portraits,
+  .eva-journey-rail
+) button:not(.is-active):hover {
+  background: var(--lit-blue-soft) !important;
+  border-color: #9fc2f5 !important;
+  box-shadow: 0 5px 16px rgba(20, 99, 255, .08) !important;
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell :is(
+  .story-event-list,
+  .moment-list,
+  .method-guide-list,
+  .quote-library-list,
+  .glossary-terms,
+  .cast-portraits,
+  .eva-journey-rail
+) button:not(.is-active):hover :is(span, small, strong) {
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell .story-event-list button {
+  border: 1px solid var(--lit-line) !important;
+  border-radius: .75rem !important;
+  min-height: 3.6rem;
+  padding: .75rem .8rem !important;
+}
+
+/* Reference-inspired reading structure: rail, chapter heading, then one content card. */
+.literature-shell .literature-sidebar nav {
+  position: relative;
+}
+
+.literature-shell .literature-sidebar nav::before {
+  background: var(--lit-line);
+  content: '';
+  left: 1.34rem;
+  position: absolute;
+  top: 2.25rem;
+  bottom: .75rem;
+  width: 1px;
+}
+
+.literature-shell .literature-sidebar nav button {
+  position: relative;
+  z-index: 1;
+}
+
+.literature-shell .literature-sidebar nav button .chapter-number {
+  align-items: center;
+  background: var(--lit-blue-soft) !important;
+  border: 1px solid #d2e2f7;
+  border-radius: 50%;
+  display: inline-flex;
+  height: 1.45rem;
+  justify-content: center;
+  width: 1.45rem;
+}
+
+.literature-shell .literature-sidebar nav button.is-active .chapter-number {
+  background: var(--lit-blue) !important;
+  border-color: var(--lit-blue);
+  color: #fff !important;
+}
+
+.literature-shell .literature-sidebar nav button .chapter-dot {
+  display: none !important;
+}
+
+.literature-shell .literature-main {
+  padding: clamp(1.25rem, 3.5vw, 3.75rem) clamp(1rem, 4vw, 4.25rem) !important;
+}
+
+.literature-shell .book-content {
+  max-width: 74rem !important;
+}
+
+.literature-shell .book-content > div > .book-section {
+  padding: clamp(1.25rem, 2vw, 2.1rem) 0 clamp(3rem, 6vw, 5.5rem) !important;
+}
+
+.literature-shell .book-content > div:not(:first-child) > .book-section {
+  border-top: 1px solid var(--lit-line) !important;
+}
+
+.literature-shell .learning-section-heading {
+  align-items: start !important;
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: 2.5rem minmax(0, 1fr) !important;
+  margin: 0 0 1.6rem !important;
+}
+
+.literature-shell .learning-section-heading > div:first-child {
+  grid-column: 2;
+  max-width: 60rem !important;
+}
+
+.literature-shell .learning-section-heading .learning-index {
+  color: var(--lit-muted) !important;
+  font-size: .75rem !important;
+  font-weight: 800 !important;
+  grid-column: 1;
+  grid-row: 1;
+  letter-spacing: .08em;
+  line-height: 1.4 !important;
+  padding-top: .2rem;
+  position: relative;
+  text-align: right;
+}
+
+.literature-shell .learning-section-heading .learning-index::after {
+  background: var(--lit-line);
+  content: '';
+  height: 1.1rem;
+  margin-left: .7rem;
+  position: absolute;
+  right: -.55rem;
+  top: .12rem;
+  width: 1px;
+}
+
+.literature-shell .learning-section-heading h2 {
+  font-size: clamp(2rem, 3.4vw, 3rem) !important;
+  letter-spacing: -.05em !important;
+  line-height: 1.05 !important;
+  margin: .45rem 0 .55rem !important;
+}
+
+.literature-shell .learning-section-heading p {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  max-width: 58rem;
+}
+
+.literature-shell .theme-guide-section,
+.literature-shell .methods-guide-section,
+.literature-shell .quote-library-section,
+.literature-shell .glossary-section {
+  min-width: 0;
+}
+
+.literature-shell .theme-guide-tabs,
+.literature-shell .context-guide-tabs {
+  gap: .45rem !important;
+  margin: 0 0 1rem !important;
+}
+
+.literature-shell .theme-guide-tabs button,
+.literature-shell .context-guide-tabs button {
+  border-radius: .55rem !important;
+  font-size: .78rem !important;
+  min-height: 40px;
+  padding: .55rem .75rem !important;
+}
+
+.literature-shell .theme-guide-detail,
+.literature-shell .method-guide-detail,
+.literature-shell .quote-library-detail,
+.literature-shell .glossary-definition {
+  border-radius: 1rem !important;
+  padding: clamp(1.25rem, 2.25vw, 1.75rem) !important;
+}
+
+.literature-shell .theme-guide-intro h3 {
+  font-size: clamp(1.9rem, 3vw, 2.55rem) !important;
+  line-height: 1.08 !important;
+  margin: .55rem 0 .45rem !important;
+}
+
+.literature-shell .theme-guide-intro p {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+}
+
+.literature-shell .theme-act-grid {
+  align-items: stretch;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  margin-top: 1.35rem !important;
+}
+
+.literature-shell .theme-act-grid article {
+  min-height: 12rem;
+}
+
+.literature-shell .theme-guide-columns {
+  align-items: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.literature-shell .theme-guide-columns p {
+  align-content: start;
+  min-height: 3rem;
+}
+
+.literature-shell .theme-guide-note {
+  align-items: start;
+  border-radius: .8rem;
+  padding: 1rem !important;
+}
+
+.literature-shell .method-guide-layout,
+.literature-shell .quote-library-layout,
+.literature-shell .glossary-workspace {
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) !important;
+}
+
+.literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) button {
+  align-content: start;
+  justify-content: start;
+  min-height: 4.5rem !important;
+}
+
+.literature-shell .method-guide-list button strong,
+.literature-shell .quote-library-list button strong,
+.literature-shell .glossary-terms button {
+  font-size: .88rem !important;
+  line-height: 1.35 !important;
+}
+
+.literature-shell .method-guide-detail,
+.literature-shell .quote-library-detail,
+.literature-shell .glossary-definition {
+  min-height: 31rem;
+}
+
+@media (max-width: 1000px) {
+  .literature-shell .book-content > div:not(:first-child) > .book-section {
+    border-top: 1px solid var(--lit-line) !important;
+  }
+
+  .literature-shell .learning-section-heading {
+    grid-template-columns: 2.25rem minmax(0, 1fr) !important;
+  }
+
+  .literature-shell .method-guide-layout,
+  .literature-shell .quote-library-layout,
+  .literature-shell .glossary-workspace {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .literature-shell .book-content > div > .book-section {
+    padding-bottom: 3rem !important;
+  }
+
+  .literature-shell .learning-section-heading {
+    gap: .7rem !important;
+    grid-template-columns: 2rem minmax(0, 1fr) !important;
+  }
+
+  .literature-shell .learning-section-heading .learning-index {
+    font-size: .68rem !important;
+  }
+
+  .literature-shell .theme-act-grid,
+  .literature-shell .theme-guide-columns {
+    grid-template-columns: 1fr !important;
+  }
+
+  .literature-shell .theme-act-grid article {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 460px) {
+  .literature-shell .return-dashboard {
+    font-size: 0;
+    gap: 0;
+  }
+
+  .literature-shell .return-dashboard svg {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
+  .literature-shell .learning-index {
+    display: none;
+  }
+
+  .literature-shell .chapter-pagination :is(button, a) {
+    font-size: .75rem;
+    padding: .65rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .literature-shell *,
+  .literature-shell *::before,
+  .literature-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .literature-shell {
+    --lit-copy: #20354e;
+    --lit-line: #86a4c8;
+  }
+
+  .literature-shell :is(button, input, textarea, article) {
+    border-color: var(--lit-line) !important;
+  }
+}
+
+/* Component cleanup: every study panel uses the same readable blue scale. */
+.literature-shell {
+  overflow-x: hidden;
+}
+
+.literature-shell .literature-main {
+  overflow: visible !important;
+}
+
+.literature-shell :is(
+  .overview-facts p,
+  .cast-intro-grid p,
+  .story-event-detail p,
+  .eva-journey-copy p,
+  .moment-detail p,
+  .theme-guide-intro p,
+  .theme-act-grid p,
+  .theme-guide-note p,
+  .method-definition,
+  .method-guide-copy p,
+  .quote-analysis-grid p,
+  .quote-library-detail aside p,
+  .context-guide-columns p,
+  .context-guide-detail p,
+  .glossary-definition p,
+  .glossary-definition strong,
+  .important-scene-note p,
+  .moment-study-note p,
+  .reader-before,
+  .character-overview
+) {
+  color: var(--lit-copy) !important;
+  font-family: inherit !important;
+  font-size: .95rem !important;
+  line-height: 1.62 !important;
+}
+
+.literature-shell :is(
+  .important-scene-note,
+  .moment-study-note,
+  .reader-before,
+  .theme-guide-note,
+  .quote-library-detail aside,
+  .context-guide-detail aside
+) {
+  background: var(--lit-blue-soft) !important;
+  border-left: 3px solid var(--lit-blue) !important;
+  border-radius: .7rem !important;
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell :is(
+  .important-scene-note > span,
+  .moment-study-note span,
+  .reader-before strong,
+  .theme-guide-note span,
+  .quote-library-detail aside span,
+  .context-guide-detail aside span
+) {
+  color: var(--lit-blue) !important;
+  font-family: inherit !important;
+  font-size: .6875rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+}
+
+/* Eva's journey is a single, evenly spaced vertical rail. */
+.literature-shell .eva-journey-layout {
+  align-items: start;
+  gap: clamp(1rem, 2vw, 1.75rem) !important;
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) !important;
+}
+
+.literature-shell .eva-journey-rail {
+  align-content: start;
+  border-left: 1px solid #afc4df !important;
+  display: grid !important;
+  gap: .45rem !important;
+  margin: 0 !important;
+  padding: .1rem 0 .1rem 1rem !important;
+}
+
+.literature-shell .eva-journey-rail li {
+  min-width: 0;
+  position: relative;
+}
+
+.literature-shell .eva-journey-rail li::before {
+  background: var(--lit-blue) !important;
+  border: 3px solid var(--lit-canvas) !important;
+  height: .5rem !important;
+  left: -1.28rem !important;
+  top: 1.5rem !important;
+  width: .5rem !important;
+}
+
+.literature-shell .eva-journey-rail button {
+  background: #fff !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: .75rem !important;
+  color: var(--lit-copy) !important;
+  display: grid !important;
+  gap: .65rem !important;
+  grid-template-columns: 2rem minmax(0, 1fr) !important;
+  min-height: 4.15rem !important;
+  padding: .7rem .75rem !important;
+  width: 100% !important;
+}
+
+.literature-shell .eva-journey-rail button:hover {
+  border-color: #9fc2f5 !important;
+  box-shadow: 0 5px 16px rgba(20, 99, 255, .08);
+}
+
+.literature-shell .eva-journey-rail button.is-active {
+  background: var(--lit-blue) !important;
+  border-color: var(--lit-blue) !important;
+  box-shadow: 0 8px 18px rgba(20, 99, 255, .16);
+  color: #fff !important;
+}
+
+.literature-shell .eva-journey-rail button > span,
+.literature-shell .eva-journey-rail button.is-active > span {
+  color: inherit !important;
+  font-size: .72rem !important;
+  font-weight: 800 !important;
+}
+
+.literature-shell .eva-journey-rail button small,
+.literature-shell .eva-journey-rail button.is-active small {
+  color: inherit !important;
+  font-size: .66rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .07em !important;
+  line-height: 1.25 !important;
+  opacity: .82;
+}
+
+.literature-shell .eva-journey-rail button strong {
+  color: inherit !important;
+  font-size: .8rem !important;
+  line-height: 1.25 !important;
+}
+
+.literature-shell .eva-journey-detail {
+  background: #fff !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 12px 32px rgba(8, 27, 54, .07) !important;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.literature-shell .eva-journey-copy {
+  gap: 1.25rem !important;
+  padding: clamp(1.25rem, 2vw, 2rem) !important;
+}
+
+.literature-shell .eva-journey-copy > div {
+  border-top-color: var(--lit-line) !important;
+  min-width: 0;
+}
+
+.literature-shell .eva-journey-copy span {
+  color: var(--lit-blue) !important;
+  font-size: .6875rem !important;
+}
+
+.literature-shell .eva-journey-copy aside {
+  background: var(--lit-blue-soft) !important;
+  border-left: 3px solid var(--lit-blue) !important;
+  border-radius: .65rem;
+  margin-top: .5rem !important;
+}
+
+/* Theme, method, quotation and glossary selectors share the same card rhythm. */
+.literature-shell :is(.theme-guide-columns i, .method-links i, .quote-connections i, .moment-connections i, .reader-cast i) {
+  background: var(--lit-blue-soft) !important;
+  border: 1px solid #d6e5fb;
+  border-radius: .45rem;
+  color: var(--lit-ink) !important;
+  font-family: inherit !important;
+  font-size: .75rem !important;
+  font-style: normal;
+  line-height: 1.35;
+  padding: .45rem .55rem !important;
+}
+
+.literature-shell .theme-guide-intro {
+  border-left: 3px solid var(--lit-blue) !important;
+}
+
+.literature-shell .theme-guide-intro h3,
+.literature-shell .method-guide-copy h3,
+.literature-shell .glossary-definition h3 {
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell .theme-act-grid {
+  gap: .55rem !important;
+}
+
+.literature-shell .theme-act-grid article {
+  background: var(--lit-blue-soft) !important;
+  border: 1px solid #d6e5fb;
+  border-radius: .7rem;
+  min-width: 0;
+  padding: 1rem !important;
+}
+
+.literature-shell .theme-act-grid article p {
+  color: var(--lit-copy) !important;
+  font-size: .95rem !important;
+  line-height: 1.55 !important;
+}
+
+.literature-shell .theme-guide-columns,
+.literature-shell .theme-guide-note,
+.literature-shell .quote-analysis-grid,
+.literature-shell .context-guide-columns {
+  gap: 1rem !important;
+}
+
+.literature-shell .theme-guide-columns > div,
+.literature-shell .quote-analysis-grid > div,
+.literature-shell .context-guide-columns > div {
+  min-width: 0;
+}
+
+.literature-shell .method-guide-layout,
+.literature-shell .quote-library-layout,
+.literature-shell .glossary-workspace {
+  align-items: start;
+  gap: 1rem !important;
+}
+
+.literature-shell .method-guide-list,
+.literature-shell .quote-library-list,
+.literature-shell .glossary-terms {
+  align-content: start;
+  background: transparent !important;
+  gap: .45rem !important;
+  max-height: min(45rem, calc(100dvh - 15rem)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: .15rem .45rem .25rem .15rem !important;
+  scrollbar-color: #9fc2f5 #e7effa;
+  scrollbar-width: thin;
+}
+
+.literature-shell .method-guide-list {
+  grid-template-columns: 1fr !important;
+}
+
+.literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) button {
+  background: #fff !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: .75rem !important;
+  color: var(--lit-copy) !important;
+  min-height: 4.15rem !important;
+  padding: .7rem .8rem !important;
+  width: 100% !important;
+}
+
+.literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) button:hover {
+  border-color: #9fc2f5 !important;
+  box-shadow: 0 5px 16px rgba(20, 99, 255, .08);
+}
+
+.literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) button.is-active {
+  background: var(--lit-blue) !important;
+  border-color: var(--lit-blue) !important;
+  color: #fff !important;
+}
+
+.literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) button :is(small, strong, span) {
+  color: inherit !important;
+  font-family: inherit !important;
+}
+
+.literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) button small {
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em;
+  line-height: 1.25;
+}
+
+.literature-shell .method-guide-list button strong,
+.literature-shell .quote-library-list button strong {
+  font-size: .88rem !important;
+  line-height: 1.35 !important;
+}
+
+.literature-shell .glossary-terms {
+  grid-auto-rows: minmax(4.4rem, auto) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.literature-shell .glossary-terms button {
+  align-content: start;
+  min-height: 4.4rem !important;
+}
+
+.literature-shell .glossary-terms button:not(.is-active) small {
+  color: var(--lit-blue) !important;
+}
+
+.literature-shell .method-guide-detail {
+  background: #fff !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 12px 32px rgba(8, 27, 54, .07) !important;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.literature-shell .method-guide-copy {
+  min-width: 0;
+  padding: clamp(1.25rem, 2.5vw, 2rem) !important;
+}
+
+.literature-shell .quote-library-detail,
+.literature-shell .glossary-definition {
+  min-width: 0;
+  padding: clamp(1.25rem, 2.5vw, 2rem) !important;
+}
+
+.literature-shell .quote-library-detail blockquote {
+  color: var(--lit-ink) !important;
+  font-family: inherit !important;
+  font-size: clamp(1.4rem, 2.5vw, 2.15rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+
+/* Quote cards use a fixed Act column so their labels stay readable at every width. */
+.literature-shell .quote-library-list {
+  display: grid !important;
+  gap: .65rem !important;
+  grid-template-columns: 1fr !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding: .15rem !important;
+}
+
+.literature-shell .quote-library-list button {
+  align-items: start !important;
+  display: grid !important;
+  gap: .12rem .8rem !important;
+  grid-template-areas: "act quote" "speaker quote" !important;
+  grid-template-columns: 4.5rem minmax(0, 1fr) !important;
+  min-height: 5.3rem !important;
+  text-align: left !important;
+}
+
+.literature-shell .quote-library-list button > span {
+  align-self: start;
+  background: var(--lit-blue-soft) !important;
+  border: 1px solid #c3d8f5;
+  border-radius: .4rem;
+  color: var(--lit-blue) !important;
+  display: inline-flex;
+  font-size: .72rem !important;
+  font-weight: 800 !important;
+  grid-area: act;
+  justify-content: center;
+  letter-spacing: .03em;
+  line-height: 1.2 !important;
+  padding: .38rem .35rem;
+  white-space: nowrap;
+}
+
+.literature-shell .quote-library-list button > strong {
+  align-self: start;
+  grid-area: quote;
+  min-width: 0;
+}
+
+.literature-shell .quote-library-list button > small {
+  align-self: start;
+  color: var(--lit-muted) !important;
+  grid-area: speaker;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.literature-shell .quote-library-list button.is-active > span {
+  background: rgba(255, 255, 255, .16) !important;
+  border-color: rgba(255, 255, 255, .42);
+  color: #fff !important;
+}
+
+.literature-shell .quote-library-list button.is-active > small {
+  color: rgba(255, 255, 255, .86) !important;
+}
+
+/* Keep every module in the document flow; the browser page is the single scroll surface. */
+.literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* The glossary is a full reference, not a clipped mini-panel. Keep every term
+   in the document flow and give its category a clear reading hierarchy. */
+.literature-shell .glossary-workspace {
+  align-items: start !important;
+  min-width: 0;
+}
+
+.literature-shell .glossary-terms {
+  display: grid !important;
+  gap: .65rem !important;
+  grid-auto-rows: minmax(5.25rem, auto) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  min-width: 0;
+  width: 100%;
+}
+
+.literature-shell .glossary-terms button {
+  align-content: start !important;
+  display: grid !important;
+  gap: .35rem !important;
+  min-height: 5.25rem !important;
+  overflow-wrap: anywhere;
+  padding: .8rem !important;
+}
+
+.literature-shell .glossary-terms button small {
+  color: var(--lit-blue) !important;
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em;
+  line-height: 1.2 !important;
+  text-transform: uppercase;
+}
+
+.literature-shell .glossary-terms button:not(.is-active) {
+  color: var(--lit-ink) !important;
+  font-size: .95rem !important;
+  font-weight: 700;
+  line-height: 1.35 !important;
+}
+
+.literature-shell .glossary-terms button.is-active small {
+  color: #fff !important;
+}
+
+/* Active act cards must keep both the title and the supporting line readable. */
+.literature-shell .act-selector button:hover,
+.literature-shell .act-selector button.is-active {
+  background: var(--lit-blue) !important;
+  border-color: var(--lit-blue) !important;
+  color: #fff !important;
+}
+
+.literature-shell .act-selector button:hover > :is(span, small, strong),
+.literature-shell .act-selector button.is-active > :is(span, small, strong) {
+  color: #fff !important;
+}
+
+.literature-shell .act-selector button:not(:hover):not(.is-active) > :is(span, small, strong) {
+  color: var(--lit-copy) !important;
+}
+
+/* Keep the continuous document readable: modules may grow, but never clip the page. */
+.literature-shell .book-content > div,
+.literature-shell .book-content > div > .book-section {
+  overflow: visible !important;
+}
+
+@media (max-width: 1000px) {
+  .literature-shell .eva-journey-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .literature-shell .eva-journey-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) {
+    max-height: min(34rem, 55vh) !important;
+  }
+
+  .literature-shell .method-guide-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .literature-shell .eva-journey-rail {
+    grid-template-columns: 1fr !important;
+  }
+
+  .literature-shell .method-guide-list,
+  .literature-shell .glossary-terms {
+    grid-template-columns: 1fr !important;
+  }
+
+  .literature-shell :is(.method-guide-list, .quote-library-list, .glossary-terms) {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .literature-shell .quote-library-list button {
+    grid-template-columns: 4rem minmax(0, 1fr) !important;
+    min-height: 5rem !important;
+  }
+
+  .literature-shell .quote-library-list button > span {
+    font-size: .68rem !important;
+  }
+
+  .literature-shell .glossary-terms {
+    grid-template-columns: 1fr !important;
+  }
+
+  .literature-shell .glossary-terms button {
+    min-height: 4.75rem !important;
+  }
+}
+
+/* The glossary is the one deliberate inner reference panel: all terms stay
+   available without making the definition card or page layout unstable. */
+.literature-shell .glossary-terms {
+  align-content: start !important;
+  background: var(--lit-card) !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 28px rgba(8, 27, 54, .06) !important;
+  display: grid !important;
+  gap: .6rem !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  max-height: min(42rem, calc(100dvh - 16rem)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: .75rem !important;
+  scrollbar-color: #8fb8f1 #e7effa;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.literature-shell .glossary-terms button {
+  align-content: start !important;
+  gap: .35rem !important;
+  min-height: 4.35rem !important;
+  padding: .8rem !important;
+}
+
+.literature-shell .glossary-terms button small {
+  color: var(--lit-blue) !important;
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em;
+  line-height: 1.2 !important;
+  text-transform: uppercase;
+}
+
+.literature-shell .glossary-terms button:not(.is-active) {
+  color: var(--lit-ink) !important;
+}
+
+.literature-shell .glossary-terms button.is-active small {
+  color: rgba(255, 255, 255, .9) !important;
+}
+
+.literature-shell .glossary-terms button:focus-visible {
+  outline: 3px solid rgba(20, 99, 255, .35) !important;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1000px) {
+  .literature-shell .glossary-terms {
+    max-height: min(30rem, 58vh) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .literature-shell .glossary-terms {
+    grid-template-columns: 1fr !important;
+    max-height: 27rem !important;
+  }
+}
+
+/* Long study indexes use the same contained reference-panel pattern. */
+.literature-shell :is(.method-guide-list, .quote-library-list, .moment-list) {
+  align-content: start !important;
+  background: var(--lit-card) !important;
+  border: 1px solid var(--lit-line) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 28px rgba(8, 27, 54, .06) !important;
+  gap: .6rem !important;
+  max-height: min(42rem, calc(100dvh - 16rem)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  padding: .75rem !important;
+  scrollbar-color: #8fb8f1 #e7effa;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.literature-shell .method-guide-list {
+  grid-template-columns: 1fr !important;
+}
+
+.literature-shell :is(.method-guide-list, .quote-library-list, .moment-list) button {
+  min-height: 4.35rem !important;
+}
+
+@media (max-width: 1000px) {
+  .literature-shell :is(.method-guide-list, .quote-library-list, .moment-list) {
+    max-height: min(30rem, 58vh) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .literature-shell :is(.method-guide-list, .quote-library-list, .moment-list) {
+    max-height: 27rem !important;
+  }
+}

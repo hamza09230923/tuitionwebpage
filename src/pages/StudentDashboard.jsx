@@ -714,6 +714,17 @@ function StudentDashboard() {
                   Revision Resources
                 </Link>
               </div>
+
+              {(displayName.toLowerCase().includes('english') || displayName.toLowerCase().includes('literature')) && (
+                <Link
+                  to="/app/literature/an-inspector-calls"
+                  className="mt-2 flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 font-medium text-blue-800 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  aria-label="Open An Inspector Calls"
+                >
+                  <BookMarked className="h-4 w-4" aria-hidden="true" />
+                  Open An Inspector Calls
+                </Link>
+              )}
             </>
           ) : (
             <div className="space-y-3">
