@@ -110,39 +110,6 @@ const isStandaloneScienceSubject = (subject) => {
   ) && !isCrashCourseSubject(subject)
 }
 
-const getSubjectBaseKey = (subjectOrId) => {
-  if (typeof subjectOrId === 'string') {
-    const id = normalizeSubjectId(subjectOrId)
-
-    if (id.startsWith('biology_') || id === 'biology') {
-      return 'biology'
-    }
-    if (id.startsWith('chemistry_') || id === 'chemistry') {
-      return 'chemistry'
-    }
-    if (id.startsWith('physics_') || id === 'physics') {
-      return 'physics'
-    }
-
-    return id
-  }
-
-  const id = normalizeSubjectId(subjectOrId?.id)
-  const name = normalizeSubjectName(subjectOrId?.name)
-
-  if (id.startsWith('biology_') || name.includes('biology')) {
-    return 'biology'
-  }
-  if (id.startsWith('chemistry_') || name.includes('chemistry')) {
-    return 'chemistry'
-  }
-  if (id.startsWith('physics_') || name.includes('physics')) {
-    return 'physics'
-  }
-
-  return id || name
-}
-
 const getScienceCardTitle = (key) => key.charAt(0).toUpperCase() + key.slice(1)
 
 const renderZoomJoinButton = (zoomLink, displayName, tierLabel = '') => (
