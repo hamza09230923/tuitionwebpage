@@ -4,6 +4,7 @@ import { ArrowLeft, Video, Play, BookOpen } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
 import { getAuthorizedStudentSubject, isTutorialStudent } from '../utils/studentAccess'
+import { matchesStudentMaterialRoute } from '../utils/studentMaterialAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 import { getR2MaterialUrl } from '../utils/r2MaterialAccess'
 
@@ -73,22 +74,6 @@ function Recordings() {
   const [accessDenied, setAccessDenied] = useState(false)
   const [activeVideo, setActiveVideo] = useState(null)
   const [videoLoading, setVideoLoading] = useState(false)
-
-  const matchesStudentCourseRoute = (recording, student) => {
-    const settings = student?.subjectSettings?.[recording.subjectId]
-    const board = String(recording.examBoard || '').trim().toLowerCase()
-    const recordingTier = String(recording.tier || '').trim().toLowerCase()
-    const studentBoard = String(settings?.examBoard || '').trim().toLowerCase()
-    const studentTier = String(settings?.tier || '').trim().toLowerCase()
-
-    // Every R2 lesson must have an explicit matching student course route.
-    // Legacy uploads without a route keep their existing visibility.
-    if (recording.r2Key && (!settings || !studentBoard || (board && board !== studentBoard))) return false
-    if (recording.r2Key && recordingTier && recordingTier !== 'all-levels' && recordingTier !== studentTier) return false
-    if (!recording.r2Key && board && studentBoard && board !== studentBoard) return false
-    if (!recording.r2Key && recordingTier && recordingTier !== 'all-levels' && studentTier && recordingTier !== studentTier) return false
-    return true
-  }
 
   const handleWatch = async (recording) => {
     if (!recording.r2Key) {
@@ -189,7 +174,7 @@ function Recordings() {
 
         const visibleRecordings = recordingsData.filter(
           (recording) => !isRecordingHiddenForStudent(recording, access.student) &&
-            matchesStudentCourseRoute(recording, access.student)
+            matchesStudentMaterialRoute(recording, access.student)
         )
 
         setFilteredRecordings(visibleRecordings)

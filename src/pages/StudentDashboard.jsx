@@ -21,6 +21,7 @@ import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { getStudentSubjectIds, isTutorialStudent } from '../utils/studentAccess'
+import { matchesStudentMaterialRoute } from '../utils/studentMaterialAccess'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import { resolveStudentZoomLink } from '../utils/classGroups'
 
@@ -325,6 +326,7 @@ const loadDashboardOverview = async (uid, studentData, subjectIds) => {
         ...homeworkDoc.data()
       }))
     ].filter((homework) => (
+      matchesStudentMaterialRoute(homework, studentData) &&
       !submittedHomeworkIds.has(String(homework.id)) &&
       !isItemHiddenForStudent(
         homework,
@@ -348,6 +350,7 @@ const loadDashboardOverview = async (uid, studentData, subjectIds) => {
         ...recordingDoc.data()
       }))
     ].filter((recording) => (
+      matchesStudentMaterialRoute(recording, studentData) &&
       isApprovedItem(recording) &&
       !isItemHiddenForStudent(
         recording,

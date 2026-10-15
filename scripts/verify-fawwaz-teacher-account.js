@@ -108,9 +108,9 @@ const main = async () => {
     assert(JSON.stringify([...teacher.subjects].sort()) === JSON.stringify([...SUBJECTS].sort()), 'Teacher subjects are incorrect')
     assert(SUBJECTS.every((subjectId) => teacher.classTiers?.[subjectId] === 'Foundation'), 'Teacher class tiers are incorrect')
     assert(JSON.stringify(teacher.permissions) === JSON.stringify([
-      'view_recordings', 'upload_recordings', 'view_homework', 'upload_homework'
+      'view_recordings', 'upload_recordings', 'view_homework', 'upload_homework', 'view_resources', 'upload_resources'
     ]), 'Teacher permissions are incorrect')
-    assert(JSON.stringify(teacher.allowedMaterialTypes) === JSON.stringify(['recording', 'homework']), 'Material types are incorrect')
+    assert(JSON.stringify(teacher.allowedMaterialTypes) === JSON.stringify(['recording', 'homework', 'resource']), 'Material types are incorrect')
     console.log('PASS profile: Fawwaz is scoped to four Foundation classes')
 
     for (const subjectId of SUBJECTS) {
@@ -125,20 +125,27 @@ const main = async () => {
       where('subjectId', '==', 'physics_001'),
       where('tier', '==', 'Higher')
     )))
-    await expectDenied('learning resources query', () => getDocs(query(
+    await expectDenied('unscoped learning resources query', () => getDocs(query(
       collection(db, 'resources'),
       where('subjectId', '==', 'physics_001')
     )))
+    const resources = await getDocs(query(collection(db, 'resources'),
+      where('subjectId', '==', 'physics_001'), where('tier', '==', 'Foundation'),
+      where('examBoard', '==', 'AQA')
+    ))
+    console.log(`PASS reads: assigned class resources (${resources.size})`)
 
     const allowedRecordings = await getDocs(query(
       collection(db, 'recordings'),
       where('subjectId', '==', 'physics_001'),
-      where('tier', '==', 'Foundation')
+      where('tier', '==', 'Foundation'),
+      where('examBoard', '==', 'AQA')
     ))
     const allowedHomework = await getDocs(query(
       collection(db, 'homeworks'),
       where('subjectId', '==', 'physics_001'),
-      where('tier', '==', 'Foundation')
+      where('tier', '==', 'Foundation'),
+      where('examBoard', '==', 'AQA')
     ))
     console.log(`PASS reads: Foundation recordings (${allowedRecordings.size}), homework (${allowedHomework.size})`)
 
@@ -171,9 +178,12 @@ const main = async () => {
       subjectId: BLOCKED_SUBJECT,
       tier: 'all-levels'
     })
-    await expectFunctionDenied(auth, 'learning resource upload initialization', 'createR2AdminUpload', {
+    await expectFunctionAllowed(auth, 'Foundation learning resource upload initialization', 'createR2AdminUpload', {
       ...homeworkPayload,
       uploadType: 'resource'
+    })
+    await expectFunctionDenied(auth, 'other exam board upload initialization', 'createR2AdminUpload', {
+      ...recordingPayload, examBoard: 'Edexcel'
     })
     console.log('All live Fawwaz permission checks passed.')
   } finally {

@@ -20,6 +20,10 @@ service cloud.firestore {
         ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk'];
     }
 
+    function isFawwazTeacher() {
+      return isTeacher() && request.auth.token.email == 'fawwaz@myschola.co.uk';
+    }
+
     function teacherProfile() {
       return get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data;
     }
@@ -30,6 +34,12 @@ service cloud.firestore {
         (teacherProfile().classTiers[subjectId] == tier ||
           (subjectId.matches('english_.*') &&
             teacherProfile().classTiers[subjectId] == 'all-levels' && tier == null));
+    }
+
+    function isAssignedTeacherMaterial(material) {
+      return isAssignedTeacherClass(material.subjectId, material.tier) &&
+        (!isFawwazTeacher() ||
+          teacherProfile().classBoards[material.subjectId] == material.examBoard);
     }
 
     // A tutor may only see a student where an admin has created this
@@ -96,7 +106,8 @@ service cloud.firestore {
     // Admins create classes and enrol tutors and students.  Tutors can only
     // access the classes in which their UID appears in tutorIds.
     match /classes/{classId} {
-      allow read: if isAdmin() || isClassStudent(classId) || (isClassTutor(classId) && !isScopedTeacher());
+      allow read: if isAdmin() || isClassStudent(classId) ||
+        (isClassTutor(classId) && (!isScopedTeacher() || isFawwazTeacher()));
       allow create, update, delete: if isAdmin();
 
       match /students/{studentId} {
@@ -142,7 +153,7 @@ service cloud.firestore {
 
     match /recordings/{recordingId} {
       allow read: if isAdmin() ||
-        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) || (
+        isAssignedTeacherMaterial(resource.data) || (
         isEnrolledIn(resource.data.subjectId) &&
         (
           !('approvalStatus' in resource.data) ||
@@ -169,11 +180,9 @@ service cloud.firestore {
     }
 
     match /homeworks/{homeworkId} {
-      allow read: if !isScopedTeacher() && (
-        isAdmin() ||
-        isAssignedTeacherClass(resource.data.subjectId, resource.data.tier) ||
-        isEnrolledIn(resource.data.subjectId)
-      );
+      allow read: if isAdmin() ||
+        ((!isScopedTeacher() || isFawwazTeacher()) && isAssignedTeacherMaterial(resource.data)) ||
+        isEnrolledIn(resource.data.subjectId);
       allow create, update, delete: if isAdmin();
     }
 
@@ -189,7 +198,8 @@ service cloud.firestore {
     }
 
     match /resources/{resourceId} {
-      allow read: if isAdmin() || (
+      allow read: if isAdmin() ||
+        (isFawwazTeacher() && isAssignedTeacherMaterial(resource.data)) || (
         isEnrolledIn(resource.data.subjectId) &&
         (
           !('approvalStatus' in resource.data) ||

@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, Download, ChevronDown, ChevronUp } from 'lucide-re
 import { auth, db } from '../firebase'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { getAuthorizedStudentSubject } from '../utils/studentAccess'
+import { matchesStudentMaterialRoute } from '../utils/studentMaterialAccess'
 import { getCanonicalSubjectName } from '../utils/subjectMetadata'
 import { openR2Material } from '../utils/r2MaterialAccess'
 
@@ -91,6 +92,7 @@ function Resources() {
 
         const all = [...subjectResources, ...studentResources]
           .filter((r) => !('approvalStatus' in r) || r.approvalStatus === 'approved')
+          .filter((r) => matchesStudentMaterialRoute(r, access.student))
           .filter((r) => !isResourceHiddenForStudent(r, access.student))
 
         setResources(all)
