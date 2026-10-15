@@ -277,6 +277,15 @@ function PracticeSection({ onComplete }) {
 
 function InspectorCalls() {
   const { setProgress, markViewed, markComplete } = useBookProgress()
+
+  useEffect(() => {
+    const previousTitle = document.title
+    document.title = 'An Inspector Calls | MySchola'
+    return () => {
+      document.title = previousTitle
+    }
+  }, [])
+
   const validChapter = (id) => inspectorCallsWork.chapters.some((item) => item.id === id)
   const [activeId, setActiveId] = useState(() => {
     const requested = window.location.hash.replace('#', '')
