@@ -32,9 +32,32 @@ const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
 const LEGACY_WEBINAR_ROUTE = '/webinar'
 const LEGACY_WEBINAR_THANKS_ROUTE = '/webinar/thanks'
 
+const ROUTE_TITLES = {
+  '/': 'MySchola | Online GCSE Tuition for Maths, English & Science',
+  '/booking': 'Book a Free GCSE Consultation | MySchola',
+  '/login': 'Log in | MySchola',
+  '/courses': 'GCSE Courses | MySchola',
+  '/package': 'GCSE Tuition Packages | MySchola',
+  '/timetable': 'GCSE Tuition Timetable | MySchola',
+  '/privacy-policy': 'Privacy Policy | MySchola',
+  '/refund-cancellation-policy': 'Refund & Cancellation Policy | MySchola',
+  '/faqs': 'FAQs | MySchola',
+  '/careers': 'Careers at MySchola | GCSE Tuition',
+  '/english-teacher': 'English Teacher Vacancy | MySchola',
+  '/app/dashboard': 'Student dashboard | MySchola',
+  '/app/literature/an-inspector-calls': 'An Inspector Calls | MySchola',
+}
+
+function getDocumentTitle(pathname) {
+  if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname]
+  if (pathname.startsWith('/app/subject/')) return 'Student materials | MySchola'
+  return 'MySchola | Online GCSE Tuition'
+}
+
 function RouteTracker() {
   const { pathname, hash } = useLocation()
   useEffect(() => {
+    document.title = getDocumentTitle(pathname)
     trackPageView()
     const targetId = hash.replace(/^#/, '')
     const scrollToTarget = () => {
