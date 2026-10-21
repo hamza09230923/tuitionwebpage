@@ -15,8 +15,9 @@ import {
   where
 } from 'firebase/firestore'
 
-const EMAIL = 'fawwaz@myschola.co.uk'
-const SUBJECTS = ['physics_001', 'chemistry_001', 'biology_001', 'maths_001']
+const IS_LIONEL = process.argv.includes('--teacher=lionel')
+const EMAIL = IS_LIONEL ? 'lionel@myschola.co.uk' : 'fawwaz@myschola.co.uk'
+const SUBJECTS = IS_LIONEL ? ['physics_001', 'chemistry_001'] : ['physics_001', 'chemistry_001', 'biology_001', 'maths_001']
 const BLOCKED_SUBJECT = 'english_lang_001'
 const BASE_URL = 'https://us-central1-myschola-5ec1f.cloudfunctions.net'
 
@@ -111,7 +112,7 @@ const main = async () => {
       'view_recordings', 'upload_recordings', 'view_homework', 'upload_homework', 'view_resources', 'upload_resources'
     ]), 'Teacher permissions are incorrect')
     assert(JSON.stringify(teacher.allowedMaterialTypes) === JSON.stringify(['recording', 'homework', 'resource']), 'Material types are incorrect')
-    console.log('PASS profile: Fawwaz is scoped to four Foundation classes')
+    console.log(`PASS profile: ${EMAIL} is scoped to ${SUBJECTS.length} Foundation classes`)
 
     for (const subjectId of SUBJECTS) {
       const subjectSnapshot = await getDoc(doc(db, 'subjects', subjectId))
@@ -120,6 +121,11 @@ const main = async () => {
     console.log('PASS reads: assigned subject documents are available')
 
     await expectDenied('unassigned English subject document', () => getDoc(doc(db, 'subjects', BLOCKED_SUBJECT)))
+    if (IS_LIONEL) {
+      for (const subjectId of ['maths_001', 'biology_001']) {
+        await expectDenied(`unassigned ${subjectId}`, () => getDoc(doc(db, 'subjects', subjectId)))
+      }
+    }
     await expectDenied('Higher-tier recordings query', () => getDocs(query(
       collection(db, 'recordings'),
       where('subjectId', '==', 'physics_001'),
@@ -185,7 +191,12 @@ const main = async () => {
     await expectFunctionDenied(auth, 'other exam board upload initialization', 'createR2AdminUpload', {
       ...recordingPayload, examBoard: 'Edexcel'
     })
-    console.log('All live Fawwaz permission checks passed.')
+    for (const subjectId of SUBJECTS) {
+      const roster = await callFunction(auth, 'getTeacherClassRoster', { subjectId })
+      assert(roster.status === 200, `Assigned class roster failed: ${subjectId}`)
+    }
+    await expectFunctionDenied(auth, 'unassigned class roster', 'getTeacherClassRoster', { subjectId: BLOCKED_SUBJECT })
+    console.log(`All live ${EMAIL} permission checks passed.`)
   } finally {
     await deleteApp(app)
   }

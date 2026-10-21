@@ -17,6 +17,15 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore'
 
 const TEACHER_PROFILES = {
+  lionel: {
+    name: 'Lionel',
+    email: 'lionel@myschola.co.uk',
+    classes: [
+      { subjectId: 'physics_001', tier: 'Foundation', examBoard: 'AQA' },
+      { subjectId: 'chemistry_001', tier: 'Foundation', examBoard: 'AQA' }
+    ],
+    permissions: ['view_recordings', 'upload_recordings', 'view_homework', 'upload_homework', 'view_resources', 'upload_resources']
+  },
   fawwaz: {
     name: 'Fawwaz',
     email: 'fawwaz@myschola.co.uk',
@@ -61,7 +70,7 @@ const getTeacherProfile = () => {
   const profileName = (getArg('--teacher') || 'fawwaz').trim().toLowerCase()
   const profile = TEACHER_PROFILES[profileName]
   if (!profile) {
-    throw new Error(`Unknown teacher profile: ${profileName}. Choose fawwaz or jafren.`)
+    throw new Error(`Unknown teacher profile: ${profileName}. Choose fawwaz, jafren or lionel.`)
   }
   return profile
 }
@@ -170,7 +179,7 @@ const main = async () => {
       classTiers,
       classBoards,
       permissions: TEACHER.permissions,
-      allowedMaterialTypes: TEACHER.email === 'fawwaz@myschola.co.uk'
+      allowedMaterialTypes: ['fawwaz@myschola.co.uk', 'lionel@myschola.co.uk'].includes(TEACHER.email)
         ? ['recording', 'homework', 'resource'] : ['recording', 'homework'],
       updatedAt: serverTimestamp(),
       ...(created ? {

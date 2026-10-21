@@ -17,11 +17,11 @@ service cloud.firestore {
 
     function isScopedTeacher() {
       return isTeacher() && request.auth.token.email in
-        ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk'];
+        ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk', 'lionel@myschola.co.uk'];
     }
 
     function isFawwazTeacher() {
-      return isTeacher() && request.auth.token.email == 'fawwaz@myschola.co.uk';
+      return isTeacher() && request.auth.token.email in ['fawwaz@myschola.co.uk', 'lionel@myschola.co.uk'];
     }
 
     function teacherProfile() {

@@ -1,6 +1,7 @@
 const normalize = (value) => String(value || '').trim().toLowerCase()
 
-const isFawwazTeacher = (teacher) => normalize(teacher?.email) === 'fawwaz@myschola.co.uk'
+// Tutors using Fawwaz's class-material permissions; assignments still scope access.
+const isFawwazTeacher = (teacher) => ['fawwaz@myschola.co.uk', 'lionel@myschola.co.uk'].includes(normalize(teacher?.email))
 
 const assertTeacherClassMaterialAccess = (teacher, { subjectId, tier, examBoard, materialType, action }) => {
   const permissions = {

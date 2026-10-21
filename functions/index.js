@@ -94,7 +94,7 @@ const getTeacherTier = (teacher, subjectId) => {
 }
 
 const isScopedTeacherProfile = (teacher) => (
-  ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk']
+  ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk', 'lionel@myschola.co.uk']
     .includes(String(teacher?.email || '').trim().toLowerCase())
 )
 

@@ -517,7 +517,7 @@ function Admin() {
   const [copiedZoomClassId, setCopiedZoomClassId] = useState('')
   const isAdmin = userRole === 'admin'
   const isTeacher = userRole === 'teacher'
-  const isScopedTeacher = isTeacher && ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk']
+  const isScopedTeacher = isTeacher && ['fawwaz@myschola.co.uk', 'jafren@myschola.co.uk', 'lionel@myschola.co.uk']
     .includes(String(auth.currentUser?.email || teacherProfile?.email || '').trim().toLowerCase())
 
   useEffect(() => {
@@ -534,7 +534,7 @@ function Admin() {
       window.removeEventListener('keydown', closeOnEscape)
     }
   }, [showTutorHandbook])
-  const isFawwazTeacher = isTeacher && String(teacherProfile?.email || '').trim().toLowerCase() === 'fawwaz@myschola.co.uk'
+  const isFawwazTeacher = isTeacher && ['fawwaz@myschola.co.uk', 'lionel@myschola.co.uk'].includes(String(teacherProfile?.email || '').trim().toLowerCase())
   const canViewHomework = !isScopedTeacher || isFawwazTeacher
   const teacherSubjects = Array.isArray(teacherProfile?.subjects) ? teacherProfile.subjects : []
   const teacherPermissions = Array.isArray(teacherProfile?.permissions) ? teacherProfile.permissions : []

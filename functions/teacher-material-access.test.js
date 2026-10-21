@@ -40,3 +40,18 @@ test('permissions remain required and other tutor accounts do not gain uploads',
   assert.throws(() => assertTeacherClassMaterialAccess(null, material))
   assert.throws(() => assertTeacherClassMaterialAccess(teacher, { ...material, materialType: 'invalid' }))
 })
+
+test('Lionel has the same material permissions limited to Physics and Chemistry Foundation', () => {
+  const lionel = { ...teacher, email: 'lionel@myschola.co.uk', subjects: ['physics_001', 'chemistry_001'] }
+  for (const materialType of ['recording', 'homework', 'resource']) {
+    for (const action of ['view', 'upload']) {
+      const material = { subjectId: 'physics_001', tier: 'Foundation', examBoard: 'AQA', materialType, action }
+      for (const subjectId of lionel.subjects) {
+        assert.doesNotThrow(() => assertTeacherClassMaterialAccess(lionel, { ...material, subjectId }))
+      }
+      for (const invalid of [{ subjectId: 'biology_001' }, { subjectId: 'maths_001' }, { tier: 'Higher' }, { examBoard: 'Edexcel' }]) {
+        assert.throws(() => assertTeacherClassMaterialAccess(lionel, { ...material, ...invalid }))
+      }
+    }
+  }
+})
