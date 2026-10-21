@@ -99,7 +99,7 @@ const septemberScheduleData = [
     day: 'Monday',
     status: 'active',
     subject: 'Biology',
-    time: '6:00 PM - 7:00 PM',
+    time: '6:30 PM - 7:30 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Higher Tier',
     color: 'bg-green-500'
@@ -116,7 +116,7 @@ const septemberScheduleData = [
   {
     day: 'Monday',
     status: 'active',
-    subject: 'Chemistry',
+    subject: 'Physics',
     time: '7:25 PM - 8:25 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation Tier',
@@ -134,7 +134,7 @@ const septemberScheduleData = [
   {
     day: 'Tuesday',
     status: 'active',
-    subject: 'Physics',
+    subject: 'Chemistry',
     time: '7:25 PM - 8:25 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation Tier',
