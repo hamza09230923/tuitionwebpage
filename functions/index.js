@@ -967,6 +967,7 @@ exports.getR2DownloadUrl = runtimeFunctions.https.onRequest(async (req, res) => 
         tier: material.tier,
         examBoard: material.examBoard,
         materialType,
+        date: material.date,
         action: 'view'
       })
     } else if (role !== 'admin') {

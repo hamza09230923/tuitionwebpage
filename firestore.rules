@@ -153,7 +153,9 @@ service cloud.firestore {
 
     match /recordings/{recordingId} {
       allow read: if isAdmin() ||
-        isAssignedTeacherMaterial(resource.data) || (
+        (isAssignedTeacherMaterial(resource.data) &&
+          (!('recordingsVisibleAfter' in teacherProfile()) ||
+            resource.data.date >= teacherProfile().recordingsVisibleAfter)) || (
         isEnrolledIn(resource.data.subjectId) &&
         (
           !('approvalStatus' in resource.data) ||

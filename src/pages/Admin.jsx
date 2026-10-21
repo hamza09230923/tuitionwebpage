@@ -855,6 +855,7 @@ function Admin() {
             where('subjectId', '==', selectedSubject),
             ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : teacherProfile?.classTiers?.[selectedSubject])] : []),
             ...(isFawwazTeacher ? [where('examBoard', '==', teacherProfile?.classBoards?.[selectedSubject])] : []),
+            ...(isTeacher && teacherProfile?.recordingsVisibleAfter ? [where('date', '>=', teacherProfile.recordingsVisibleAfter)] : []),
             orderBy('date', 'desc')
           )
           recordingsSnapshot = await getDocs(recordingsQuery)
@@ -864,7 +865,8 @@ function Admin() {
             collection(db, 'recordings'),
             where('subjectId', '==', selectedSubject),
             ...(isTeacher ? [where('tier', '==', isEnglishSubjectData(selectedSubjectData) ? null : teacherProfile?.classTiers?.[selectedSubject])] : []),
-            ...(isFawwazTeacher ? [where('examBoard', '==', teacherProfile?.classBoards?.[selectedSubject])] : [])
+            ...(isFawwazTeacher ? [where('examBoard', '==', teacherProfile?.classBoards?.[selectedSubject])] : []),
+            ...(isTeacher && teacherProfile?.recordingsVisibleAfter ? [where('date', '>=', teacherProfile.recordingsVisibleAfter), orderBy('date', 'desc')] : [])
           )
           recordingsSnapshot = await getDocs(recordingsQuery)
         }

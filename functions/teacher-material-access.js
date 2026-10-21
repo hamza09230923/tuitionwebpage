@@ -3,7 +3,7 @@ const normalize = (value) => String(value || '').trim().toLowerCase()
 // Tutors using Fawwaz's class-material permissions; assignments still scope access.
 const isFawwazTeacher = (teacher) => ['fawwaz@myschola.co.uk', 'lionel@myschola.co.uk'].includes(normalize(teacher?.email))
 
-const assertTeacherClassMaterialAccess = (teacher, { subjectId, tier, examBoard, materialType, action }) => {
+const assertTeacherClassMaterialAccess = (teacher, { subjectId, tier, examBoard, materialType, action, date }) => {
   const permissions = {
     upload: { recording: 'upload_recordings', homework: 'upload_homework', resource: 'upload_resources' },
     view: { recording: 'view_recordings', homework: 'view_homework', resource: 'view_resources' }
@@ -17,6 +17,13 @@ const assertTeacherClassMaterialAccess = (teacher, { subjectId, tier, examBoard,
   }
   if (!permission || !Array.isArray(teacher.permissions) || !teacher.permissions.includes(permission)) {
     throw new Error(`This teacher cannot ${action} ${materialType}s`)
+  }
+  if (action === 'view' && materialType === 'recording' && teacher.recordingsVisibleAfter) {
+    const cutoff = teacher.recordingsVisibleAfter.toMillis()
+    const recordedAt = date?.toMillis?.()
+    if (!Number.isFinite(recordedAt) || recordedAt < cutoff) {
+      throw new Error('This recording predates your recording access')
+    }
   }
   const assignedTier = normalize((teacher.classTiers || teacher.allowedTiers || {})[subjectId])
   const requestedTier = subjectId.startsWith('english_') && !tier ? 'all-levels' : normalize(tier)

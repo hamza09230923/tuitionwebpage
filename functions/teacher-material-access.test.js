@@ -10,6 +10,21 @@ const teacher = {
   permissions: ['view_recordings', 'upload_recordings', 'view_homework', 'upload_homework', 'view_resources', 'upload_resources']
 }
 
+test('recording cutoff includes London midnight and rejects older or undated videos only', () => {
+  const cutoff = Date.parse('2026-10-20T23:00:00Z')
+  const lionel = { ...teacher, email: 'lionel@myschola.co.uk', recordingsVisibleAfter: { toMillis: () => cutoff } }
+  const material = { subjectId: 'physics_001', tier: 'Foundation', examBoard: 'AQA', materialType: 'recording', action: 'view' }
+  for (const date of [undefined, { toMillis: () => cutoff - 1 }]) {
+    assert.throws(() => assertTeacherClassMaterialAccess(lionel, { ...material, date }))
+  }
+  for (const time of [cutoff, cutoff + 1]) {
+    assert.doesNotThrow(() => assertTeacherClassMaterialAccess(lionel, { ...material, date: { toMillis: () => time } }))
+  }
+  assert.doesNotThrow(() => assertTeacherClassMaterialAccess(teacher, material))
+  assert.doesNotThrow(() => assertTeacherClassMaterialAccess(lionel, { ...material, action: 'upload' }))
+  assert.doesNotThrow(() => assertTeacherClassMaterialAccess(lionel, { ...material, materialType: 'homework' }))
+})
+
 test('Fawwaz can view and upload all three material types for each assigned class', () => {
   for (const subjectId of teacher.subjects) {
     for (const materialType of ['recording', 'homework', 'resource']) {

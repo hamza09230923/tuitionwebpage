@@ -11,6 +11,7 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  orderBy,
   query,
   where
 } from 'firebase/firestore'
@@ -145,7 +146,8 @@ const main = async () => {
       collection(db, 'recordings'),
       where('subjectId', '==', 'physics_001'),
       where('tier', '==', 'Foundation'),
-      where('examBoard', '==', 'AQA')
+      where('examBoard', '==', 'AQA'),
+      ...(teacher.recordingsVisibleAfter ? [where('date', '>=', teacher.recordingsVisibleAfter), orderBy('date', 'desc')] : [])
     ))
     const allowedHomework = await getDocs(query(
       collection(db, 'homeworks'),
