@@ -15,7 +15,8 @@ import {
   History,
   Languages,
   Atom,
-  GraduationCap
+  GraduationCap,
+  Download
 } from 'lucide-react'
 import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
@@ -24,6 +25,7 @@ import { getStudentSubjectIds, isTutorialStudent } from '../utils/studentAccess'
 import { matchesStudentMaterialRoute } from '../utils/studentMaterialAccess'
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import { resolveStudentZoomLink } from '../utils/classGroups'
+import { getAqaTopicTracker } from '../utils/resourceTopics'
 
 // Function to get subject icon based on subject name
 const getSubjectIcon = (subjectName) => {
@@ -627,6 +629,7 @@ function StudentDashboard() {
     const sourceLabel = options.sourceLabel || null
     const SubjectIcon = getSubjectIcon(displayName)
     const subjectColor = getSubjectColor(displayName)
+    const tracker = getAqaTopicTracker({ ...subject, name: displayName }, student?.subjectSettings?.[subject.id]?.examBoard || '')
 
     return (
       <article
@@ -684,6 +687,18 @@ function StudentDashboard() {
                   Revision Resources
                 </Link>
               </div>
+
+              {tracker && (
+                <a
+                  href={`${import.meta.env.BASE_URL}topic-trackers/${tracker.fileName}`}
+                  download
+                  className="flex items-center justify-center gap-2 rounded-lg border border-purple-200 px-4 py-2 font-medium text-purple-700 transition hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  aria-label={`Download ${tracker.name} topic tracker as an Excel spreadsheet`}
+                >
+                  <Download className="h-4 w-4" aria-hidden="true" />
+                  {tracker.name} Topic Tracker
+                </a>
+              )}
 
               {(displayName.toLowerCase().includes('english') || displayName.toLowerCase().includes('literature')) && (
                 <Link

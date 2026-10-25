@@ -8,6 +8,7 @@ import { createR2AdminUpload, createRecording, createHomework, createResource, g
 import { getCanonicalSubjectName, isCrashCourseSubject } from '../utils/subjectMetadata'
 import { matchesStudentMaterialRoute } from '../utils/studentMaterialAccess'
 import { openR2Material } from '../utils/r2MaterialAccess'
+import { getAqaResourceTopics, resourceTitleWithTopic, RESOURCE_TYPES } from '../utils/resourceTopics'
 import {
   buildClassGroupRecords,
   buildStudentClassLists,
@@ -485,6 +486,8 @@ function Admin() {
   // Resource form
   const [resourceTitle, setResourceTitle] = useState('')
   const [resourceDescription, setResourceDescription] = useState('')
+  const [resourceTopic, setResourceTopic] = useState('')
+  const [resourceType, setResourceType] = useState('')
   const [resourceFile, setResourceFile] = useState(null)
   const [resourceUploadProgress, setResourceUploadProgress] = useState(0)
   const [resourceAudience, setResourceAudience] = useState('subject')
@@ -1208,6 +1211,11 @@ function Admin() {
     setRosterFilter('all')
     setSubmissionFilter('all')
   }, [selectedSubject, subjects, isTeacher, isScopedTeacher, teacherProfile])
+
+  useEffect(() => {
+    setResourceTopic('')
+    setResourceType('')
+  }, [selectedSubject, examBoard])
 
   // Check if subject is English (no tier needed)
   const isEnglishSubject = () => {
@@ -1941,7 +1949,11 @@ function Admin() {
       )
       const pendingResource = {
         subjectId: selectedSubject,
-        title: resourceTitle,
+        title: resourceTitleWithTopic(
+          resourceTitle,
+          getAqaResourceTopics(selectedSubjectData, examBoard).some((topic) => String(topic.number) === resourceTopic) ? resourceTopic : '',
+          resourceType
+        ),
         description: resourceDescription,
         fileName: resourceFile.name,
         fileContentType: resourceFile.type,
@@ -1964,6 +1976,8 @@ function Admin() {
       await createResource(pendingResource)
       setResourceTitle('')
       setResourceDescription('')
+      setResourceTopic('')
+      setResourceType('')
       setResourceFile(null)
       setResourceUploadProgress(0)
       setResourceAudience('subject')
@@ -3244,6 +3258,28 @@ function Admin() {
                   placeholder="e.g., Topic 3 Revision Notes"
                   required
                 />
+              </div>
+
+              {getAqaResourceTopics(selectedSubjectData, examBoard).length > 0 && (
+                <div>
+                  <label htmlFor="resource-topic" className="mb-2 block text-sm font-medium text-gray-700">AQA topic</label>
+                  <select id="resource-topic" value={resourceTopic} onChange={(e) => setResourceTopic(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2">
+                    <option value="">Detect from title / General resources</option>
+                    {getAqaResourceTopics(selectedSubjectData, examBoard).map((topic) => (
+                      <option key={topic.number} value={topic.number}>Topic {topic.number}: {topic.name}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">Choose the topic this resource belongs to.</p>
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="resource-type" className="mb-2 block text-sm font-medium text-gray-700">Resource type</label>
+                <select id="resource-type" value={resourceType} onChange={(e) => setResourceType(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2">
+                  <option value="">Detect from title (defaults to Notes)</option>
+                  {RESOURCE_TYPES.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">Students will find this resource in the matching section inside its topic.</p>
               </div>
 
               <div>

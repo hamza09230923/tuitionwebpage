@@ -1,0 +1,160 @@
+[
+  {
+    "practicalNumber": 1,
+    "name": "Making Salts",
+    "topicNumber": 4,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%201%20-%20Making%20Salts.pdf"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%201%20-%20Making%20Salts%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%201%20-%20Making%20Salts%20MS.pdf"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 2,
+    "name": "Neutralisation",
+    "topicNumber": 4,
+    "links": [
+      {
+        "label": "Notes (Foundation)",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%202%20-%20Neutralisation%20%28FT%29.pdf",
+        "tier": "foundation"
+      },
+      {
+        "label": "Notes (Higher)",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%202%20-%20Neutralisation%20%28HT%29.pdf",
+        "tier": "higher"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%202%20-%20Neutralisation%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%202%20-%20Neutralisation%20MS.pdf"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 3,
+    "name": "Electrolysis",
+    "topicNumber": 4,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%203%20-%20Electrolysis.pdf"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%203%20-%20Electrolysis%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%203%20-%20Electrolysis%20MS.pdf"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 4,
+    "name": "Temperature Changes",
+    "topicNumber": 5,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%204%20-%20Temperature%20Changes.pdf"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%204%20-%20Temperature%20Changes%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%204%20-%20Tempterature%20Change%20MS.pdf"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 5,
+    "name": "Rate of Reaction",
+    "topicNumber": 6,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%205%20-%20Rate%20of%20Reaction.pdf"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%205%20-%20Rate%20of%20Reaction%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%205%20-%20Rate%20of%20Reaction%20MS.pdf"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 6,
+    "name": "Chromatography",
+    "topicNumber": 8,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%206%20-%20Chromatography.pdf"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%206%20-%20Chromatography%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%206%20-%20Chromatography%20MS.pdf"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 7,
+    "name": "Identifying Ions",
+    "topicNumber": 8,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%207%20-%20Identifying%20Ions.pdf"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%207%20-%20Identifying%20Ions%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%207%20-%20Identifying%20Ions%20MS.pdf"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 8,
+    "name": "Water Purification",
+    "topicNumber": 10,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Notes/AQA/Practical-Skills/RP%208%20-%20Water%20Purification.pdf"
+      },
+      {
+        "label": "Questions",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%208%20-%20Water%20Purification%20QP.pdf"
+      },
+      {
+        "label": "Mark scheme",
+        "url": "https://pmt.physicsandmathstutor.com/download/Chemistry/GCSE/Topic-Qs/AQA/Practical-Skills/RP%208%20-%20Water%20Purification%20MS.pdf"
+      }
+    ]
+  }
+]

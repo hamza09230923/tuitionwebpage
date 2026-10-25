@@ -1,0 +1,162 @@
+[
+  {
+    "practicalNumber": 1,
+    "name": "Specific Heat Capacity",
+    "topicNumber": 1,
+    "combinedPracticalNumber": 14,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2001%20-%20Specific%20Heat%20Capacity.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/specific-heat-capacity-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 2,
+    "name": "Thermal Insulation",
+    "topicNumber": 1,
+    "combinedPracticalNumber": null,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2002%20-%20Thermal%20Insulation.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/chemistry-revision/physics-revision/gcse-aqa/practical-skills/thermal-insulation-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 3,
+    "name": "Resistance",
+    "topicNumber": 2,
+    "combinedPracticalNumber": 15,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2003%20-%20Resistance.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/practical-skills/resistance-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 4,
+    "name": "I-V Characteristics",
+    "topicNumber": 2,
+    "combinedPracticalNumber": 16,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2004%20-%20I-V%20Characteristics.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/i-v-characteristics-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 5,
+    "name": "Density",
+    "topicNumber": 3,
+    "combinedPracticalNumber": 17,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2005%20-%20Density.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/practical-skills/density-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 6,
+    "name": "Force and Extension",
+    "topicNumber": 5,
+    "combinedPracticalNumber": 18,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2006%20-%20Force%20and%20Extension.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/practical-skills/force-and-extension-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 7,
+    "name": "Acceleration",
+    "topicNumber": 5,
+    "combinedPracticalNumber": 19,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2007%20-%20Acceleration.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/practical-skills/acceleration-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 8,
+    "name": "Waves",
+    "topicNumber": 6,
+    "combinedPracticalNumber": 20,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2008%20-%20Waves.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/waves-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 9,
+    "name": "Light",
+    "topicNumber": 6,
+    "combinedPracticalNumber": null,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2009%20-%20Light.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/physics-revision/gcse-aqa/practical-skills/light-flashcards/"
+      }
+    ]
+  },
+  {
+    "practicalNumber": 10,
+    "name": "Radiation and Absorption",
+    "topicNumber": 6,
+    "combinedPracticalNumber": 21,
+    "links": [
+      {
+        "label": "Notes",
+        "url": "https://pmt.physicsandmathstutor.com/download/Physics/GCSE/Notes/AQA/Practical-Skills/RP%2010%20-%20Radiation%20and%20Absorption.pdf"
+      },
+      {
+        "label": "Flashcards",
+        "url": "https://www.physicsandmathstutor.com/practical-skills/radiation-and-absorption-flashcards/"
+      }
+    ]
+  }
+]
