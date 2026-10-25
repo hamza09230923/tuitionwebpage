@@ -5,7 +5,7 @@ import { ArrowRight, BookOpen, Check, Lightbulb, MapPin, Pause, Play, Search, Sp
 import { inspectorCallsWork } from '../../data/inspectorCallsContent'
 import { actStory, glossary, importantNotes, keyMoments } from '../../data/literature/anInspectorCallsLearning'
 import { characterIntroductions, contextGuide, methodGuide, quoteGuide, themeGuide } from '../../data/literature/anInspectorCallsStudy'
-import { extraGlossary, extraMethods, extraQuotes, storyReaderNotes } from '../../data/literature/anInspectorCallsExtended'
+import { characterDossiers, extraGlossary, extraMethods, extraQuotes, storyReaderNotes } from '../../data/literature/anInspectorCallsExtended'
 import { inspectorCallsAssets } from '../../assets/literature/an-inspector-calls/assetManifest'
 import './learningSections.css'
 
@@ -85,16 +85,43 @@ export function StoryOverviewSection({ onComplete, onOpenPlay }) {
 
 export function MeetCastSection() {
   const [selected, setSelected] = useState('inspector')
+  const [panel, setPanel] = useState('journey')
   const character = inspectorCallsWork.characters.find((item) => item.id === selected)
-  return <section className="book-section meet-cast-section">
-    <div className="learning-section-heading"><div><Kicker icon={Users}>MEET THE CHARACTERS / FIRST ORIENTATION</Kicker><h2>Meet the seven characters.</h2><p>See each face, social position and link to Eva first. Chapter 07 then opens the complete dossier for every character.</p></div><span className="learning-index">02</span></div>
-    <div className="cast-map">
-      <div className="cast-portraits">{inspectorCallsWork.characters.map((item) => <button type="button" key={item.id} className={selected === item.id ? 'is-active' : ''} onClick={() => setSelected(item.id)}><span style={portraitStyle(item)} /><strong>{item.name}</strong><small>{item.role}</small></button>)}</div>
-      <AnimatePresence mode="wait"><motion.div key={selected} className="cast-focus" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-        <div className="cast-focus-portrait" style={portraitStyle(character)} />
-        <div className="cast-focus-copy"><span>DRAMATIC FUNCTION</span><h3>{character.name}</h3><strong>{character.role}</strong><p>{character.overview}</p><div className="cast-intro-grid"><div><span>SOCIAL POSITION</span><p>{characterIntroductions[selected].socialPosition}</p></div><div><span>STARTING POINT</span><p>{characterIntroductions[selected].initial}</p></div><div><span>CONNECTION TO EVA</span><p>{characterIntroductions[selected].evaLink}</p></div><div><span>WHY THIS CHARACTER MATTERS</span><p>{characterIntroductions[selected].why}</p></div></div><div className="cast-focus-links"><div><span>CORE THEMES</span><p>{character.themes.join(' / ')}</p></div><div><span>KEY METHODS</span><p>{character.methods.join(' / ')}</p></div></div></div>
-      </motion.div></AnimatePresence>
+  const dossier = characterDossiers[selected]
+  return <section className="book-section character-section character-section-premium">
+    <div className="learning-section-heading split-heading">
+      <div><Kicker icon={Users}>MEET THE CHARACTERS / COMPLETE GUIDE</Kicker><h2>Meet every character, then follow the full journey.</h2><p>Choose a face for a quick orientation, then open the same chapter for actions, relationships, evidence, themes and Priestley&apos;s purpose.</p></div>
+      <div className="character-count"><strong>07</strong><span>connected<br />character studies</span></div>
     </div>
+    <div className="character-premium-layout">
+      <div className="character-portrait-rail" aria-label="Choose a character">
+        {inspectorCallsWork.characters.map((item) => <button type="button" key={item.id} className={selected === item.id ? 'is-active' : ''} onClick={() => { setSelected(item.id); setPanel('journey') }}>
+          <span className="character-thumbnail" style={portraitStyle(item)} />
+          <span><strong>{item.name}</strong><small>{item.role}</small></span>
+        </button>)}
+      </div>
+      <AnimatePresence mode="wait"><motion.div key={selected} className="character-portrait-stage" initial={{ opacity: 0, scale: .985 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+        <div className="character-portrait-large" style={portraitStyle(character)} />
+        <div className="character-portrait-caption"><span>{character.start}</span><i /><span>{character.end}</span></div>
+      </motion.div></AnimatePresence>
+      <div className="character-dossier">
+        <span className="dossier-label">CHARACTER DOSSIER / {character.role}</span>
+        <h3>{character.name}</h3>
+        <p className="character-overview">{character.overview}</p>
+        <div className="character-panel-tabs">
+          {['journey', 'actions', 'relationships', 'evidence', 'analysis'].map((item) => <button type="button" key={item} className={panel === item ? 'is-active' : ''} onClick={() => setPanel(item)}>{item}</button>)}
+        </div>
+        <AnimatePresence mode="wait"><motion.div key={`${selected}-${panel}`} className="character-panel" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
+          {panel === 'journey' && <div className="character-full-journey"><p className="character-thesis">{dossier.thesis}</p><ol className="character-arc">{dossier.acts.map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, '0')}</span><strong>{item}</strong></li>)}</ol></div>}
+          {panel === 'actions' && <ul className="character-detail-list">{character.actions.map((item) => <li key={item}><Check size={14} />{item}</li>)}</ul>}
+          {panel === 'relationships' && <ul className="character-detail-list">{character.relationships.map((item) => <li key={item}><ArrowRight size={14} />{item}</li>)}</ul>}
+          {panel === 'evidence' && <div className="character-evidence-list">{dossier.keyQuotes.map((quote) => <blockquote key={quote}>{quote}</blockquote>)}</div>}
+          {panel === 'analysis' && <div className="character-analysis-depth"><div className="character-exam-angle"><span>COMPLEXITY</span><p>{dossier.complexity}</p></div><div className="character-exam-angle"><span>PRIESTLEY&apos;S PURPOSE</span><p>{dossier.purpose}</p></div><div className="character-exam-angle"><span>STRONG ANALYSIS FOCUS</span><p>{character.examAngle}</p></div></div>}
+        </motion.div></AnimatePresence>
+        <div className="character-connections"><div><span>METHODS</span><p>{character.methods.map((item) => <button type="button" key={item} onClick={() => setPanel('analysis')}>{item}</button>)}</p></div><div><span>THEMES</span><p>{character.themes.map((item) => <button type="button" key={item} onClick={() => setPanel('relationships')}>{item}</button>)}</p></div></div>
+      </div>
+    </div>
+    <div className="character-footer-note"><span>LOOK ACROSS THE PLAY</span><p>A strong answer explains how the character changes, how Priestley creates that change, and why the audience is asked to notice it.</p></div>
   </section>
 }
 
@@ -107,7 +134,7 @@ export function FullStorySection() {
   const selectAct = (index) => { setActIndex(index); setEventIndex(0) }
   return <section className="book-section full-story-section">
     <div className="learning-section-heading"><div><Kicker icon={BookOpen}>THE STORY / FULL ACT GUIDE</Kicker><h2>Read the complete play through three detailed acts.</h2><p>Use the visual scene as an anchor, then study the full summary, revelations, movement, methods, themes and important notes for each event.</p></div><span className="learning-index">03</span></div>
-    <div className="story-cast-strip"><span>WHO&apos;S WHO</span>{inspectorCallsWork.characters.map((item) => <button type="button" key={item.id} onClick={() => document.getElementById('literature-characters')?.scrollIntoView({ behavior: 'smooth' })}><i style={portraitStyle(item)} /><small>{item.name}</small></button>)}</div>
+    <div className="story-cast-strip"><span>WHO&apos;S WHO</span>{inspectorCallsWork.characters.map((item) => <button type="button" key={item.id} onClick={() => document.getElementById('literature-cast')?.scrollIntoView({ behavior: 'smooth' })}><i style={portraitStyle(item)} /><small>{item.name}</small></button>)}</div>
     <div className="act-selector">{actStory.map((item, index) => <button type="button" key={item.id} className={index === actIndex ? 'is-active' : ''} onClick={() => selectAct(index)}><span>{item.act}</span><strong>{item.title}</strong><small>{item.movement}</small></button>)}</div>
     <div className="act-overview"><div><span>{act.act} OVERVIEW</span><h3>{act.title}</h3><p>{act.summary}</p></div><div className="act-movement"><span>DRAMATIC MOVEMENT</span><strong>{act.movement}</strong></div></div>
     <div className="visual-play-frame">

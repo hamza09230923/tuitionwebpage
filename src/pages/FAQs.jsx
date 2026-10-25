@@ -220,7 +220,7 @@ export default function FAQs() {
           <div><h2 className="font-semibold">Explore</h2><div className="mt-3 flex flex-col gap-2 text-sm text-gray-400"><Link to="/courses" className="hover:text-white">GCSE courses</Link><Link to="/package" className="hover:text-white">Tuition packages</Link><Link to="/timetable" className="hover:text-white">Lesson timetable</Link></div></div>
           <div><h2 className="font-semibold">Talk to us</h2><div className="mt-3 flex flex-col gap-2 text-sm text-gray-400"><a href="mailto:myscholauk@gmail.com" className="inline-flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4" aria-hidden="true" />myscholauk@gmail.com</a><a href="tel:+447344193804" className="inline-flex items-center gap-2 hover:text-white"><Phone className="h-4 w-4" aria-hidden="true" />+44 7344 193804</a><a href="https://wa.me/447344193804" target="_blank" rel="noopener noreferrer" onClick={trackLeadWhatsApp} className="inline-flex items-center gap-2 text-green-400 hover:text-green-300"><MessageCircle className="h-4 w-4" aria-hidden="true" />WhatsApp support</a></div></div>
         </div>
-        <p className="mx-auto mt-8 max-w-7xl border-t border-gray-800 pt-6 text-center text-sm text-gray-500">© {new Date().getFullYear()} MySchola. All rights reserved.</p>
+        <p className="mx-auto mt-8 max-w-7xl border-t border-gray-800 pt-6 text-center text-sm text-gray-500">© {new Date().getFullYear()} MySchola Limited. All rights reserved.</p>
       </footer>
     </div>
   )

@@ -968,7 +968,7 @@ function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} MySchola. All rights reserved. Tutoring for Years 9-11.</p>
+            <p>© {new Date().getFullYear()} MySchola Limited. All rights reserved. Tutoring for Years 9-11.</p>
           </div>
         </div>
       </footer>

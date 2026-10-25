@@ -77,6 +77,8 @@ const getSubjectColor = (subjectName) => {
   }
 }
 
+const isEnglishLiteratureSubject = (subject) => getCanonicalSubjectName(subject) === 'English Literature'
+
 const ACCESS_STORAGE_KEY = 'subjectAccess'
 
 const readAccessList = () => {
@@ -700,14 +702,14 @@ function StudentDashboard() {
                 </a>
               )}
 
-              {(displayName.toLowerCase().includes('english') || displayName.toLowerCase().includes('literature')) && (
+              {isEnglishLiteratureSubject(subject) && (
                 <Link
-                  to="/app/literature/an-inspector-calls"
+                  to={`/app/subject/${subject.id}/books`}
                   className="mt-2 flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 font-medium text-blue-800 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  aria-label="Open An Inspector Calls"
+                  aria-label="Open Books for English Literature"
                 >
                   <BookMarked className="h-4 w-4" aria-hidden="true" />
-                  Open An Inspector Calls
+                  Books
                 </Link>
               )}
             </>

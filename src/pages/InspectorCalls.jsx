@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft, ArrowRight, BookOpen, Check, ChevronDown, CircleHelp,
-  Eye, Lightbulb, LockKeyhole, MessageCircle, Play, RotateCcw, Sparkles,
+  Eye, Lightbulb, LockKeyhole, Play, RotateCcw, Sparkles,
   Target, Volume2, WandSparkles, X, Zap,
 } from 'lucide-react'
 import { inspectorCallsWork } from '../data/inspectorCallsContent'
@@ -21,8 +21,6 @@ import {
   StoryOverviewSection,
   ThemeGuideSection,
 } from '../components/literature/LearningSections'
-import { inspectorCallsAssets } from '../assets/literature/an-inspector-calls/assetManifest'
-import { characterDossiers } from '../data/literature/anInspectorCallsExtended'
 import './InspectorCalls.accessibility.css'
 
 const STORAGE_KEY = 'myschola:literature:an-inspector-calls'
@@ -35,10 +33,6 @@ const defaultProgress = {
   savedEvidence: [],
   pearlMode: 'guided',
 }
-
-const characterPortraitStyle = (character) => character.id === 'gerald'
-  ? { backgroundImage: `url(${inspectorCallsAssets.characters.geraldPortrait})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-  : { backgroundImage: `url(${inspectorCallsAssets.characters.portraits})`, backgroundSize: 'auto 200%', backgroundPosition: character.portraitPosition }
 
 function readProgress() {
   try {
@@ -167,54 +161,6 @@ function EvaSection({ onComplete }) {
   return <section className="book-section eva-section"><div className="section-heading"><SectionKicker icon={Zap}>UNDERSTAND IT</SectionKicker><h2>Eva&apos;s journey is a chain, not a single event.</h2><p>Move through every stage. At each point, see who has power, what decision is made and what consequence follows.</p></div><div className="eva-map"><div className="eva-map-path" />{inspectorCallsWork.journey.map((journey, index) => <button key={journey.id} type="button" className={`eva-node ${active === index ? 'is-active' : ''}`} style={{ '--node-color': journey.color }} onClick={() => setActive(index)}><span>{index + 1}</span><strong>{journey.label}</strong></button>)}<motion.div className="eva-orbit" animate={{ left: `${8 + active * 12}%` }} transition={{ type: 'spring', stiffness: 120 }}><span>Eva</span></motion.div></div><div className="eva-detail"><div className="eva-index">0{active + 1} / {String(inspectorCallsWork.journey.length).padStart(2, '0')}</div><div><h3>{item.impact}</h3><p>{item.caption}</p><small>{item.power || 'Power shifts between the characters.'} {item.consequence || 'The next event changes the chain.'}</small></div><div className="eva-next">Next <ArrowRight size={15} /></div></div><Button onClick={onComplete}>I can explain the complete chain <Check size={15} /></Button></section>
 }
 
-function CharactersSection({ onComplete }) {
-  const [selected, setSelected] = useState('sheila')
-  const character = inspectorCallsWork.characters.find((item) => item.id === selected)
-  return <section className="book-section character-section"><div className="section-heading"><SectionKicker icon={MessageCircle}>EXPLORE IT</SectionKicker><h2>A character journey you can see.</h2><p>Click a character to compare where they begin with what the play asks them to become.</p></div><div className="character-layout"><div className="character-list">{inspectorCallsWork.characters.map((item) => <button type="button" key={item.id} className={selected === item.id ? 'is-active' : ''} onClick={() => setSelected(item.id)}><span className="character-dot" style={{ background: item.color }} /><span><strong>{item.name}</strong><small>{item.role}</small></span><ArrowRight size={15} /></button>)}</div><div className="character-journey"><div className="journey-labels"><span>{character.start}</span><span>{character.end}</span></div><div className="journey-track"><motion.div className="journey-progress" key={selected} initial={{ width: '8%' }} animate={{ width: selected === 'sheila' ? '83%' : selected === 'inspector' ? '100%' : selected === 'eva' ? '68%' : '22%' }} transition={{ duration: .7 }} /><span className="journey-start" style={{ background: character.color }} /><motion.span className="journey-marker" style={{ background: character.color }} animate={{ left: selected === 'sheila' ? '83%' : selected === 'inspector' ? '100%' : selected === 'eva' ? '68%' : '22%' }} /></div><div className="journey-silhouette"><div className="large-character-head" style={{ background: character.color }} /><div className="large-character-body" style={{ background: character.color }} /><span className="large-character-name">{character.name}</span></div><p className="character-note">{character.note}</p><div className="character-relationship"><span>CONNECTED TO</span><strong>{selected === 'sheila' ? 'Eva · Inspector · responsibility' : selected === 'inspector' ? 'every choice in the room' : selected === 'eva' ? 'the Birlings · the audience' : 'status · certainty · consequence'}</strong></div></div></div><Button onClick={onComplete}>Save this journey <Check size={15} /></Button></section>
-}
-
-function PremiumCharactersSection() {
-  const [selected, setSelected] = useState('sheila')
-  const [panel, setPanel] = useState('journey')
-  const character = inspectorCallsWork.characters.find((item) => item.id === selected)
-  const dossier = characterDossiers[selected]
-  return <section className="book-section character-section character-section-premium">
-    <div className="section-heading split-heading">
-      <div><SectionKicker icon={MessageCircle}>CHARACTERS IN DEPTH / FULL DOSSIERS</SectionKicker><h2>One complete chapter for every person in the play.</h2><p>Unlike the quick visual introduction in Chapter 02, these dossiers follow each person across the full play: decisive actions, relationships, methods, themes and what changes by the final call.</p></div>
-      <div className="character-count"><strong>07</strong><span>connected<br />character studies</span></div>
-    </div>
-    <div className="character-premium-layout">
-      <div className="character-portrait-rail" aria-label="Choose a character">
-        {inspectorCallsWork.characters.map((item) => <button type="button" key={item.id} className={selected === item.id ? 'is-active' : ''} onClick={() => setSelected(item.id)}>
-          <span className="character-thumbnail" style={characterPortraitStyle(item)} />
-          <span><strong>{item.name}</strong><small>{item.role}</small></span>
-        </button>)}
-      </div>
-      <AnimatePresence mode="wait"><motion.div key={selected} className="character-portrait-stage" initial={{ opacity: 0, scale: .985 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
-        <div className="character-portrait-large" style={characterPortraitStyle(character)} />
-        <div className="character-portrait-caption"><span>{character.start}</span><i /><span>{character.end}</span></div>
-      </motion.div></AnimatePresence>
-      <div className="character-dossier">
-        <span className="dossier-label">CHARACTER DOSSIER / {character.role}</span>
-        <h3>{character.name}</h3>
-        <p className="character-overview">{character.overview}</p>
-        <div className="character-panel-tabs">
-          {['journey', 'actions', 'relationships', 'evidence', 'analysis'].map((item) => <button type="button" key={item} className={panel === item ? 'is-active' : ''} onClick={() => setPanel(item)}>{item}</button>)}
-        </div>
-        <AnimatePresence mode="wait"><motion.div key={`${selected}-${panel}`} className="character-panel" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
-          {panel === 'journey' && <div className="character-full-journey"><p className="character-thesis">{dossier.thesis}</p><ol className="character-arc">{dossier.acts.map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, '0')}</span><strong>{item}</strong></li>)}</ol></div>}
-          {panel === 'actions' && <ul className="character-detail-list">{character.actions.map((item) => <li key={item}><Check size={14} />{item}</li>)}</ul>}
-          {panel === 'relationships' && <ul className="character-detail-list">{character.relationships.map((item) => <li key={item}><ArrowRight size={14} />{item}</li>)}</ul>}
-          {panel === 'evidence' && <div className="character-evidence-list">{dossier.keyQuotes.map((quote) => <blockquote key={quote}>{quote}</blockquote>)}</div>}
-          {panel === 'analysis' && <div className="character-analysis-depth"><div className="character-exam-angle"><span>COMPLEXITY</span><p>{dossier.complexity}</p></div><div className="character-exam-angle"><span>PRIESTLEY&apos;S PURPOSE</span><p>{dossier.purpose}</p></div><div className="character-exam-angle"><span>STRONG ANALYSIS FOCUS</span><p>{character.examAngle}</p></div></div>}
-        </motion.div></AnimatePresence>
-        <div className="character-connections"><div><span>METHODS</span><p>{character.methods.map((item) => <button type="button" key={item} onClick={() => setPanel('analysis')}>{item}</button>)}</p></div><div><span>THEMES</span><p>{character.themes.map((item) => <button type="button" key={item} onClick={() => setPanel('relationships')}>{item}</button>)}</p></div></div>
-      </div>
-    </div>
-    <div className="character-footer-note"><span>LOOK ACROSS THE PLAY</span><p>A strong answer explains how the character changes, how Priestley creates that change, and why the audience is asked to notice it.</p></div>
-  </section>
-}
-
 function ResponsibilitySection({ onComplete }) {
   const [theme, setTheme] = useState(inspectorCallsWork.themes[0])
   const [selectedNode, setSelectedNode] = useState('Inspector')
@@ -337,8 +283,6 @@ function InspectorCalls() {
         return <EvaJourneySection onComplete={() => complete('eva')} />
       case 'moments':
         return <KeyMomentsSection onComplete={() => complete('moments')} />
-      case 'characters':
-        return <PremiumCharactersSection />
       case 'themes':
         return <ThemeGuideSection onComplete={() => complete('themes')} />
       case 'methods':
@@ -372,7 +316,6 @@ function InspectorCalls() {
           <div id="literature-play">{renderChapter('play')}</div>
           <div id="literature-eva">{renderChapter('eva')}</div>
           <div id="literature-moments">{renderChapter('moments')}</div>
-          <div id="literature-characters">{renderChapter('characters')}</div>
           <div id="literature-themes">{renderChapter('themes')}</div>
           <div id="literature-methods">{renderChapter('methods')}</div>
           <div id="literature-quotes">{renderChapter('quotes')}</div>

@@ -35,3 +35,7 @@ ui-debug.log
 .env.local
 .env.production.local
 .env.development.local
+
+# Codex / Hyperframes working files
+.agents/
+skills-lock.json

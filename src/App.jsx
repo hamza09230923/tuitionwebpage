@@ -20,6 +20,7 @@ const Courses = lazy(() => import('./pages/Courses'))
 const Package = lazy(() => import('./pages/Package'))
 const Timetable = lazy(() => import('./pages/Timetable'))
 const Resources = lazy(() => import('./pages/Resources'))
+const Books = lazy(() => import('./pages/Books'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const RefundCancellationPolicy = lazy(() => import('./pages/RefundCancellationPolicy'))
 const FAQs = lazy(() => import('./pages/FAQs'))
@@ -109,6 +110,7 @@ function RouteTransition() {
           <Route path="/app/subject/:subjectId/recordings" element={<ProtectedRoute><Recordings /></ProtectedRoute>} />
           <Route path="/app/subject/:subjectId/homework" element={<ProtectedRoute><Homework /></ProtectedRoute>} />
           <Route path="/app/subject/:subjectId/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+          <Route path="/app/subject/:subjectId/books" element={<ProtectedRoute><Books /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>

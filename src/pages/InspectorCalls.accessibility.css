@@ -576,6 +576,54 @@
   color: #fff !important;
 }
 
+/* Hotspots sit on top of the cinematic image. Keep their labels readable on
+   the light buttons instead of inheriting the image's white overlay text. */
+.literature-shell .cinematic-hotspot {
+  align-items: center;
+  background: #fff !important;
+  color: var(--lit-ink) !important;
+  font-size: .82rem !important;
+  line-height: 1.2;
+  max-width: min(13rem, 28vw);
+  min-height: 2.75rem;
+  padding: .55rem .65rem .55rem .8rem !important;
+  text-align: left;
+  white-space: normal !important;
+}
+
+.literature-shell .cinematic-hotspot:hover,
+.literature-shell .cinematic-hotspot.is-active {
+  background: var(--ms-blue) !important;
+  border-color: var(--ms-blue) !important;
+  color: #fff !important;
+}
+
+.literature-shell .cinematic-hotspot:hover > i,
+.literature-shell .cinematic-hotspot.is-active > i {
+  background: #fff !important;
+  color: var(--ms-blue) !important;
+}
+
+.literature-shell .cinematic-hotspot > span {
+  color: var(--lit-ink) !important;
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.literature-shell .cinematic-hotspot > i {
+  flex: 0 0 auto;
+}
+
+.literature-shell .cinematic-hotspot:hover > span,
+.literature-shell .cinematic-hotspot.is-active > span {
+  color: #fff !important;
+}
+
+.literature-shell .explore-moment {
+  z-index: 90;
+}
+
 /* The teaching panel and transcript are light reading surfaces below the dark stage. */
 .literature-shell .cinematic-teaching-panel,
 .literature-shell .cinematic-transcript {
