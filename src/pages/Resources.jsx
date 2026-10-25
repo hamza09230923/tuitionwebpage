@@ -12,6 +12,7 @@ import { getDriveExamResources } from '../utils/driveExamResources'
 import { getChemistryPracticalResources } from '../utils/chemistryPracticalResources'
 import { getPhysicsPracticalResources } from '../utils/physicsPracticalResources'
 import { getBiologyPracticalResources } from '../utils/biologyPracticalResources'
+import { getBiologyNoteResources } from '../utils/biologyNoteResources'
 
 const getHiddenResourceIds = (studentData) => {
   const hiddenIds = Array.isArray(studentData?.hiddenResourceIds)
@@ -113,7 +114,12 @@ function Resources() {
           access.subject,
           access.student?.subjectSettings?.[subjectId]?.examBoard || ''
         )
-        const all = [...subjectResources, ...studentResources, ...examResources, ...practicalResources, ...physicsPracticals, ...biologyPracticals]
+        const biologyNotes = getBiologyNoteResources(
+          access.subject,
+          access.student?.subjectSettings?.[subjectId]?.examBoard || '',
+          import.meta.env.BASE_URL
+        )
+        const all = [...subjectResources, ...studentResources, ...examResources, ...practicalResources, ...physicsPracticals, ...biologyPracticals, ...biologyNotes]
           .filter((r) => !('approvalStatus' in r) || r.approvalStatus === 'approved')
           .filter((r) => matchesStudentMaterialRoute(r, access.student))
           .filter((r) => !isResourceHiddenForStudent(r, access.student))
