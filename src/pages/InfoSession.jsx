@@ -9,6 +9,11 @@ import studentTestimonialVideo from '../testimonials/studentTestimonial.MP4'
 import testimonialVideo3 from '../testimonials/testmonial3.mp4'
 import testimonialVideo4 from '../testimonials/testimonial4.mp4'
 import testimonialVideo5 from '../testimonials/testimonial5.mp4'
+import parentTestimonialPoster from '../testimonials/posters/parent-testimonial.jpg'
+import studentTestimonialPoster from '../testimonials/posters/student-testimonial.jpg'
+import testimonialPoster3 from '../testimonials/posters/testimonial-3.jpg'
+import testimonialPoster4 from '../testimonials/posters/testimonial-4.jpg'
+import testimonialPoster5 from '../testimonials/posters/testimonial-5.jpg'
 import './InfoSession.css'
 
 const TALLY_FORM_ID = import.meta.env.VITE_TALLY_INFO_SESSION_FORM_ID || 'WJ2E8k'
@@ -17,10 +22,10 @@ const PAGE_TITLE = 'Book Your GCSE Trial Lesson | MySchola'
 const PAGE_DESCRIPTION = 'Book a free GCSE trial lesson to see how MySchola can help your child build confidence and improve grades.'
 
 const videoTestimonials = [
-  { src: studentTestimonialVideo, label: 'Student testimonial', caption: 'What learning with MySchola feels like' },
-  { src: testimonialVideo5, label: 'Labib', caption: 'English Literature progress' },
-  { src: testimonialVideo4, label: 'Mia', caption: 'English Literature progress' },
-  { src: testimonialVideo3, label: 'Eyaad', caption: 'Physics progress' },
+  { src: studentTestimonialVideo, poster: studentTestimonialPoster, label: 'Student testimonial', caption: 'What learning with MySchola feels like' },
+  { src: testimonialVideo5, poster: testimonialPoster5, label: 'Labib', caption: 'English Literature progress' },
+  { src: testimonialVideo4, poster: testimonialPoster4, label: 'Mia', caption: 'English Literature progress' },
+  { src: testimonialVideo3, poster: testimonialPoster3, label: 'Eyaad', caption: 'Physics progress' },
 ]
 
 function BookingButton({ children, className = '', onOpen }) {
@@ -102,7 +107,7 @@ function InfoSession() {
           <div className="info-session-hero-video" aria-label="Parent testimonial video">
             <div className="hero-video-top"><span>REAL FAMILY EXPERIENCE</span><b>Parent testimonial</b></div>
             <div className="hero-video-frame">
-              <video controls playsInline preload="auto">
+              <video controls playsInline preload="metadata" poster={parentTestimonialPoster}>
                 <source src={parentTestimonialVideo} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
@@ -123,7 +128,7 @@ function InfoSession() {
         </div>
         <div className="info-session-video-grid">
           {videoTestimonials.map((video) => <article className="info-session-video-card" key={video.label} aria-label={video.label}>
-            <div className="video-frame"><video controls playsInline preload="metadata"><source src={video.src} type="video/mp4" />Your browser does not support the video tag.</video></div>
+            <div className="video-frame"><video controls playsInline preload="metadata" poster={video.poster}><source src={video.src} type="video/mp4" />Your browser does not support the video tag.</video></div>
           </article>)}
         </div>
         <div className="info-session-inline-cta info-session-inline-cta-centered">
