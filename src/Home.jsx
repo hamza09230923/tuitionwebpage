@@ -215,6 +215,13 @@ function Home() {
             <div className="flex items-center justify-end">
               <div className="hidden md:flex nav-actions">
                 <Link
+                  to="/info-session?utm_source=website&utm_medium=header"
+                  className="nav-info-session"
+                  aria-label="Book a free parent information session"
+                >
+                  Book a Free Session
+                </Link>
+                <Link
                   to="/login"
                   className="nav-login"
                   aria-label="Log in"
@@ -257,6 +264,13 @@ function Home() {
               <a href="#subjects" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Subjects</a>
               <a href="#testimonials" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">Testimonials</a>
               <Link to="/faqs" className="block px-3 py-2 text-gray-700 hover:bg-gray-50" role="menuitem">FAQ</Link>
+              <Link
+                to="/info-session?utm_source=website&utm_medium=header"
+                className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                role="menuitem"
+              >
+                Book a Free Session
+              </Link>
               <Link
                 to="/login"
                 className="block px-3 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -305,11 +319,11 @@ function Home() {
                 Book a Free Consultation
                 <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
               </button>
-              <Link
-                to="/courses"
+                <Link
+                to="/package"
                 className="bg-white text-blue-700 border-2 border-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-blue-50 transition inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 min-h-[44px]"
               >
-                View GCSE Courses
+                Explore Our Tuition Packages
               </Link>
             </div>
             <p className="mt-6 text-sm text-gray-600">Free consultation available. No card required.</p>
@@ -627,7 +641,7 @@ function Home() {
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Link to="/courses" className="inline-flex items-center font-semibold text-blue-700 hover:text-blue-900">View GCSE Courses <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" /></Link>
+                    <Link to="/package" className="inline-flex items-center font-semibold text-blue-700 hover:text-blue-900">See Our Tuition Packages <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" /></Link>
           </div>
         </div>
       </DeferredSection>

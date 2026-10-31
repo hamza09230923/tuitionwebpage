@@ -27,6 +27,7 @@ const FAQs = lazy(() => import('./pages/FAQs'))
 const Careers = lazy(() => import('./pages/Careers'))
 const EnglishTeacher = lazy(() => import('./pages/EnglishTeacher'))
 const InspectorCalls = lazy(() => import('./pages/InspectorCalls'))
+const InfoSession = lazy(() => import('./pages/InfoSession'))
 
 const WEBINAR_ROUTE = '/book-strategy-call'
 const WEBINAR_THANKS_ROUTE = '/book-strategy-call/thanks'
@@ -47,6 +48,7 @@ const ROUTE_TITLES = {
   '/english-teacher': 'English Teacher Vacancy | MySchola',
   '/app/dashboard': 'Student dashboard | MySchola',
   '/app/literature/an-inspector-calls': 'An Inspector Calls | MySchola',
+  '/info-session': 'Free GCSE Parent Information Session | MySchola',
 }
 
 function getDocumentTitle(pathname) {
@@ -107,6 +109,7 @@ function RouteTransition() {
           <Route path="/english-teacher" element={<EnglishTeacher />} />
           <Route path="/app/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
           <Route path="/app/literature/an-inspector-calls" element={<ProtectedRoute><InspectorCalls /></ProtectedRoute>} />
+          <Route path="/info-session" element={<InfoSession />} />
           <Route path="/app/subject/:subjectId/recordings" element={<ProtectedRoute><Recordings /></ProtectedRoute>} />
           <Route path="/app/subject/:subjectId/homework" element={<ProtectedRoute><Homework /></ProtectedRoute>} />
           <Route path="/app/subject/:subjectId/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />

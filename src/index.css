@@ -297,11 +297,12 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .nav-links a:hover, .nav-links a.active { color: var(--ms-blue); }
 .nav-actions { align-items: center; justify-content: flex-end; gap: .75rem; }
 .nav-actions > div { display: flex; align-items: center; gap: .75rem; }
-.nav-login, .nav-whatsapp { display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; border-radius: .8rem; padding: .65rem 1.1rem; font-size: .95rem; font-weight: 700; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
+.nav-login, .nav-whatsapp, .nav-info-session { display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; border-radius: .8rem; padding: .65rem 1.1rem; font-size: .95rem; font-weight: 700; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
+.nav-info-session { color: #fff; background: var(--ms-blue); box-shadow: 0 8px 20px rgba(20,93,255,.2); }
 .nav-login { color: var(--ms-ink); border: 1px solid var(--ms-line); background: #fff; }
 .nav-whatsapp { gap: .45rem; color: #fff; background: #10a56a; box-shadow: 0 8px 20px rgba(16,165,106,.2); }
 .nav-whatsapp svg { width: 1.1rem; height: 1.1rem; }
-.nav-login:hover, .nav-whatsapp:hover { transform: translateY(-2px); }
+.nav-login:hover, .nav-whatsapp:hover, .nav-info-session:hover { transform: translateY(-2px); }
 .mobile-menu { border-top: 1px solid var(--ms-line); background: #fff; }
 .mobile-menu > div { display: grid; gap: .35rem; padding: .75rem 1rem 1rem; }
 .mobile-menu a { display: block; padding: .75rem .8rem; border-radius: .6rem; color: #344760; font-size: 1rem; font-weight: 600; text-decoration: none; }

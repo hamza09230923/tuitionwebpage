@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root { --navy:#0d2b52; --ink:#10233f; --blue:#2563eb; --cyan:#38bdf8; --green:#087a52; --line:#d7e5f7; --muted:#65788f; --bg:#f7faff; }
+      * { box-sizing:border-box; }
+      html, body { margin:0; width:1920px; height:1080px; overflow:hidden; background:var(--bg); font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--ink); }
+      #root { width:100%; height:100%; position:relative; overflow:hidden; background:var(--bg); }
+      .scene { position:absolute; inset:0; opacity:0; overflow:hidden; }
+      .scene.dark { background:var(--navy); color:#fff; }
+      .scene.white { background:#fff; }
+      .wash { position:absolute; inset:-20%; background:radial-gradient(circle at 74% 18%, rgba(56,189,248,.24), transparent 30%), radial-gradient(circle at 18% 80%, rgba(37,99,235,.18), transparent 34%); opacity:.8; }
+      .container { width:1480px; margin:0 auto; position:relative; height:100%; }
+      .eyebrow { text-transform:uppercase; letter-spacing:.18em; font-size:18px; font-weight:800; color:#79c7ff; }
+      .eyebrow.dark { color:var(--blue); }
+      h1,h2,h3,p { margin:0; }
+      h1 { font-size:86px; line-height:1.02; letter-spacing:-.045em; font-weight:800; max-width:1040px; }
+      h2 { font-size:64px; line-height:1.03; letter-spacing:-.04em; font-weight:800; }
+      .sub { margin-top:28px; font-size:26px; line-height:1.42; color:#d6e6fb; max-width:720px; }
+      .sub.dark { color:var(--muted); }
+      .brand { display:flex; align-items:center; gap:14px; font-size:28px; font-weight:800; letter-spacing:-.03em; }
+      .brand-mark { width:46px; height:46px; border-radius:14px; background:var(--blue); display:grid; place-items:center; color:#fff; font-size:26px; box-shadow:0 10px 24px rgba(37,99,235,.25); }
+      .hero-copy { position:absolute; left:0; top:245px; }
+      .hero-copy .brand { margin-bottom:55px; }
+      .line { margin-top:42px; width:620px; height:3px; background:rgba(255,255,255,.16); overflow:hidden; }
+      .line i { display:block; width:0; height:100%; background:#8bd8ff; }
+      .browser { position:absolute; right:-80px; top:185px; width:790px; height:590px; border:1px solid #cfe0f4; border-radius:28px; background:#fff; box-shadow:0 45px 120px rgba(5,24,56,.25); overflow:hidden; transform:rotate(-2deg); }
+      .browser-top { height:50px; display:flex; align-items:center; gap:8px; padding:0 20px; border-bottom:1px solid #e8eef7; background:#fbfdff; }
+      .dot { width:9px; height:9px; border-radius:50%; background:#c7d5e6; }
+      .browser-content { padding:42px; }
+      .mini-brand { color:var(--ink); font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px; }
+      .mini-brand b { width:24px; height:24px; border-radius:8px; display:grid; place-items:center; color:white; background:var(--blue); font-size:14px; }
+      .hero-card { margin-top:42px; display:grid; grid-template-columns:1.12fr .88fr; gap:24px; }
+      .hero-title { font-size:44px; line-height:1.04; font-weight:800; letter-spacing:-.04em; color:var(--ink); }
+      .hero-title span { color:var(--blue); }
+      .hero-desc { margin-top:18px; color:var(--muted); font-size:16px; line-height:1.45; }
+      .progress-card { padding:24px; border:1px solid #dce9f7; border-radius:18px; background:#f7fbff; }
+      .progress-card small { color:var(--muted); font-weight:700; }
+      .progress-card strong { display:block; margin-top:12px; font-size:28px; }
+      .progress-bar { height:10px; border-radius:10px; background:#dce6f3; overflow:hidden; margin-top:24px; }
+      .progress-bar span { display:block; width:76%; height:100%; background:linear-gradient(90deg,var(--blue),var(--cyan)); }
+      .cta { display:inline-flex; padding:16px 24px; border-radius:12px; color:#fff; background:var(--blue); font-size:18px; font-weight:800; margin-top:26px; box-shadow:0 12px 24px rgba(37,99,235,.24); }
+      .soft-cta { display:inline-flex; padding:16px 24px; border:2px solid var(--blue); border-radius:12px; color:var(--blue); font-size:18px; font-weight:800; margin-top:26px; }
+      .floating-label { position:absolute; padding:15px 18px; border-radius:13px; background:#fff; border:1px solid #d8e6f6; box-shadow:0 18px 36px rgba(13,43,82,.14); font-size:18px; font-weight:800; color:var(--ink); }
+      .float-1 { right:30px; top:95px; }
+      .float-2 { left:-42px; bottom:110px; }
+      .course-layout { padding-top:150px; }
+      .course-layout h2 { max-width:850px; }
+      .course-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:62px; }
+      .course { min-height:360px; padding:34px; border:1px solid var(--line); border-radius:24px; background:#fff; box-shadow:0 24px 55px rgba(13,43,82,.10); position:relative; overflow:hidden; }
+      .course:after { content:""; position:absolute; width:210px; height:210px; border-radius:50%; right:-70px; bottom:-80px; background:rgba(37,99,235,.08); }
+      .course.blue { border-top:7px solid #2563eb; } .course.red { border-top:7px solid #ef4444; } .course.green { border-top:7px solid #10a56a; }
+      .course h3 { font-size:34px; letter-spacing:-.03em; } .course p { color:var(--muted); font-size:20px; line-height:1.4; margin-top:18px; }
+      .pill-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:38px; } .pill { padding:9px 13px; border-radius:999px; background:#edf5ff; color:var(--blue); font-size:14px; font-weight:800; }
+      .timetable { padding-top:120px; } .timetable h2 { max-width:760px; }
+      .calendar { margin-top:42px; border-radius:22px; border:1px solid #d6e2f0; overflow:hidden; background:#fff; box-shadow:0 28px 65px rgba(13,43,82,.14); }
+      .calendar-head { display:flex; justify-content:space-between; align-items:center; padding:23px 28px; border-bottom:1px solid #e5edf7; } .calendar-head strong { font-size:23px; } .legend { display:flex; gap:22px; color:var(--muted); font-size:15px; font-weight:800; } .legend i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:7px; } .legend .m i { background:#2563eb; } .legend .e i { background:#ef4444; } .legend .s i { background:#10a56a; }
+      .week { display:grid; grid-template-columns:repeat(7,1fr); } .day { min-height:285px; border-right:1px solid #e5edf7; } .day:last-child { border-right:0; } .day-name { padding:16px 12px; text-align:center; color:var(--muted); font-weight:800; text-transform:uppercase; font-size:13px; background:#f8fbff; border-bottom:1px solid #e5edf7; } .lesson { margin:14px 10px; padding:15px; border-radius:12px; color:#fff; font-weight:800; font-size:17px; line-height:1.2; box-shadow:0 8px 14px rgba(13,43,82,.12); } .lesson small { display:block; font-size:13px; opacity:.85; margin-top:8px; } .lesson.maths { background:#2563eb; } .lesson.english { background:#ef4444; } .lesson.science { background:#10a56a; }
+      .selected { position:absolute; right:32px; bottom:82px; width:450px; padding:22px; border-radius:18px; background:#fff; box-shadow:0 28px 55px rgba(13,43,82,.2); border:2px solid #bdd6fa; } .selected small { color:var(--muted); text-transform:uppercase; font-weight:800; letter-spacing:.1em; } .selected strong { display:block; font-size:28px; margin-top:10px; } .selected .meta { display:flex; gap:14px; margin-top:16px; color:var(--muted); font-size:15px; font-weight:700; }
+      .dashboard { padding-top:120px; } .dashboard h2 { max-width:850px; } .dash-shell { margin-top:42px; display:grid; grid-template-columns:270px 1fr; height:580px; background:#fff; border-radius:25px; border:1px solid #dce8f5; overflow:hidden; box-shadow:0 28px 65px rgba(13,43,82,.14); } .side { background:#f5f9ff; padding:28px; border-right:1px solid #e1ebf7; } .side h3 { font-size:20px; } .side a { display:block; margin-top:30px; color:var(--muted); font-weight:700; } .side a.active { color:var(--blue); } .dash-main { padding:35px; } .dash-main h3 { font-size:30px; } .dash-sub { color:var(--muted); margin-top:7px; } .dash-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:30px; } .dash-card { border:1px solid #dce8f5; border-radius:17px; padding:20px; min-height:178px; background:#fbfdff; } .dash-card .icon { width:36px; height:36px; border-radius:11px; background:#eaf3ff; color:var(--blue); display:grid; place-items:center; font-weight:900; } .dash-card strong { display:block; margin-top:22px; font-size:21px; } .dash-card p { color:var(--muted); margin-top:7px; font-size:15px; line-height:1.3; } .dash-table { margin-top:24px; border-top:1px solid #e4edf7; padding-top:20px; display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:10px; color:var(--muted); font-weight:700; } .dash-table b { color:var(--ink); }
+      .support { padding-top:155px; } .support h2 { max-width:980px; } .support-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:60px; } .support-card { padding:26px; min-height:220px; border-radius:20px; border:1px solid #d7e5f7; background:#fff; box-shadow:0 18px 38px rgba(13,43,82,.08); } .support-card .icon { width:44px; height:44px; border-radius:13px; display:grid; place-items:center; background:#edf5ff; color:var(--blue); font-size:21px; font-weight:900; } .support-card strong { display:block; margin-top:24px; font-size:21px; } .support-card p { margin-top:10px; color:var(--muted); line-height:1.35; }
+      .progress-scene { padding-top:165px; } .progress-scene h2 { max-width:950px; } .progress-layout { margin-top:58px; display:grid; grid-template-columns:1fr 1fr; gap:30px; align-items:center; } .progress-panel { padding:36px; background:#fff; border-radius:25px; border:1px solid #dce8f5; box-shadow:0 25px 60px rgba(13,43,82,.13); } .progress-row { display:flex; justify-content:space-between; padding:18px 0; border-bottom:1px solid #e8eef7; font-size:20px; } .progress-row:last-child { border:0; } .progress-row span { color:var(--muted); } .progress-row b { color:var(--green); } .quote { font-size:49px; line-height:1.08; letter-spacing:-.04em; font-weight:800; color:var(--navy); }
+      .outro { display:flex; align-items:center; justify-content:center; text-align:center; } .outro .brand { justify-content:center; font-size:38px; } .outro h2 { margin-top:38px; max-width:1000px; } .outro .cta { margin-top:36px; font-size:22px; } .outro .small { margin-top:16px; color:#6a7b91; font-size:18px; }
+      [data-start] { will-change:transform,opacity; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="60" data-width="1920" data-height="1080">
+      <audio id="bg-music" data-start="0" data-duration="60" data-track-index="10" data-volume="0.22" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
+      <audio id="voiceover" data-start="0" data-duration="50.3" data-track-index="11" data-volume="1" src="assets/voiceover.wav"></audio>
+      <section id="scene-opening" class="scene dark clip" data-start="0" data-duration="6" data-track-index="0"><div class="wash" data-layout-allow-overflow="true"></div><div class="container"><div class="hero-copy"><div class="brand"><span class="brand-mark">M</span>MySchola</div><div class="eyebrow">A better rhythm for GCSE learning</div><h1 style="margin-top:22px">GCSE success is built week by week.</h1><div class="line"><i id="opening-line"></i></div></div></div></section>
+      <section id="scene-promise" class="scene white clip" data-start="6" data-duration="8" data-track-index="1"><div class="container"><div style="padding-top:140px"><div class="eyebrow dark">Online GCSE tuition for Years 9–11</div><h2 style="margin-top:22px;max-width:920px">Close gaps. Build confidence. <span style="color:var(--blue)">Improve grades.</span></h2><p class="sub dark">Small-group Maths, English and Science tuition, built around exam technique, weekly structure and clear parent feedback.</p><div class="cta">Book a Free Consultation</div><div class="soft-cta" style="margin-left:14px">View GCSE Courses</div></div><div class="browser"><div class="browser-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><div class="browser-content"><div class="mini-brand"><b>M</b> MySchola</div><div class="hero-card"><div><div class="hero-title">GCSE tuition that helps students <span>improve grades</span></div><div class="hero-desc">Weekly structure, exam practice and support that carries on between lessons.</div></div><div class="progress-card"><small>Progress tracking</small><strong>Weekly</strong><div class="progress-bar"><span></span></div></div></div></div></div><div class="floating-label float-1">Free consultation · No card required</div></div></section>
+      <section class="scene white clip" data-start="14" data-duration="9" data-track-index="2"><div class="container course-layout"><div class="eyebrow dark">One learning system. The subjects that matter.</div><h2 style="margin-top:22px">A clearer path through the GCSE years.</h2><div class="course-grid"><div class="course blue"><h3>Maths</h3><p>Topic gaps, problem solving and exam questions for Foundation and Higher students.</p><div class="pill-row"><span class="pill">Exam technique</span><span class="pill">AQA · Edexcel · OCR</span></div></div><div class="course red"><h3>English</h3><p>Reading, analysis, essay technique and confident writing for Language and Literature.</p><div class="pill-row"><span class="pill" style="color:#d92b2b;background:#fff0f0">Language</span><span class="pill" style="color:#d92b2b;background:#fff0f0">Literature</span></div></div><div class="course green"><h3>Science</h3><p>Biology, Chemistry and Physics taught with clarity, application and relevant exam practice.</p><div class="pill-row"><span class="pill" style="color:#11845b;background:#e8fbf2">Combined</span><span class="pill" style="color:#11845b;background:#e8fbf2">Triple Science</span></div></div></div></div></section>
+      <section class="scene white clip" data-start="23" data-duration="9" data-track-index="3"><div class="container timetable"><div class="eyebrow dark">Weekly live lesson schedule</div><h2 style="margin-top:20px">Your GCSE Learning Timetable</h2><div class="calendar"><div class="calendar-head"><strong>September cohort · Weekly schedule</strong><div class="legend"><span class="m"><i></i>Maths</span><span class="e"><i></i>English</span><span class="s"><i></i>Science</span></div></div><div class="week"><div class="day"><div class="day-name">Mon</div><div class="lesson maths">Maths<small>17:00–18:00</small></div></div><div class="day"><div class="day-name">Tue</div><div class="lesson english">English<small>18:00–19:00</small></div></div><div class="day"><div class="day-name">Wed</div><div class="lesson science">Science<small>17:00–18:00</small></div></div><div class="day"><div class="day-name">Thu</div><div class="lesson maths">Maths<small>18:00–19:00</small></div></div><div class="day"><div class="day-name">Fri</div></div><div class="day"><div class="day-name">Sat</div><div class="lesson english">English<small>10:00–11:00</small></div></div><div class="day"><div class="day-name">Sun</div><div class="lesson science">Science<small>11:00–12:00</small></div></div></div></div><div class="selected"><small>Selected lesson</small><strong>Maths · Higher</strong><div class="meta"><span>Thursday</span><span>18:00–19:00</span><span>AQA</span></div></div></div></section>
+      <section class="scene white clip" data-start="32" data-duration="10" data-track-index="4"><div class="container dashboard"><div class="eyebrow dark">The student experience</div><h2 style="margin-top:20px">Everything students need, in one place.</h2><div class="dash-shell"><aside class="side"><div class="mini-brand"><b>M</b> MySchola</div><a class="active">Dashboard</a><a>Timetable</a><a>Homework</a><a>Recordings</a><a>Support</a></aside><div class="dash-main"><h3>MySchola Student Dashboard</h3><div class="dash-sub">Select a subject to join Zoom sessions, watch recordings, or download homework.</div><div class="dash-cards"><div class="dash-card"><div class="icon">↗</div><strong>Join Zoom</strong><p>Join your next live lesson.</p></div><div class="dash-card"><div class="icon">▶</div><strong>View recordings</strong><p>Revisit the latest lesson.</p></div><div class="dash-card"><div class="icon">✓</div><strong>View homework</strong><p>Keep your next step clear.</p></div></div><div class="dash-table"><b>Next lesson</b><b>Latest recording</b><b>Homework</b><span>Maths · Thursday</span><span>Algebraic fractions</span><span>Due Friday</span></div></div></div></div></section>
+      <section class="scene white clip" data-start="42" data-duration="8" data-track-index="5"><div class="container support"><div class="eyebrow dark">Support between lessons</div><h2 style="margin-top:20px">Learning does not end when the lesson does.</h2><div class="support-grid"><div class="support-card"><div class="icon">▶</div><strong>Recordings</strong><p>Watch past lessons when a difficult topic needs another look.</p></div><div class="support-card"><div class="icon">✓</div><strong>Homework</strong><p>Practise the ideas while they are still fresh.</p></div><div class="support-card"><div class="icon">↗</div><strong>Tutor feedback</strong><p>See what is improving and what to try next.</p></div><div class="support-card"><div class="icon">◌</div><strong>Parent updates</strong><p>Clear communication about attendance, strengths and priorities.</p></div></div></div></section>
+      <section class="scene white clip" data-start="50" data-duration="6" data-track-index="6"><div class="container progress-scene"><div class="eyebrow dark">A clear GCSE support system for students and parents</div><h2 style="margin-top:20px">Progress becomes something you can see.</h2><div class="progress-layout"><div class="progress-panel"><div class="progress-row"><span>What is improving</span><b>Confidence ↗</b></div><div class="progress-row"><span>What needs attention</span><b style="color:#2563eb">Algebra</b></div><div class="progress-row"><span>What comes next</span><b>Weekly practice</b></div></div><div class="quote">“Confidence is not a single moment. It is what happens when the right support shows up consistently.”</div></div></div></section>
+      <section class="scene white outro clip" data-start="56" data-duration="4" data-track-index="7"><div><div class="brand"><span class="brand-mark">M</span>MySchola</div><h2>Close gaps. Build confidence. <span style="color:var(--blue)">Improve grades.</span></h2><div class="cta">Book a free consultation</div><div class="small">No card required.</div></div></section>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const scenes = document.querySelectorAll('.scene');
+      scenes.forEach((scene) => {
+        const start = Number(scene.dataset.start);
+        const duration = Number(scene.dataset.duration);
+        tl.set(scene, { opacity: 1 }, start);
+        tl.to(scene, { opacity: 0, duration: 0.65, ease: 'power2.inOut' }, start + duration - 0.65);
+        const content = scene.querySelectorAll(':scope > .container, :scope > div:not(.wash)');
+        content.forEach((el) => tl.fromTo(el, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, start + 0.15));
+      });
+      tl.fromTo('#opening-line', { width: '0%' }, { width: '100%', duration: 3.4, ease: 'power2.out' }, 1.3);
+      tl.fromTo('.browser', { x: 80, rotate: -5 }, { x: 0, rotate: -2, duration: 1.2, ease: 'power3.out' }, 6.4);
+      tl.fromTo('.course', { y: 45, opacity: 0 }, { y: 0, opacity: 1, duration: .8, stagger: .28, ease:'power3.out' }, 14.45);
+      tl.fromTo('.lesson', { scale: .86, opacity: 0 }, { scale: 1, opacity: 1, duration: .45, stagger: .12, ease:'back.out(1.7)' }, 23.6);
+      tl.fromTo('.selected', { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: .8, ease:'power3.out' }, 29.7);
+      tl.fromTo('.dash-card', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: .65, stagger: .18, ease:'power3.out' }, 33.8);
+      tl.fromTo('.support-card', { y: 35, opacity: 0 }, { y: 0, opacity: 1, duration: .65, stagger: .18, ease:'power3.out' }, 43.2);
+      tl.fromTo('.progress-panel', { x: -45, opacity: 0 }, { x: 0, opacity: 1, duration: .85, ease:'power3.out' }, 50.5);
+      tl.fromTo('.quote', { x: 45, opacity: 0 }, { x: 0, opacity: 1, duration: .85, ease:'power3.out' }, 50.7);
+      window.__timelines['main'] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
