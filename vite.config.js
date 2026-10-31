@@ -111,6 +111,12 @@ const LEGAL_ROUTES = [
 // crawler can receive a real 200 response without depending on JavaScript.
 const MARKETING_ROUTES = [
   {
+    path: 'info-session',
+    title: 'Free GCSE Parent Information Session | MySchola',
+    description: 'Book a free MySchola GCSE trial lesson and learn how structured live tuition, homework and parent updates can help your child make progress.',
+    fallback: '<main class="seo-fallback" data-page="info-session"><h1>Free GCSE Parent Information Session</h1><p>Book a MySchola trial lesson to discuss your child\'s GCSE support, current gaps and the most suitable next step.</p><p><a href="/booking">Book your trial lesson</a> to speak with the MySchola team.</p></main>',
+  },
+  {
     path: 'courses',
     title: 'GCSE Courses | MySchola',
     description: 'Explore MySchola GCSE courses for Year 9, Year 10 and Year 11 students across Maths, English and Science.',
