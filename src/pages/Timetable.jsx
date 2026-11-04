@@ -98,20 +98,20 @@ const septemberScheduleData = [
   {
     day: 'Wednesday',
     status: 'active',
+    subject: 'English Language',
+    time: '6:00 PM - 7:00 PM',
+    board: 'AQA',
+    level: 'Foundation & Higher',
+    color: 'bg-red-500'
+  },
+  {
+    day: 'Wednesday',
+    status: 'active',
     subject: 'Biology',
     time: '7:15 PM - 8:15 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Higher Tier',
     color: 'bg-green-500'
-  },
-  {
-    day: 'Monday',
-    status: 'active',
-    subject: 'Mathematics',
-    time: '6:00 PM - 7:00 PM',
-    board: 'Edexcel',
-    level: 'Foundation Tier',
-    color: 'bg-blue-500'
   },
   {
     day: 'Monday',
@@ -139,15 +139,6 @@ const septemberScheduleData = [
     board: 'AQA, Edexcel & OCR',
     level: 'Foundation Tier',
     color: 'bg-green-500'
-  },
-  {
-    day: 'Wednesday',
-    status: 'active',
-    subject: 'English Language',
-    time: '6:00 PM - 7:00 PM',
-    board: 'AQA',
-    level: 'Foundation & Higher',
-    color: 'bg-red-500'
   },
   {
     day: 'Thursday',
