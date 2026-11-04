@@ -67,10 +67,10 @@ const getTierLabel = (entry) => {
 // September Timetable (Academic Year)
 const septemberScheduleData = [
   {
-    day: 'Monday',
+    day: 'Wednesday',
     status: 'active',
     subject: 'Biology',
-    time: '6:00 PM - 7:00 PM',
+    time: '7:15 PM - 8:15 PM',
     board: 'AQA, Edexcel & OCR',
     level: 'Higher Tier',
     color: 'bg-green-500'
