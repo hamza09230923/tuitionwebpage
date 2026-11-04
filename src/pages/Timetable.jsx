@@ -116,6 +116,15 @@ const septemberScheduleData = [
   {
     day: 'Monday',
     status: 'active',
+    subject: 'Mathematics',
+    time: '6:00 PM - 7:00 PM',
+    board: 'Edexcel',
+    level: 'Foundation Tier',
+    color: 'bg-blue-500'
+  },
+  {
+    day: 'Monday',
+    status: 'active',
     subject: 'Physics',
     time: '7:25 PM - 8:25 PM',
     board: 'AQA, Edexcel & OCR',
