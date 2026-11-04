@@ -1,14 +1,9 @@
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /app/
-Disallow: /login
-Disallow: /payment-success
-Disallow: /booking-success
-Disallow: /book-strategy-call/thanks
-Disallow: /webinar/thanks
+Disallow: /dashboard
 
 Sitemap: https://myschola.uk/sitemap.xml
+Sitemap: https://www.myschola.uk/sitemap.xml
 
 
 
