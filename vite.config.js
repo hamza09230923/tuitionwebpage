@@ -154,6 +154,18 @@ const MARKETING_ROUTES = [
   },
 ]
 
+// GitHub Pages needs a directory entry for direct navigation to the
+// client-side login route. Vite's dev server handles this fallback for us,
+// but static hosting does not.
+const AUTH_ROUTES = [
+  {
+    path: 'login',
+    title: 'Log in | MySchola',
+    description: 'Log in to your MySchola student account.',
+    fallback: '<main class="seo-fallback" data-page="login"><h1>Log in to MySchola</h1><p>Sign in to access your MySchola student account.</p></main>',
+  },
+]
+
 function buildStaticRouteHtml(indexHtml, route) {
   const canonicalUrl = `https://myschola.uk/${route.path}/`
   return indexHtml
@@ -202,6 +214,11 @@ function githubPagesSpaPlugin() {
           writeFileSync(join(routeDir, 'index.html'), buildStaticRouteHtml(readFileSync(indexPath, 'utf8'), route))
         })
         MARKETING_ROUTES.forEach((route) => {
+          const routeDir = join(outDir, route.path)
+          mkdirSync(routeDir, { recursive: true })
+          writeFileSync(join(routeDir, 'index.html'), buildStaticRouteHtml(readFileSync(indexPath, 'utf8'), route))
+        })
+        AUTH_ROUTES.forEach((route) => {
           const routeDir = join(outDir, route.path)
           mkdirSync(routeDir, { recursive: true })
           writeFileSync(join(routeDir, 'index.html'), buildStaticRouteHtml(readFileSync(indexPath, 'utf8'), route))
